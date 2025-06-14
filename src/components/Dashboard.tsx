@@ -9,7 +9,8 @@ import {
   Calendar,
   DollarSign,
   CreditCard,
-  PiggyBank
+  PiggyBank,
+  Wallet
 } from "lucide-react";
 import { useState } from "react";
 import { ContasPagar } from "./modules/ContasPagar";
@@ -17,6 +18,7 @@ import { ContasReceber } from "./modules/ContasReceber";
 import { Comercial } from "./modules/Comercial";
 import { Relatorios } from "./modules/Relatorios";
 import { DRE } from "./modules/DRE";
+import { Caixa } from "./modules/Caixa";
 
 export function Dashboard() {
   const [activeModule, setActiveModule] = useState("dashboard");
@@ -34,6 +36,8 @@ export function Dashboard() {
 
   const renderActiveModule = () => {
     switch (activeModule) {
+      case "caixa":
+        return <Caixa />;
       case "contas-pagar":
         return <ContasPagar />;
       case "contas-receber":
@@ -150,6 +154,14 @@ export function Dashboard() {
               <Button 
                 variant="outline" 
                 className="h-20 flex flex-col items-center justify-center space-y-2"
+                onClick={() => setActiveModule("caixa")}
+              >
+                <Wallet className="h-6 w-6" />
+                <span className="text-sm">Controle de Caixa</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center space-y-2"
                 onClick={() => setActiveModule("contas-pagar")}
               >
                 <CreditCard className="h-6 w-6" />
@@ -162,14 +174,6 @@ export function Dashboard() {
               >
                 <PiggyBank className="h-6 w-6" />
                 <span className="text-sm">Nova Conta a Receber</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center space-y-2"
-                onClick={() => setActiveModule("comercial")}
-              >
-                <TrendingUp className="h-6 w-6" />
-                <span className="text-sm">Nova Proposta</span>
               </Button>
               <Button 
                 variant="outline" 
@@ -233,6 +237,7 @@ export function Dashboard() {
       <div className="flex flex-wrap gap-2 p-4 bg-white rounded-lg shadow-sm border">
         {[
           { id: "dashboard", label: "Dashboard", icon: DollarSign },
+          { id: "caixa", label: "Caixa", icon: Wallet },
           { id: "contas-pagar", label: "Contas a Pagar", icon: CreditCard },
           { id: "contas-receber", label: "Contas a Receber", icon: PiggyBank },
           { id: "comercial", label: "Comercial", icon: TrendingUp },

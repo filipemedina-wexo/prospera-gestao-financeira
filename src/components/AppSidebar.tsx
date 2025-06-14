@@ -7,7 +7,8 @@ import {
   PiggyBank,
   BarChart3,
   Settings,
-  Home
+  Home,
+  Wallet
 } from "lucide-react";
 import {
   Sidebar,
@@ -27,6 +28,11 @@ const menuItems = [
     title: "Dashboard",
     icon: Home,
     id: "dashboard",
+  },
+  {
+    title: "Caixa",
+    icon: Wallet,
+    id: "caixa",
   },
   {
     title: "Contas a Pagar",
