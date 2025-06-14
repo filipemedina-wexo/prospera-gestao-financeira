@@ -1,4 +1,3 @@
-
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Dashboard } from "@/components/Dashboard";
@@ -10,6 +9,7 @@ import { Relatorios } from "@/components/modules/Relatorios";
 import { DRE } from "@/components/modules/DRE";
 import { ProdutosServicos } from "@/components/modules/ProdutosServicos";
 import { Configuracoes } from "@/components/modules/Configuracoes";
+import { CRM } from "@/components/modules/CRM";
 import { useState } from "react";
 
 const Index = () => {
@@ -33,6 +33,8 @@ const Index = () => {
         return <DRE />;
       case "configuracoes":
         return <Configuracoes />;
+      case "crm":
+        return <CRM />;
       default:
         return <Dashboard />;
     }

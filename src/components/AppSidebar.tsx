@@ -1,4 +1,3 @@
-
 import {
   Calendar,
   FileText,
@@ -9,7 +8,8 @@ import {
   Settings,
   Home,
   Wallet,
-  Package
+  Package,
+  Users
 } from "lucide-react";
 import {
   Sidebar,
@@ -69,6 +69,11 @@ const menuItems = [
     title: "Configurações",
     icon: Settings,
     id: "configuracoes",
+  },
+  {
+    title: "CRM",
+    icon: Users,
+    id: "crm",
   },
 ];
 
