@@ -8,6 +8,8 @@ import { Caixa } from "@/components/modules/Caixa";
 import { Comercial } from "@/components/modules/Comercial";
 import { Relatorios } from "@/components/modules/Relatorios";
 import { DRE } from "@/components/modules/DRE";
+import { Configuracoes } from "@/components/modules/Configuracoes";
+import { ProdutosServicos } from "@/components/modules/ProdutosServicos";
 import { useState } from "react";
 
 const Index = () => {
@@ -23,10 +25,14 @@ const Index = () => {
         return <ContasReceber />;
       case "comercial":
         return <Comercial />;
+      case "produtos-servicos":
+        return <ProdutosServicos />;
       case "relatorios":
         return <Relatorios />;
       case "dre":
         return <DRE />;
+      case "configuracoes":
+        return <Configuracoes />;
       default:
         return <Dashboard />;
     }
