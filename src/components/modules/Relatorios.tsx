@@ -1,257 +1,487 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { BarChart3, FileText, AlertTriangle, TrendingDown, Calendar, Download } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { 
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  Calendar,
+  Download,
+  Filter,
+  DollarSign,
+  CreditCard,
+  PiggyBank,
+  FileText
+} from "lucide-react";
+import { useState } from "react";
 
 export function Relatorios() {
-  const despesasPorCategoria = [
-    { categoria: "Marketing", valor: 15000 },
-    { categoria: "Escritório", valor: 8000 },
-    { categoria: "Viagem", valor: 5000 },
-    { categoria: "Software", valor: 3000 },
-    { categoria: "Telefonia", valor: 2000 }
+  const [periodoSelecionado, setPeriodoSelecionado] = useState("mes-atual");
+  const [tipoRelatorio, setTipoRelatorio] = useState("fluxo-caixa");
+
+  const relatoriosDisponiveis = [
+    {
+      id: "fluxo-caixa",
+      nome: "Fluxo de Caixa",
+      descricao: "Entradas e saídas de dinheiro",
+      icon: DollarSign,
+      cor: "blue"
+    },
+    {
+      id: "contas-pagar",
+      nome: "Contas a Pagar",
+      descricao: "Análise de obrigações",
+      icon: CreditCard,
+      cor: "red"
+    },
+    {
+      id: "contas-receber", 
+      nome: "Contas a Receber",
+      descricao: "Análise de recebimentos",
+      icon: PiggyBank,
+      cor: "green"
+    },
+    {
+      id: "vendas",
+      nome: "Relatório de Vendas",
+      descricao: "Performance comercial",
+      icon: TrendingUp,
+      cor: "purple"
+    },
+    {
+      id: "despesas-categoria",
+      nome: "Despesas por Categoria",
+      descricao: "Classificação de gastos",
+      icon: PieChart,
+      cor: "orange"
+    },
+    {
+      id: "inadimplencia",
+      nome: "Relatório de Inadimplência",
+      descricao: "Contas em atraso",
+      icon: FileText,
+      cor: "yellow"
+    }
   ];
 
-  const inadimplentes = [
-    { cliente: "João Silva", valor: 5500, diasAtraso: 45, telefone: "(11) 99999-0001" },
-    { cliente: "Maria Santos", valor: 3200, diasAtraso: 30, telefone: "(11) 99999-0002" },
-    { cliente: "Pedro Costa", valor: 8900, diasAtraso: 60, telefone: "(11) 99999-0003" },
-    { cliente: "Ana Oliveira", valor: 2100, diasAtraso: 15, telefone: "(11) 99999-0004" }
-  ];
+  // Dados mockados para demonstração
+  const dadosFluxoCaixa = {
+    totalEntradas: 89340.25,
+    totalSaidas: 45670.80,
+    saldoLiquido: 43669.45,
+    entradasPorCategoria: [
+      { categoria: "Vendas de Produtos", valor: 52340.25, percentual: 58.6 },
+      { categoria: "Vendas de Serviços", valor: 31000.00, percentual: 34.7 },
+      { categoria: "Outras Receitas", valor: 6000.00, percentual: 6.7 }
+    ],
+    saidasPorCategoria: [
+      { categoria: "Despesas Operacionais", valor: 18900.00, percentual: 41.4 },
+      { categoria: "Custo de Mercadorias", valor: 12500.00, percentual: 27.4 },
+      { categoria: "Despesas Administrativas", valor: 8970.80, percentual: 19.6 },
+      { categoria: "Marketing", valor: 3200.00, percentual: 7.0 },
+      { categoria: "Outras Despesas", valor: 2100.00, percentual: 4.6 }
+    ]
+  };
 
-  const colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  const dadosVendas = {
+    totalVendas: 83340.25,
+    metaMensal: 90000.00,
+    percentualMeta: 92.6,
+    vendasPorVendedor: [
+      { vendedor: "João Silva", vendas: 23800.00, meta: 25000.00 },
+      { vendedor: "Maria Santos", vendas: 45200.00, meta: 40000.00 },
+      { vendedor: "Carlos Lima", vendas: 14340.25, meta: 25000.00 }
+    ],
+    vendasPorProduto: [
+      { produto: "Website Desenvolvimento", quantidade: 3, valor: 36000.00 },
+      { produto: "Consultoria Marketing", quantidade: 5, valor: 25500.00 },
+      { produto: "Sistema CRM", quantidade: 2, valor: 21840.25 }
+    ]
+  };
+
+  const renderRelatorio = () => {
+    switch (tipoRelatorio) {
+      case "fluxo-caixa":
+        return renderFluxoCaixa();
+      case "vendas":
+        return renderVendas();
+      case "contas-pagar":
+        return renderContasPagar();
+      case "contas-receber":
+        return renderContasReceber();
+      case "despesas-categoria":
+        return renderDespesasCategoria();
+      case "inadimplencia":
+        return renderInadimplencia();
+      default:
+        return renderFluxoCaixa();
+    }
+  };
+
+  const renderFluxoCaixa = () => (
+    <div className="space-y-6">
+      {/* Cards de Resumo */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Entradas</p>
+                <p className="text-2xl font-bold text-green-600">
+                  R$ {dadosFluxoCaixa.totalEntradas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Saídas</p>
+                <p className="text-2xl font-bold text-red-600">
+                  R$ {dadosFluxoCaixa.totalSaidas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center">
+                <CreditCard className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Saldo Líquido</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  R$ {dadosFluxoCaixa.saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Detalhamento por Categoria */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-green-700">Entradas por Categoria</CardTitle>
+            <CardDescription>Distribuição das receitas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {dadosFluxoCaixa.entradasPorCategoria.map((item, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="font-medium">{item.categoria}</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                      <div 
+                        className="bg-green-500 h-2 rounded-full" 
+                        style={{ width: `${item.percentual}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="ml-4 text-right">
+                    <p className="font-semibold">
+                      R$ {item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{item.percentual}%</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-red-700">Saídas por Categoria</CardTitle>
+            <CardDescription>Distribuição das despesas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {dadosFluxoCaixa.saidasPorCategoria.map((item, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="font-medium">{item.categoria}</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                      <div 
+                        className="bg-red-500 h-2 rounded-full" 
+                        style={{ width: `${item.percentual}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="ml-4 text-right">
+                    <p className="font-semibold">
+                      R$ {item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{item.percentual}%</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const renderVendas = () => (
+    <div className="space-y-6">
+      {/* Cards de Performance */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Vendas do Mês</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  R$ {dadosVendas.totalVendas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Meta Mensal</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  R$ {dadosVendas.metaMensal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <BarChart3 className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">% da Meta</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {dadosVendas.percentualMeta}%
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+                <PieChart className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Performance por Vendedor */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Performance por Vendedor</CardTitle>
+          <CardDescription>Vendas individuais vs. metas</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {dadosVendas.vendasPorVendedor.map((vendedor, index) => {
+              const percentualMeta = (vendedor.vendas / vendedor.meta) * 100;
+              return (
+                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <p className="font-medium">{vendedor.vendedor}</p>
+                    <div className="flex items-center gap-4 mt-2">
+                      <div className="flex-1">
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div 
+                            className={`h-3 rounded-full ${
+                              percentualMeta >= 100 ? 'bg-green-500' : 'bg-blue-500'
+                            }`}
+                            style={{ width: `${Math.min(percentualMeta, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <Badge variant={percentualMeta >= 100 ? "default" : "secondary"}>
+                        {percentualMeta.toFixed(1)}%
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="ml-6 text-right">
+                    <p className="font-semibold">
+                      R$ {vendedor.vendas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Meta: R$ {vendedor.meta.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderContasPagar = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Relatório de Contas a Pagar</CardTitle>
+        <CardDescription>Análise detalhada das obrigações financeiras</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground">
+          Relatório específico de contas a pagar em desenvolvimento...
+        </p>
+      </CardContent>
+    </Card>
+  );
+
+  const renderContasReceber = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Relatório de Contas a Receber</CardTitle>
+        <CardDescription>Análise detalhada dos recebimentos</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground">
+          Relatório específico de contas a receber em desenvolvimento...
+        </p>
+      </CardContent>
+    </Card>
+  );
+
+  const renderDespesasCategoria = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Despesas por Categoria</CardTitle>
+        <CardDescription>Classificação detalhada dos gastos</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground">
+          Relatório de despesas por categoria em desenvolvimento...
+        </p>
+      </CardContent>
+    </Card>
+  );
+
+  const renderInadimplencia = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Relatório de Inadimplência</CardTitle>
+        <CardDescription>Contas em atraso e análise de risco</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground">
+          Relatório de inadimplência em desenvolvimento...
+        </p>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <BarChart3 className="h-6 w-6" />
-        <h1 className="text-3xl font-bold">Relatórios</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Relatórios Financeiros</h2>
+          <p className="text-muted-foreground">
+            Análises detalhadas para tomada de decisão
+          </p>
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Exportar
+          </Button>
+          <Button variant="outline">
+            <Filter className="h-4 w-4 mr-2" />
+            Filtros
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="despesas" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="despesas">Despesas</TabsTrigger>
-          <TabsTrigger value="inadimplencia">Inadimplência</TabsTrigger>
-          <TabsTrigger value="vendas">Vendas</TabsTrigger>
-          <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="despesas" className="space-y-4">
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="space-y-2">
-              <Label htmlFor="data-inicio">Data Início</Label>
-              <Input id="data-inicio" type="date" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="data-fim">Data Fim</Label>
-              <Input id="data-fim" type="date" />
-            </div>
-            <div className="flex items-end">
-              <Button className="w-full">
-                <FileText className="h-4 w-4 mr-2" />
-                Gerar Relatório
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Despesas por Categoria</CardTitle>
-                <CardDescription>Distribuição de despesas nos últimos 30 dias</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={despesasPorCategoria}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="categoria" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [`R$ ${value}`, 'Valor']} />
-                    <Bar dataKey="valor" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Distribuição de Despesas</CardTitle>
-                <CardDescription>Proporção de gastos por categoria</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={despesasPorCategoria}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ categoria, percent }) => `${categoria} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="valor"
-                    >
-                      {despesasPorCategoria.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [`R$ ${value}`, 'Valor']} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Resumo de Despesas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600">R$ 33.000</div>
-                  <div className="text-sm text-muted-foreground">Total de Despesas</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">R$ 15.000</div>
-                  <div className="text-sm text-muted-foreground">Maior Categoria</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">R$ 1.100</div>
-                  <div className="text-sm text-muted-foreground">Média Diária</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">5</div>
-                  <div className="text-sm text-muted-foreground">Categorias</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="inadimplencia" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-red-500" />
-                <span className="font-medium">Total em Atraso: R$ 19.700</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-orange-500" />
-                <span className="font-medium">4 Clientes Inadimplentes</span>
-              </div>
-            </div>
-            <Button>
-              <Download className="h-4 w-4 mr-2" />
-              Exportar Lista
-            </Button>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingDown className="h-5 w-5 text-red-500" />
-                Clientes Inadimplentes
-              </CardTitle>
-              <CardDescription>
-                Lista de clientes com pagamentos em atraso
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-5 gap-4 font-medium border-b pb-2">
-                  <div>Cliente</div>
-                  <div>Valor (R$)</div>
-                  <div>Dias em Atraso</div>
-                  <div>Telefone</div>
-                  <div>Ações</div>
-                </div>
-                {inadimplentes.map((cliente, index) => (
-                  <div key={index} className="grid grid-cols-5 gap-4 items-center py-2 border-b">
-                    <div className="font-medium">{cliente.cliente}</div>
-                    <div className="text-red-600 font-semibold">R$ {cliente.valor.toFixed(2)}</div>
-                    <div className={`font-semibold ${
-                      cliente.diasAtraso > 45 ? 'text-red-600' : 
-                      cliente.diasAtraso > 30 ? 'text-orange-600' : 'text-yellow-600'
-                    }`}>
-                      {cliente.diasAtraso} dias
-                    </div>
-                    <div className="text-muted-foreground">{cliente.telefone}</div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">Contatar</Button>
-                      <Button variant="outline" size="sm">Negociar</Button>
-                    </div>
+      {/* Seleção de Relatório e Período */}
+      <div className="flex flex-wrap gap-4 p-4 bg-white rounded-lg border">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Tipo de Relatório</label>
+          <Select value={tipoRelatorio} onValueChange={setTipoRelatorio}>
+            <SelectTrigger className="w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {relatoriosDisponiveis.map(rel => (
+                <SelectItem key={rel.id} value={rel.id}>
+                  <div className="flex items-center gap-2">
+                    <rel.icon className="h-4 w-4" />
+                    {rel.nome}
                   </div>
-                ))}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Período</label>
+          <Select value={periodoSelecionado} onValueChange={setPeriodoSelecionado}>
+            <SelectTrigger className="w-48">
+              <Calendar className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mes-atual">Mês Atual</SelectItem>
+              <SelectItem value="mes-anterior">Mês Anterior</SelectItem>
+              <SelectItem value="3-meses">Últimos 3 Meses</SelectItem>
+              <SelectItem value="6-meses">Últimos 6 Meses</SelectItem>
+              <SelectItem value="ano-atual">Ano Atual</SelectItem>
+              <SelectItem value="ano-anterior">Ano Anterior</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Grid de Tipos de Relatório */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {relatoriosDisponiveis.map((relatorio) => (
+          <Card 
+            key={relatorio.id} 
+            className={`cursor-pointer transition-all hover:shadow-lg ${
+              tipoRelatorio === relatorio.id ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+            }`}
+            onClick={() => setTipoRelatorio(relatorio.id)}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className={`h-12 w-12 rounded-full flex items-center justify-center bg-${relatorio.cor}-100`}>
+                  <relatorio.icon className={`h-6 w-6 text-${relatorio.cor}-600`} />
+                </div>
+                <div>
+                  <h3 className="font-semibold">{relatorio.nome}</h3>
+                  <p className="text-sm text-muted-foreground">{relatorio.descricao}</p>
+                </div>
               </div>
             </CardContent>
           </Card>
+        ))}
+      </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Até 30 dias</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">R$ 2.100</div>
-                <p className="text-sm text-muted-foreground">1 cliente</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">31 a 60 dias</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">R$ 8.700</div>
-                <p className="text-sm text-muted-foreground">2 clientes</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Acima de 60 dias</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">R$ 8.900</div>
-                <p className="text-sm text-muted-foreground">1 cliente</p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="vendas" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Relatório de Vendas</CardTitle>
-              <CardDescription>Análise de vendas por período</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Relatório de vendas em desenvolvimento</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="financeiro" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Relatório Financeiro</CardTitle>
-              <CardDescription>Análise financeira completa</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Relatório financeiro em desenvolvimento</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Conteúdo do Relatório Selecionado */}
+      {renderRelatorio()}
     </div>
   );
 }

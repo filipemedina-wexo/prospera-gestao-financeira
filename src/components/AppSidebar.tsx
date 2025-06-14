@@ -8,8 +8,7 @@ import {
   BarChart3,
   Settings,
   Home,
-  Wallet,
-  Package
+  Wallet
 } from "lucide-react";
 import {
   Sidebar,
@@ -51,11 +50,6 @@ const menuItems = [
     id: "comercial",
   },
   {
-    title: "Produtos/Serviços",
-    icon: Package,
-    id: "produtos-servicos",
-  },
-  {
     title: "Relatórios",
     icon: BarChart3,
     id: "relatorios",
@@ -64,11 +58,6 @@ const menuItems = [
     title: "DRE",
     icon: FileText,
     id: "dre",
-  },
-  {
-    title: "Configurações",
-    icon: Settings,
-    id: "configuracoes",
   },
 ];
 
@@ -85,13 +74,13 @@ export function AppSidebar({ onMenuChange }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar>
       <SidebarHeader className="p-6 border-b">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
             <TrendingUp className="h-5 w-5 text-white" />
           </div>
-          <div className="group-data-[collapsible=icon]:hidden">
+          <div>
             <h1 className="font-bold text-lg">FinanceFlow</h1>
             <p className="text-sm text-muted-foreground">Sistema Financeiro</p>
           </div>
@@ -99,15 +88,16 @@ export function AppSidebar({ onMenuChange }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => handleMenuClick(item.id)}
-                    isActive={activeMenu === item.id}
-                    tooltip={item.title}
+                    className={`w-full justify-start ${
+                      activeMenu === item.id ? "bg-primary text-primary-foreground" : ""
+                    }`}
                   >
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>
