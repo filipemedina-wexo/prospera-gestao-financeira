@@ -8,6 +8,8 @@ import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { format, isWithinInterval, addDays, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import React from "react";
+import { ContaReceber } from "../contas-receber/types";
+import { ContaPagar } from "../contas-pagar/types";
 
 type ExtratoTransacao = {
   id: string;
@@ -24,7 +26,49 @@ interface RelatorioExtratoProps {
   extratoPeriodoFim: Date | undefined;
   setExtratoPeriodoInicio: (d: Date | undefined) => void;
   setExtratoPeriodoFim: (d: Date | undefined) => void;
+  contasAReceber?: ContaReceber[];
+  contasAPagar?: ContaPagar[];
 }
+
+function gerarExtratoComDadosReais(
+  contasReceber: ContaReceber[],
+  contasPagar: ContaPagar[],
+  inicio: Date,
+  fim: Date
+): ExtratoTransacao[] {
+  const transacoes: ExtratoTransacao[] = [];
+
+  contasReceber.forEach(c => {
+    if (c.status === 'recebido' && c.dataRecebimento && isWithinInterval(c.dataRecebimento, { start: inicio, end: fim })) {
+      transacoes.push({
+        id: `rec-${c.id}`,
+        data: c.dataRecebimento,
+        tipo: 'entrada',
+        descricao: c.descricao,
+        valor: c.valor,
+        categoria: c.categoria,
+        saldoApos: 0, // Saldo não pode ser calculado sem saldo inicial
+      });
+    }
+  });
+
+  contasPagar.forEach(c => {
+    if (c.status === 'pago' && c.dataPagamento && isWithinInterval(c.dataPagamento, { start: inicio, end: fim })) {
+      transacoes.push({
+        id: `pag-${c.id}`,
+        data: c.dataPagamento,
+        tipo: 'saida',
+        descricao: c.descricao,
+        valor: c.valor,
+        categoria: c.categoria,
+        saldoApos: 0, // Saldo não pode ser calculado sem saldo inicial
+      });
+    }
+  });
+
+  return transacoes.sort((a, b) => a.data.getTime() - b.data.getTime());
+}
+
 
 function gerarMockExtratoTransacoes(
   inicio: Date,
@@ -81,10 +125,16 @@ export const RelatorioExtrato: React.FC<RelatorioExtratoProps> = ({
   extratoPeriodoFim,
   setExtratoPeriodoInicio,
   setExtratoPeriodoFim,
+  contasAReceber,
+  contasAPagar,
 }) => {
+  const useRealData = !!(contasAReceber && contasAPagar && extratoPeriodoInicio && extratoPeriodoFim);
+
   const transacoesExtrato =
     extratoPeriodoInicio && extratoPeriodoFim
-      ? gerarMockExtratoTransacoes(extratoPeriodoInicio, extratoPeriodoFim)
+      ? useRealData
+        ? gerarExtratoComDadosReais(contasAReceber, contasAPagar, extratoPeriodoInicio, extratoPeriodoFim)
+        : gerarMockExtratoTransacoes(extratoPeriodoInicio, extratoPeriodoFim)
       : [];
   const extratoAgrupado = agruparTransacoesPorDia(transacoesExtrato);
 
@@ -187,7 +237,7 @@ export const RelatorioExtrato: React.FC<RelatorioExtratoProps> = ({
                       <th className="px-4 py-2 text-left">Tipo</th>
                       <th className="px-4 py-2 text-left">Categoria</th>
                       <th className="px-4 py-2 text-right">Valor</th>
-                      <th className="px-4 py-2 text-right">Saldo Após</th>
+                      {!useRealData && <th className="px-4 py-2 text-right">Saldo Após</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -221,11 +271,13 @@ export const RelatorioExtrato: React.FC<RelatorioExtratoProps> = ({
                             minimumFractionDigits: 2
                           })}
                         </td>
-                        <td className="px-4 py-2 text-right text-blue-900">
-                          R$ {tx.saldoApos.toLocaleString("pt-BR", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </td>
+                        {!useRealData && (
+                            <td className="px-4 py-2 text-right text-blue-900">
+                                R$ {tx.saldoApos.toLocaleString("pt-BR", {
+                                    minimumFractionDigits: 2,
+                                })}
+                            </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
