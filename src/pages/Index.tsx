@@ -19,6 +19,7 @@ import { useAppData } from "@/hooks/useAppData";
 import { useAuth } from "@/contexts/AuthContext";
 import { menuItems } from "@/config/menu";
 import { useClient } from "@/contexts/ClientContext";
+import { useConfig } from "@/contexts/ConfigContext";
 
 const Index = () => {
   const {
@@ -49,6 +50,8 @@ const Index = () => {
     clientName,
     clientSubtitle
   } = useClient();
+  const { companyName } = useConfig();
+  
   const getModuleTitle = () => {
     if (!activeModule) {
       return "Acesso Restrito";
@@ -99,7 +102,7 @@ const Index = () => {
             <div className="hidden md:flex items-center gap-2">
               
               <div>
-                <h1 className="text-xl text-sky-950 text-right font-extrabold">{clientName}</h1>
+                <h1 className="text-xl text-sky-950 text-right font-extrabold">{companyName}</h1>
                 
               </div>
             </div>

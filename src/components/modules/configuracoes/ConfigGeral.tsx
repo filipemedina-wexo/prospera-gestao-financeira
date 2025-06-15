@@ -1,24 +1,50 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Settings } from "lucide-react";
+import { useConfig } from "@/contexts/ConfigContext";
+import { useToast } from "@/hooks/use-toast";
 
 export const ConfigGeral = () => {
-  const [logo, setLogo] = useState<string | null>(null);
+  const { 
+    companyName, 
+    setCompanyName,
+    companyEmail,
+    setCompanyEmail,
+    companyCNPJ,
+    setCompanyCNPJ,
+    companyAddress,
+    setCompanyAddress,
+    companyPhone,
+    setCompanyPhone,
+    companyLogo,
+    setCompanyLogo,
+    saveConfig 
+  } = useConfig();
+  
+  const { toast } = useToast();
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = event => {
-        setLogo(event.target?.result as string);
+        setCompanyLogo(event.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleSave = () => {
+    saveConfig();
+    toast({
+      title: "Configurações salvas",
+      description: "As configurações gerais foram salvas com sucesso.",
+    });
   };
 
   return (
@@ -43,10 +69,10 @@ export const ConfigGeral = () => {
               className="w-auto"
               onChange={handleLogoChange}
             />
-            {logo && (
+            {companyLogo && (
               <div className="flex flex-col items-center gap-2">
                 <img
-                  src={logo}
+                  src={companyLogo}
                   alt="Prévia do logo"
                   className="w-24 h-24 object-cover border rounded shadow"
                 />
@@ -61,28 +87,54 @@ export const ConfigGeral = () => {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="empresa">Nome da Empresa</Label>
-            <Input id="empresa" placeholder="Digite o nome da empresa" />
+            <Input 
+              id="empresa" 
+              placeholder="Digite o nome da empresa" 
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="cnpj">CNPJ</Label>
-            <Input id="cnpj" placeholder="00.000.000/0000-00" />
+            <Input 
+              id="cnpj" 
+              placeholder="00.000.000/0000-00" 
+              value={companyCNPJ}
+              onChange={(e) => setCompanyCNPJ(e.target.value)}
+            />
           </div>
         </div>
         <div className="space-y-2">
           <Label htmlFor="endereco">Endereço</Label>
-          <Textarea id="endereco" placeholder="Digite o endereço completo" />
+          <Textarea 
+            id="endereco" 
+            placeholder="Digite o endereço completo" 
+            value={companyAddress}
+            onChange={(e) => setCompanyAddress(e.target.value)}
+          />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" placeholder="empresa@exemplo.com" />
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="empresa@exemplo.com" 
+              value={companyEmail}
+              onChange={(e) => setCompanyEmail(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="telefone">Telefone</Label>
-            <Input id="telefone" placeholder="(11) 99999-9999" />
+            <Input 
+              id="telefone" 
+              placeholder="(11) 99999-9999" 
+              value={companyPhone}
+              onChange={(e) => setCompanyPhone(e.target.value)}
+            />
           </div>
         </div>
-        <Button>Salvar Configurações</Button>
+        <Button onClick={handleSave}>Salvar Configurações</Button>
       </CardContent>
     </Card>
   );
