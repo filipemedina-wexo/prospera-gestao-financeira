@@ -1,3 +1,4 @@
+
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Dashboard } from "@/components/Dashboard";
@@ -11,7 +12,7 @@ import { DRE } from "@/components/modules/DRE";
 import { ProdutosServicos } from "@/components/modules/ProdutosServicos";
 import { Configuracoes } from "@/components/modules/Configuracoes";
 import { CRM } from "@/components/modules/CRM";
-import { GestaoUsuarios } from "@/components/modules/GestaoUsuarios";
+import { GestaoUsuarios } from "@/components/modules/gestao-usuarios";
 import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { useAppData } from "@/hooks/useAppData";

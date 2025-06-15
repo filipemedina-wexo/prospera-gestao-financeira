@@ -27,9 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User, Role } from "@/data/users";
+import { User } from "@/data/users";
 
-const roles: Role[] = ['admin', 'financeiro', 'comercial', 'contador'];
+const roles = ['admin', 'financeiro', 'comercial', 'contador'] as const;
 
 const userFormSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
