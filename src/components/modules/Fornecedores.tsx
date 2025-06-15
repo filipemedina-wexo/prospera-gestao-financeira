@@ -1,10 +1,9 @@
-
 import { useState } from "react";
-import { Fornecedor } from "./fornecedores/types";
+import { Fornecedor, TipoFornecedor } from "./fornecedores/types";
 import { Button } from "@/components/ui/button";
 import { FornecedoresTable } from "./fornecedores/FornecedoresTable";
 import { FornecedorDialog } from "./fornecedores/FornecedorDialog";
-import { GerenciarTipos, TipoFornecedor } from "./fornecedores/GerenciarTipos";
+import { GerenciarTipos } from "./fornecedores/GerenciarTipos";
 import { Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";

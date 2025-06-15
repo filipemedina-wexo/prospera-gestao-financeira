@@ -20,3 +20,8 @@ export interface Fornecedor {
   proximoPagamento?: Date;
   valorProximoPagamento?: number;
 }
+
+export interface TipoFornecedor {
+  id: string;
+  nome: string;
+}

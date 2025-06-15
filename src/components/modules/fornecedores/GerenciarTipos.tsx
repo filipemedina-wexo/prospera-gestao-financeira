@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -6,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { TipoFornecedor, TipoFornecedorDialog } from "./TipoFornecedorDialog";
+import { TipoFornecedor } from "./types";
+import { TipoFornecedorDialog } from "./TipoFornecedorDialog";
 import { useToast } from "@/hooks/use-toast";
 
 interface GerenciarTiposProps {
