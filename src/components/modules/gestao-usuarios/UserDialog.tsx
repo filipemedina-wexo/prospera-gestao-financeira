@@ -27,14 +27,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { User } from "@/data/users";
+import { ExtendedRole } from "@/config/permissions";
 import { useEffect } from "react";
 
-const roles = ['admin', 'financeiro', 'comercial', 'contador', 'super_admin'] as const;
+const roles: ExtendedRole[] = ['admin', 'financeiro', 'comercial', 'contador', 'super_admin'];
 
 const userFormSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("Email inválido"),
-  role: z.enum(roles, { required_error: "Selecione um perfil" }),
+  role: z.enum(['admin', 'financeiro', 'comercial', 'contador', 'super_admin'] as const, { required_error: "Selecione um perfil" }),
   password: z.string().min(6, "A nova senha deve ter no mínimo 6 caracteres").or(z.literal("")).optional(),
 });
 

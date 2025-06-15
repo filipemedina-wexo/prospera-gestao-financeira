@@ -1,4 +1,6 @@
 
+import { ExtendedRole } from '@/config/permissions';
+
 export type Role = 'admin' | 'financeiro' | 'comercial' | 'contador';
 export type UserStatus = 'active' | 'inactive' | 'suspended';
 
@@ -7,7 +9,7 @@ export interface User {
   name: string;
   email: string;
   password?: string; // Em uma aplicação real, isso seria um hash
-  role: Role;
+  role: ExtendedRole;
   status: UserStatus;
   createdAt: string; // ISO date string
   lastLogin?: string; // ISO date string
