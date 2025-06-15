@@ -9,8 +9,8 @@ interface FuncionariosProps {
     funcionarios: Funcionario[];
 }
 
-const statusVariant: Record<Funcionario['status'], 'success' | 'destructive' | 'secondary'> = {
-    ativo: 'success',
+const statusVariant: Record<Funcionario['status'], "default" | "destructive" | "secondary"> = {
+    ativo: 'default',
     inativo: 'destructive',
     ferias: 'secondary',
 };
