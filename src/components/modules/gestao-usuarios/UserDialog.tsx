@@ -64,7 +64,10 @@ export function UserDialog({ isOpen, setIsOpen, onSave, userToEdit }: UserDialog
   function onSubmit(data: UserFormValues) {
     const newUser: User = {
       id: Date.now().toString(),
-      ...data,
+      name: data.name,
+      email: data.email,
+      role: data.role,
+      password: data.password,
       status: 'active',
       createdAt: new Date().toISOString(),
     };
