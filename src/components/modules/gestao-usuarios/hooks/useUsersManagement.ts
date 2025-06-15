@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -55,30 +54,28 @@ export function useUsersManagement() {
         return;
       }
 
-      // Process profiles with explicit typing - fix the type flow
+      // Process profiles with explicit typing - create properly typed array
       const validProfiles: ProfileData[] = [];
       
-      for (const profile of profiles) {
-        if (profile !== null && 
-            profile !== undefined && 
+      profiles.forEach((profile) => {
+        if (profile && 
             typeof profile === 'object' && 
             'id' in profile && 
             typeof profile.id === 'string' && 
             profile.id.length > 0) {
           validProfiles.push({
             id: profile.id,
-            full_name: profile.full_name
-          });
+            full_name: profile.full_name || null
+          } as ProfileData);
         }
-      }
+      });
 
       // Process user roles with explicit typing
       const validUserRoles: UserRoleData[] = [];
       
       if (userRoles) {
-        for (const roleData of userRoles) {
-          if (roleData !== null && 
-              roleData !== undefined && 
+        userRoles.forEach((roleData) => {
+          if (roleData && 
               typeof roleData === 'object' && 
               'user_id' in roleData && 
               'role' in roleData &&
@@ -87,13 +84,13 @@ export function useUsersManagement() {
             validUserRoles.push({
               user_id: roleData.user_id,
               role: roleData.role as ExtendedRole
-            });
+            } as UserRoleData);
           }
-        }
+        });
       }
 
-      // Combine the data with proper typing
-      const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
+      // Combine the data with proper typing - now TypeScript knows validProfiles contains ProfileData
+      const combinedUsers: User[] = validProfiles.map((profile) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
         const userRole = validUserRoles.find((roleData) => roleData.user_id === profile.id);
         const role = (userRole?.role as ExtendedRole) || 'contador';
