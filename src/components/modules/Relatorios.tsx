@@ -1,9 +1,8 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   BarChart3,
   PieChart,
   TrendingUp,
@@ -13,13 +12,21 @@ import {
   DollarSign,
   CreditCard,
   PiggyBank,
-  FileText
+  FileText,
+  List
 } from "lucide-react";
 import { useState } from "react";
+import { format, isWithinInterval, addDays, subDays } from "date-fns";
+import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export function Relatorios() {
   const [periodoSelecionado, setPeriodoSelecionado] = useState("mes-atual");
   const [tipoRelatorio, setTipoRelatorio] = useState("fluxo-caixa");
+  // Estados para filtro de "Extrato"
+  const [extratoPeriodoInicio, setExtratoPeriodoInicio] = useState<Date | undefined>(subDays(new Date(), 15));
+  const [extratoPeriodoFim, setExtratoPeriodoFim] = useState<Date | undefined>(new Date());
 
   const relatoriosDisponiveis = [
     {
@@ -37,7 +44,7 @@ export function Relatorios() {
       cor: "red"
     },
     {
-      id: "contas-receber", 
+      id: "contas-receber",
       nome: "Contas a Receber",
       descricao: "Análise de recebimentos",
       icon: PiggyBank,
@@ -63,62 +70,196 @@ export function Relatorios() {
       descricao: "Contas em atraso",
       icon: FileText,
       cor: "yellow"
+    },
+    {
+      id: "extrato",
+      nome: "Extrato",
+      descricao: "Movimentação diária do caixa",
+      icon: List,
+      cor: "indigo"
     }
   ];
 
-  // Dados mockados para demonstração
-  const dadosFluxoCaixa = {
-    totalEntradas: 89340.25,
-    totalSaidas: 45670.80,
-    saldoLiquido: 43669.45,
-    entradasPorCategoria: [
-      { categoria: "Vendas de Produtos", valor: 52340.25, percentual: 58.6 },
-      { categoria: "Vendas de Serviços", valor: 31000.00, percentual: 34.7 },
-      { categoria: "Outras Receitas", valor: 6000.00, percentual: 6.7 }
-    ],
-    saidasPorCategoria: [
-      { categoria: "Despesas Operacionais", valor: 18900.00, percentual: 41.4 },
-      { categoria: "Custo de Mercadorias", valor: 12500.00, percentual: 27.4 },
-      { categoria: "Despesas Administrativas", valor: 8970.80, percentual: 19.6 },
-      { categoria: "Marketing", valor: 3200.00, percentual: 7.0 },
-      { categoria: "Outras Despesas", valor: 2100.00, percentual: 4.6 }
-    ]
+  // Dados mockados para extrato (para fins de demonstração)
+  type ExtratoTransacao = {
+    id: string;
+    data: Date;
+    tipo: 'entrada' | 'saida';
+    descricao: string;
+    valor: number;
+    categoria: string;
+    saldoApos: number; // saldo após a operação, para facilitar exibição
   };
 
-  const dadosVendas = {
-    totalVendas: 83340.25,
-    metaMensal: 90000.00,
-    percentualMeta: 92.6,
-    vendasPorVendedor: [
-      { vendedor: "João Silva", vendas: 23800.00, meta: 25000.00 },
-      { vendedor: "Maria Santos", vendas: 45200.00, meta: 40000.00 },
-      { vendedor: "Carlos Lima", vendas: 14340.25, meta: 25000.00 }
-    ],
-    vendasPorProduto: [
-      { produto: "Website Desenvolvimento", quantidade: 3, valor: 36000.00 },
-      { produto: "Consultoria Marketing", quantidade: 5, valor: 25500.00 },
-      { produto: "Sistema CRM", quantidade: 2, valor: 21840.25 }
-    ]
-  };
-
-  const renderRelatorio = () => {
-    switch (tipoRelatorio) {
-      case "fluxo-caixa":
-        return renderFluxoCaixa();
-      case "vendas":
-        return renderVendas();
-      case "contas-pagar":
-        return renderContasPagar();
-      case "contas-receber":
-        return renderContasReceber();
-      case "despesas-categoria":
-        return renderDespesasCategoria();
-      case "inadimplencia":
-        return renderInadimplencia();
-      default:
-        return renderFluxoCaixa();
+  // Mock: gerar uma lista fixa de transações para o período passado
+  function gerarMockExtratoTransacoes(inicio: Date, fim: Date): ExtratoTransacao[] {
+    // Simula vários dias, diferentes transações (entradas e saídas)
+    const baseDate = subDays(new Date(), 20);
+    let saldo = 42800.00; // saldo inicial fictício
+    let transacoes: ExtratoTransacao[] = [];
+    // Mock: Para cada dia, gera 2 transações
+    for (let i = 0; i < 30; i++) {
+      const dia = addDays(baseDate, i);
+      // só adicionar se estiver no intervalo
+      if (isWithinInterval(dia, { start: inicio, end: fim })) {
+        // Entrada
+        saldo += 1000.00;
+        transacoes.push({
+          id: `in-${i}`,
+          data: new Date(dia),
+          tipo: "entrada",
+          descricao: "Recebimento Cliente ABC",
+          valor: 1000.00,
+          categoria: "Recebimentos",
+          saldoApos: saldo
+        });
+        // Saída
+        saldo -= 300.00;
+        transacoes.push({
+          id: `out-${i}`,
+          data: new Date(dia),
+          tipo: "saida",
+          descricao: "Pagamento Fornecedor XYZ",
+          valor: 300.00,
+          categoria: "Despesas",
+          saldoApos: saldo
+        });
+      }
     }
-  };
+    // Ordena por data crescente e tipo (entrada primeiro)
+    return transacoes.sort((a, b) => {
+      if (a.data.getTime() !== b.data.getTime()) return a.data.getTime() - b.data.getTime();
+      if (a.tipo === b.tipo) return 0;
+      return a.tipo === 'entrada' ? -1 : 1;
+    });
+  }
+
+  // Gera transações do extrato baseadas no período selecionado do usuário
+  const transacoesExtrato = extratoPeriodoInicio && extratoPeriodoFim
+    ? gerarMockExtratoTransacoes(extratoPeriodoInicio, extratoPeriodoFim)
+    : [];
+
+  // Agrupa por dia para visual estilo extrato
+  function agruparTransacoesPorDia(transacoes: ExtratoTransacao[]) {
+    const agrupado: { [dia: string]: ExtratoTransacao[] } = {};
+    transacoes.forEach(tx => {
+      const dia = format(tx.data, "dd/MM/yyyy");
+      if (!agrupado[dia]) agrupado[dia] = [];
+      agrupado[dia].push(tx);
+    });
+    return agrupado;
+  }
+
+  const extratoAgrupado = agruparTransacoesPorDia(transacoesExtrato);
+
+  const renderExtrato = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <div className="flex items-center gap-2">
+            <List className="h-5 w-5 text-indigo-600" />
+            Extrato Financeiro
+          </div>
+        </CardTitle>
+        <CardDescription>
+          Visão detalhada de entradas e saídas por dia, como em extratos bancários.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {/* Seleção de período */}
+        <div className="flex flex-wrap items-center gap-3 pb-4 mb-4 border-b">
+          <div>
+            <span className="font-medium text-sm">Período:</span>
+          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-40 justify-start text-left font-normal", !extratoPeriodoInicio && "text-muted-foreground")}>
+                <Calendar className="mr-2 h-4 w-4" />
+                {extratoPeriodoInicio ? format(extratoPeriodoInicio, "dd/MM/yyyy") : <span>Data inicial</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <ShadcnCalendar
+                mode="single"
+                selected={extratoPeriodoInicio}
+                onSelect={setExtratoPeriodoInicio}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+                disabled={date => extratoPeriodoFim && date > extratoPeriodoFim}
+              />
+            </PopoverContent>
+          </Popover>
+          <span>até</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-40 justify-start text-left font-normal", !extratoPeriodoFim && "text-muted-foreground")}>
+                <Calendar className="mr-2 h-4 w-4" />
+                {extratoPeriodoFim ? format(extratoPeriodoFim, "dd/MM/yyyy") : <span>Data final</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <ShadcnCalendar
+                mode="single"
+                selected={extratoPeriodoFim}
+                onSelect={setExtratoPeriodoFim}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+                disabled={date => extratoPeriodoInicio && date < extratoPeriodoInicio}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        {/* Lista estilo extrato */}
+        {Object.keys(extratoAgrupado).length === 0 && (
+          <div className="text-center text-muted-foreground py-10">Nenhuma movimentação no período selecionado.</div>
+        )}
+        <div className="divide-y">
+          {Object.entries(extratoAgrupado).map(([dia, transacoesDia]) => (
+            <div key={dia} className="py-2">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="font-semibold text-blue-900">{dia}</span>
+                <span className="px-2 py-1 text-xs rounded bg-blue-50 text-blue-500">{transacoesDia.length} mov.</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm rounded">
+                  <thead>
+                    <tr className="bg-slate-50">
+                      <th className="px-4 py-2 text-left">Horário</th>
+                      <th className="px-4 py-2 text-left">Descrição</th>
+                      <th className="px-4 py-2 text-left">Tipo</th>
+                      <th className="px-4 py-2 text-left">Categoria</th>
+                      <th className="px-4 py-2 text-right">Valor</th>
+                      <th className="px-4 py-2 text-right">Saldo Após</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transacoesDia.map(tx => (
+                      <tr key={tx.id} className="border-b last:border-0">
+                        <td className="px-4 py-2">{format(tx.data, "HH:mm")}</td>
+                        <td className="px-4 py-2">{tx.descricao}</td>
+                        <td className="px-4 py-2">
+                          <Badge variant={tx.tipo === 'entrada' ? "outline" : "secondary"} className={tx.tipo === "entrada" ? "text-green-600 border-green-200" : "text-red-600 border-red-200"}>
+                            {tx.tipo === "entrada" ? "Entrada" : "Saída"}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-2">{tx.categoria}</td>
+                        <td className={`px-4 py-2 text-right font-medium ${tx.tipo === "entrada" ? "text-green-600" : "text-red-600"}`}>
+                          {tx.tipo === "entrada" ? "+" : "-"} R$ {tx.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-4 py-2 text-right text-blue-900">
+                          R$ {tx.saldoApos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   const renderFluxoCaixa = () => (
     <div className="space-y-6">
@@ -394,6 +535,27 @@ export function Relatorios() {
     </Card>
   );
 
+  const renderRelatorio = () => {
+    switch (tipoRelatorio) {
+      case "extrato":
+        return renderExtrato();
+      case "fluxo-caixa":
+        return renderFluxoCaixa();
+      case "vendas":
+        return renderVendas();
+      case "contas-pagar":
+        return renderContasPagar();
+      case "contas-receber":
+        return renderContasReceber();
+      case "despesas-categoria":
+        return renderDespesasCategoria();
+      case "inadimplencia":
+        return renderInadimplencia();
+      default:
+        return renderFluxoCaixa();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -436,23 +598,25 @@ export function Relatorios() {
           </Select>
         </div>
         
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Período</label>
-          <Select value={periodoSelecionado} onValueChange={setPeriodoSelecionado}>
-            <SelectTrigger className="w-48">
-              <Calendar className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mes-atual">Mês Atual</SelectItem>
-              <SelectItem value="mes-anterior">Mês Anterior</SelectItem>
-              <SelectItem value="3-meses">Últimos 3 Meses</SelectItem>
-              <SelectItem value="6-meses">Últimos 6 Meses</SelectItem>
-              <SelectItem value="ano-atual">Ano Atual</SelectItem>
-              <SelectItem value="ano-anterior">Ano Anterior</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {tipoRelatorio !== "extrato" && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Período</label>
+            <Select value={periodoSelecionado} onValueChange={setPeriodoSelecionado}>
+              <SelectTrigger className="w-48">
+                <Calendar className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mes-atual">Mês Atual</SelectItem>
+                <SelectItem value="mes-anterior">Mês Anterior</SelectItem>
+                <SelectItem value="3-meses">Últimos 3 Meses</SelectItem>
+                <SelectItem value="6-meses">Últimos 6 Meses</SelectItem>
+                <SelectItem value="ano-atual">Ano Atual</SelectItem>
+                <SelectItem value="ano-anterior">Ano Anterior</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {/* Grid de Tipos de Relatório */}
