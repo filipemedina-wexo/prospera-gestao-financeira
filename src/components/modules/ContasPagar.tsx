@@ -19,6 +19,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { 
   Plus, 
   Search, 
@@ -442,40 +443,80 @@ export function ContasPagar() {
               </div>
               
               <div className="space-y-2 pt-4">
-                 <FormField control={form.control} name="recorrente" render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                 <div className="rounded-lg border p-4 shadow-sm">
+                  <FormField
+                    control={form.control}
+                    name="recorrente"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between">
                         <div className="space-y-0.5">
-                            <FormLabel>Conta Recorrente?</FormLabel>
-                            <FormDescription>Marque se esta conta se repete por vários meses.</FormDescription>
+                          <FormLabel>Conta Recorrente?</FormLabel>
+                          <FormDescription>
+                            Marque se esta conta se repete por vários meses.
+                          </FormDescription>
                         </div>
-                        <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                    </FormItem>
-                )} />
-              </div>
-
-              {isRecorrente && (
-                  <div className="grid grid-cols-2 gap-4 p-4 border rounded-md">
-                      <FormField control={form.control} name="frequencia" render={({ field }) => (
-                          <FormItem>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Collapsible open={isRecorrente} className="w-full">
+                    <CollapsibleContent>
+                      <div className="grid grid-cols-2 gap-4 pt-4 mt-4 border-t">
+                        <FormField
+                          control={form.control}
+                          name="frequencia"
+                          render={({ field }) => (
+                            <FormItem>
                               <FormLabel>Frequência *</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione..." />
+                                  </SelectTrigger>
+                                </FormControl>
                                 <SelectContent>
-                                    {opcoesFrequencia.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                  {opcoesFrequencia.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
-                               <FormMessage />
-                          </FormItem>
-                      )} />
-                      <FormField control={form.control} name="numParcelas" render={({ field }) => (
-                           <FormItem>
-                               <FormLabel>Nº de Parcelas *</FormLabel>
-                               <FormControl><Input type="number" placeholder="Ex: 12" {...field} onChange={e => field.onChange(e.target.value)} /></FormControl>
-                               <FormMessage />
-                           </FormItem>
-                      )} />
-                  </div>
-              )}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="numParcelas"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nº de Parcelas *</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Ex: 12"
+                                  {...field}
+                                  onChange={(e) => field.onChange(e.target.value)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              </div>
 
               <FormField control={form.control} name="observacoes" render={({ field }) => (
                   <FormItem>
