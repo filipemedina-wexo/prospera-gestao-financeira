@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,17 +21,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ClienteSaaSDialog } from './ClienteSaaSDialog';
+import { Tables } from '@/integrations/supabase/types';
 
-interface SaasClient {
-  id: string;
-  company_name: string;
-  contact_name: string;
-  contact_email: string;
-  contact_phone?: string;
-  cnpj?: string;
-  status: 'active' | 'blocked' | 'trial' | 'suspended';
-  created_at: string;
-}
+type SaasClient = Tables<'saas_clients'>;
 
 export function ClientesManagement() {
   const [clients, setClients] = useState<SaasClient[]>([]);
