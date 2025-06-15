@@ -7,6 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { TrendingUp } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { users } from "@/data/users";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -18,6 +26,14 @@ const Login = () => {
     e.preventDefault();
     if (login(email, password)) {
       navigate('/');
+    }
+  };
+
+  const handleUserSelect = (selectedEmail: string) => {
+    const selectedUser = users.find(u => u.email === selectedEmail);
+    if (selectedUser) {
+      setEmail(selectedUser.email);
+      setPassword(selectedUser.password || '');
     }
   };
 
@@ -35,6 +51,21 @@ const Login = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="user-select">Selecionar Usuário (para teste)</Label>
+              <Select onValueChange={handleUserSelect}>
+                <SelectTrigger id="user-select">
+                  <SelectValue placeholder="Escolha um perfil de usuário" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.email}>
+                      {user.name} ({user.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
