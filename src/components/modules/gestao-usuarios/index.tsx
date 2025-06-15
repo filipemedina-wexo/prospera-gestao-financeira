@@ -23,23 +23,60 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { UserDialog } from './UserDialog';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function GestaoUsuarios() {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userToToggleStatus, setUserToToggleStatus] = useState<User | null>(null);
   const { toast } = useToast();
 
   const handleSaveUser = (user: User) => {
-    // NOTE: Esta função atualmente suporta apenas a adição de novos usuários.
-    setUsers(prevUsers => [...prevUsers, user]);
-    toast({ title: 'Usuário Adicionado!', description: 'O novo usuário foi adicionado com sucesso.'});
+    const userExists = users.some(u => u.id === user.id);
+    if (userExists) {
+        setUsers(prevUsers => prevUsers.map(u => u.id === user.id ? user : u));
+        toast({ title: 'Usuário Atualizado!', description: 'Os dados do usuário foram atualizados com sucesso.'});
+    } else {
+        setUsers(prevUsers => [...prevUsers, user]);
+        toast({ title: 'Usuário Adicionado!', description: 'O novo usuário foi adicionado com sucesso.'});
+    }
   };
   
   const handleAddUser = () => {
     setSelectedUser(null);
     setIsUserDialogOpen(true);
   }
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setIsUserDialogOpen(true);
+  };
+
+  const handleToggleStatus = (user: User) => {
+    setUserToToggleStatus(user);
+  };
+
+  const confirmToggleStatus = () => {
+    if (!userToToggleStatus) return;
+
+    const newStatus = userToToggleStatus.status === 'active' ? 'inactive' : 'active';
+    setUsers(users.map(u => 
+        u.id === userToToggleStatus.id ? { ...u, status: newStatus } : u
+    ));
+
+    toast({ title: 'Status do Usuário Alterado!', description: `O usuário foi ${newStatus === 'active' ? 'ativado' : 'desativado'} com sucesso.`});
+    setUserToToggleStatus(null);
+  };
 
   const getStatusBadgeClass = (status: User['status']) => {
     switch (status) {
@@ -110,8 +147,10 @@ export function GestaoUsuarios() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Editar</DropdownMenuItem>
-                        <DropdownMenuItem>Alterar Status</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleEditUser(user)}>Editar</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleToggleStatus(user)}>
+                           {user.status === 'active' ? 'Desativar' : 'Ativar'}
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-500 hover:!text-red-500 hover:!bg-red-100/50">
                           Excluir
                         </DropdownMenuItem>
@@ -130,6 +169,20 @@ export function GestaoUsuarios() {
         onSave={handleSaveUser}
         userToEdit={selectedUser}
       />
+      <AlertDialog open={!!userToToggleStatus} onOpenChange={() => setUserToToggleStatus(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar alteração de status</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Você tem certeza que deseja {userToToggleStatus?.status === 'active' ? 'desativar' : 'ativar'} o usuário "{userToToggleStatus?.name}"?
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmToggleStatus}>Confirmar</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     </div>
   );
 }

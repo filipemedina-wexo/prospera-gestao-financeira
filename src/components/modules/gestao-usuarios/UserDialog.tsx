@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { User } from "@/data/users";
+import { useEffect } from "react";
 
 const roles = ['admin', 'financeiro', 'comercial', 'contador'] as const;
 
@@ -35,7 +36,7 @@ const userFormSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("Email inválido"),
   role: z.enum(roles, { required_error: "Selecione um perfil" }),
-  password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
+  password: z.string().min(6, "A nova senha deve ter no mínimo 6 caracteres").or(z.literal("")).optional(),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -50,30 +51,67 @@ interface UserDialogProps {
 export function UserDialog({ isOpen, setIsOpen, onSave, userToEdit }: UserDialogProps) {
   const isEditing = !!userToEdit;
 
-  // NOTE: Esta implementação suporta apenas a criação de novos usuários por enquanto.
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: "",
       email: "",
       password: "",
-      // O 'role' será indefinido por padrão, o que é tratado pelo formulário.
+      role: undefined,
     },
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      if (userToEdit) {
+        form.reset({
+          name: userToEdit.name,
+          email: userToEdit.email,
+          role: userToEdit.role,
+          password: "",
+        });
+      } else {
+        form.reset({
+          name: "",
+          email: "",
+          password: "",
+          role: undefined,
+        });
+      }
+    }
+  }, [isOpen, userToEdit, form]);
+
   function onSubmit(data: UserFormValues) {
-    const newUser: User = {
-      id: Date.now().toString(),
-      name: data.name,
-      email: data.email,
-      role: data.role,
-      password: data.password,
-      status: 'active',
-      createdAt: new Date().toISOString(),
-    };
-    onSave(newUser);
+    if (!isEditing && (!data.password || data.password.length < 6)) {
+      form.setError("password", { message: "A senha é obrigatória e deve ter no mínimo 6 caracteres." });
+      return;
+    }
+    
+    if (isEditing && userToEdit) {
+      const updatedUser: User = {
+        ...userToEdit,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+      };
+      if (data.password) {
+        updatedUser.password = data.password;
+      }
+      onSave(updatedUser);
+    } else {
+      const newUser: User = {
+        id: Date.now().toString(),
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        password: data.password!,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+      };
+      onSave(newUser);
+    }
+    
     setIsOpen(false);
-    form.reset();
   }
 
   return (
@@ -119,7 +157,7 @@ export function UserDialog({ isOpen, setIsOpen, onSave, userToEdit }: UserDialog
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Perfil</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o perfil" />
@@ -142,7 +180,7 @@ export function UserDialog({ isOpen, setIsOpen, onSave, userToEdit }: UserDialog
                 <FormItem>
                   <FormLabel>Senha</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="******" {...field} />
+                    <Input type="password" placeholder={isEditing ? "Deixe em branco para não alterar" : "******"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
