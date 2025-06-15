@@ -1,60 +1,74 @@
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Users, CreditCard, BarChart3, UserCheck, Settings } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Building2, Users, BarChart3, Activity, Settings2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { SuperAdminDashboard } from './SuperAdminDashboard';
 import { ClientesManagement } from './ClientesManagement';
 import { PlanosManagement } from './PlanosManagement';
 import { AssinaturasManagement } from './AssinaturasManagement';
-import { AnalyticsManagement } from './AnalyticsManagement';
 import { OnboardingManagement } from './OnboardingManagement';
-import { SaasMetrics } from './SaasMetrics';
+import { AnalyticsManagement } from './AnalyticsManagement';
+import { AuditLog } from './AuditLog';
 
-export function GestaoSaaS() {
+export default function GestaoSaaS() {
+  const { hasPermission } = useAuth();
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  if (!hasPermission('saas.manage')) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Acesso Negado</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Você não tem permissão para acessar a gestão SaaS.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Building2 className="h-6 w-6" />
-            Gestão SaaS
-          </h2>
-          <p className="text-muted-foreground">
-            Gerencie clientes, planos, assinaturas e métricas do sistema SaaS.
-          </p>
-        </div>
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Gestão SaaS</h2>
+        <p className="text-muted-foreground">
+          Gerencie clientes, planos, assinaturas e monitore o sistema
+        </p>
       </div>
 
-      {/* Métricas principais */}
-      <SaasMetrics />
-
-      <Tabs defaultValue="clientes" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="dashboard" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Dashboard
+          </TabsTrigger>
           <TabsTrigger value="clientes" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
+            <Building2 className="h-4 w-4" />
             Clientes
           </TabsTrigger>
           <TabsTrigger value="onboarding" className="flex items-center gap-2">
-            <UserCheck className="h-4 w-4" />
+            <Users className="h-4 w-4" />
             Onboarding
           </TabsTrigger>
           <TabsTrigger value="planos" className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
+            <Settings2 className="h-4 w-4" />
             Planos
           </TabsTrigger>
           <TabsTrigger value="assinaturas" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
+            <Activity className="h-4 w-4" />
             Assinaturas
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analytics
-          </TabsTrigger>
-          <TabsTrigger value="configuracoes" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Config
+          <TabsTrigger value="auditoria" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Auditoria
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="dashboard">
+          <SuperAdminDashboard />
+        </TabsContent>
 
         <TabsContent value="clientes">
           <ClientesManagement />
@@ -72,24 +86,8 @@ export function GestaoSaaS() {
           <AssinaturasManagement />
         </TabsContent>
 
-        <TabsContent value="analytics">
-          <AnalyticsManagement />
-        </TabsContent>
-
-        <TabsContent value="configuracoes">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Configurações do Sistema
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Módulo de configurações em desenvolvimento.
-              </p>
-            </CardContent>
-          </Card>
+        <TabsContent value="auditoria">
+          <AuditLog />
         </TabsContent>
       </Tabs>
     </div>
