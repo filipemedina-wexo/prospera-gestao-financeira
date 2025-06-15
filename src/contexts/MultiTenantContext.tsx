@@ -15,7 +15,14 @@ interface MultiTenantContextType {
 const MultiTenantContext = createContext<MultiTenantContextType | undefined>(undefined);
 
 export const MultiTenantProvider = ({ children }: { children: ReactNode }) => {
-  const { user, hasPermission } = useAuth();
+  const authContext = useAuth();
+  
+  // Ensure we have the auth context before proceeding
+  if (!authContext) {
+    throw new Error('MultiTenantProvider must be used within an AuthProvider');
+  }
+  
+  const { user, hasPermission } = authContext;
   const { currentClientId, loading, error, assignUserToClient, removeUserFromClient } = useClientMapping();
 
   const isSupperAdmin = hasPermission('saas.manage');
