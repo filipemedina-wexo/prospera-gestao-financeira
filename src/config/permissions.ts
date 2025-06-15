@@ -1,8 +1,11 @@
 
 import { Role } from '@/data/users';
 
-export const permissionsByRole: Record<Role, string[]> = {
+export type ExtendedRole = Role | 'super_admin';
+
+export const permissionsByRole: Record<ExtendedRole, string[]> = {
   admin: ['*'],
+  super_admin: ['*', 'saas.manage'],
   financeiro: [
     'dashboard.view',
     'caixa.view',

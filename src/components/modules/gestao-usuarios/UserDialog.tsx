@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -30,7 +29,7 @@ import {
 import { User } from "@/data/users";
 import { useEffect } from "react";
 
-const roles = ['admin', 'financeiro', 'comercial', 'contador'] as const;
+const roles = ['admin', 'financeiro', 'comercial', 'contador', 'super_admin'] as const;
 
 const userFormSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),

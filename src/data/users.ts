@@ -1,5 +1,5 @@
 
-export type Role = 'admin' | 'financeiro' | 'comercial' | 'contador';
+export type Role = 'admin' | 'financeiro' | 'comercial' | 'contador' | 'super_admin';
 export type UserStatus = 'active' | 'inactive' | 'suspended';
 
 export interface User {
@@ -52,5 +52,15 @@ export const users: User[] = [
     status: 'active',
     createdAt: '2025-04-05T14:00:00Z',
     lastLogin: '2025-06-13T18:00:00Z',
+  },
+  {
+    id: '5',
+    name: 'Super Admin',
+    email: 'superadmin@prospera.com',
+    password: 'password',
+    role: 'super_admin',
+    status: 'active',
+    createdAt: '2025-01-01T10:00:00Z',
+    lastLogin: '2025-06-15T10:00:00Z',
   },
 ];

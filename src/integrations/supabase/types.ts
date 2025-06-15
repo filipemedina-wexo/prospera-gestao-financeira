@@ -9,16 +9,290 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      saas_analytics: {
+        Row: {
+          client_id: string
+          id: string
+          metric_data: Json | null
+          metric_name: string
+          metric_value: number | null
+          period_end: string | null
+          period_start: string | null
+          recorded_at: string
+        }
+        Insert: {
+          client_id: string
+          id?: string
+          metric_data?: Json | null
+          metric_name: string
+          metric_value?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          recorded_at?: string
+        }
+        Update: {
+          client_id?: string
+          id?: string
+          metric_data?: Json | null
+          metric_name?: string
+          metric_value?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          recorded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_analytics_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saas_client_users: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_client_users_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saas_clients: {
+        Row: {
+          address: string | null
+          blocked_at: string | null
+          blocked_by: string | null
+          blocked_reason: string | null
+          city: string | null
+          cnpj: string | null
+          company_name: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string | null
+          created_at: string
+          id: string
+          state: string | null
+          status: Database["public"]["Enums"]["saas_client_status"]
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
+          city?: string | null
+          cnpj?: string | null
+          company_name: string
+          contact_email: string
+          contact_name: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          state?: string | null
+          status?: Database["public"]["Enums"]["saas_client_status"]
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
+          city?: string | null
+          cnpj?: string | null
+          company_name?: string
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          state?: string | null
+          status?: Database["public"]["Enums"]["saas_client_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      saas_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json
+          id: string
+          is_active: boolean
+          max_users: number
+          monthly_price: number
+          name: string
+          type: Database["public"]["Enums"]["saas_plan_type"]
+          updated_at: string
+          yearly_price: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_users?: number
+          monthly_price: number
+          name: string
+          type: Database["public"]["Enums"]["saas_plan_type"]
+          updated_at?: string
+          yearly_price?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_users?: number
+          monthly_price?: number
+          name?: string
+          type?: Database["public"]["Enums"]["saas_plan_type"]
+          updated_at?: string
+          yearly_price?: number | null
+        }
+        Relationships: []
+      }
+      saas_subscriptions: {
+        Row: {
+          auto_renew: boolean
+          billing_cycle: string
+          client_id: string
+          created_at: string
+          end_date: string | null
+          id: string
+          monthly_price: number
+          plan_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          trial_end_date: string | null
+          updated_at: string
+          yearly_price: number | null
+        }
+        Insert: {
+          auto_renew?: boolean
+          billing_cycle?: string
+          client_id: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          monthly_price: number
+          plan_id: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          trial_end_date?: string | null
+          updated_at?: string
+          yearly_price?: number | null
+        }
+        Update: {
+          auto_renew?: boolean
+          billing_cycle?: string
+          client_id?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          monthly_price?: number
+          plan_id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          trial_end_date?: string | null
+          updated_at?: string
+          yearly_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saas_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "saas_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "admin"
+        | "financeiro"
+        | "comercial"
+        | "contador"
+        | "super_admin"
+      saas_client_status: "active" | "blocked" | "trial" | "suspended"
+      saas_plan_type: "basic" | "premium" | "enterprise"
+      subscription_status:
+        | "active"
+        | "inactive"
+        | "suspended"
+        | "cancelled"
+        | "trial"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +407,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "financeiro", "comercial", "contador", "super_admin"],
+      saas_client_status: ["active", "blocked", "trial", "suspended"],
+      saas_plan_type: ["basic", "premium", "enterprise"],
+      subscription_status: [
+        "active",
+        "inactive",
+        "suspended",
+        "cancelled",
+        "trial",
+      ],
+    },
   },
 } as const
