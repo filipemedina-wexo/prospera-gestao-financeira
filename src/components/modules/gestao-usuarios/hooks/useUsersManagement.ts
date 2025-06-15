@@ -54,21 +54,25 @@ export function useUsersManagement() {
         return;
       }
 
-      // Explicitly type the filtered arrays
-      const validProfiles: ProfileData[] = profiles.filter((profile): profile is ProfileData => {
+      // Type the raw data and filter with proper type guards
+      const rawProfiles = profiles as Array<ProfileData | null>;
+      const rawUserRoles = (userRoles || []) as Array<UserRoleData | null>;
+
+      // Filter and type the arrays properly
+      const validProfiles = rawProfiles.filter((profile): profile is ProfileData => {
         return profile !== null && 
                typeof profile.id === 'string' && 
                profile.id.length > 0;
       });
       
-      const validUserRoles: UserRoleData[] = (userRoles || []).filter((roleData): roleData is UserRoleData => {
+      const validUserRoles = rawUserRoles.filter((roleData): roleData is UserRoleData => {
         return roleData !== null && 
                typeof roleData.user_id === 'string' && 
                typeof roleData.role === 'string';
       });
 
       // Combine the data with proper typing
-      const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
+      const combinedUsers: User[] = validProfiles.map((profile) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
         const userRole = validUserRoles.find((roleData) => roleData.user_id === profile.id);
         const role = (userRole?.role as ExtendedRole) || 'contador';
