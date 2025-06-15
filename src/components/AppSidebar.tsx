@@ -1,3 +1,4 @@
+
 import {
   Calendar,
   FileText,
@@ -97,8 +98,8 @@ export function AppSidebar({ onMenuChange }: AppSidebarProps) {
             <TrendingUp className="h-5 w-5 text-white" />
           </div>
           <div className="group-data-[collapsible=icon]:hidden">
-            <h1 className="font-bold text-lg">FinanceFlow</h1>
-            <p className="text-sm text-muted-foreground">Sistema Financeiro</p>
+            <h1 className="font-bold text-lg">Prospera</h1>
+            <p className="text-sm text-muted-foreground">Gestão Financeira</p>
           </div>
         </div>
       </SidebarHeader>
