@@ -18,7 +18,7 @@ interface PessoasProps {
     setCargos: React.Dispatch<React.SetStateAction<Cargo[]>>;
 }
 
-const Pessoas = ({ funcionarios, departamentos, setDepartamentos, cargos, setCargos }: PessoasProps) => {
+const Pessoas = ({ funcionarios, setFuncionarios, departamentos, setDepartamentos, cargos, setCargos }: PessoasProps) => {
   return (
     <div>
       <Card className="mb-4">
@@ -45,7 +45,12 @@ const Pessoas = ({ funcionarios, departamentos, setDepartamentos, cargos, setCar
           <DashboardPessoas funcionarios={funcionarios} departamentos={departamentos} />
         </TabsContent>
         <TabsContent value="funcionarios">
-          <Funcionarios funcionarios={funcionarios} />
+          <Funcionarios 
+            funcionarios={funcionarios} 
+            setFuncionarios={setFuncionarios} 
+            departamentos={departamentos}
+            cargos={cargos}
+          />
         </TabsContent>
         <TabsContent value="departamentos">
           <Departamentos 
