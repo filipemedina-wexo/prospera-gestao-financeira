@@ -60,11 +60,11 @@ export function useUsersManagement() {
         if (profile && 
             typeof profile === 'object' && 
             'id' in profile && 
-            typeof profile.id === 'string' && 
-            profile.id.length > 0) {
+            typeof (profile as any).id === 'string' && 
+            (profile as any).id.length > 0) {
           validProfiles.push({
-            id: profile.id,
-            full_name: profile.full_name
+            id: (profile as any).id,
+            full_name: (profile as any).full_name
           });
         }
       }
@@ -77,11 +77,11 @@ export function useUsersManagement() {
               typeof roleData === 'object' && 
               'user_id' in roleData && 
               'role' in roleData &&
-              typeof roleData.user_id === 'string' && 
-              typeof roleData.role === 'string') {
+              typeof (roleData as any).user_id === 'string' && 
+              typeof (roleData as any).role === 'string') {
             validUserRoles.push({
-              user_id: roleData.user_id,
-              role: roleData.role as ExtendedRole
+              user_id: (roleData as any).user_id,
+              role: (roleData as any).role as ExtendedRole
             });
           }
         }

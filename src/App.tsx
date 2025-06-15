@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
+import LandingPage from "@/pages/LandingPage";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ClientProvider } from "@/contexts/ClientContext";
@@ -26,9 +27,10 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <Routes>
+                  <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<Login />} />
                   <Route
-                    path="/"
+                    path="/dashboard"
                     element={
                       <ProtectedRoute>
                         <Index />
