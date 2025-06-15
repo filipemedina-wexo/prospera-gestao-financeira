@@ -1,4 +1,3 @@
-
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Dashboard } from "@/components/Dashboard";
@@ -81,8 +80,6 @@ const Index = () => {
         return <Configuracoes />;
       case "crm":
         return <CRM clients={clients} setClients={setClients} />;
-      case "gestao-usuarios":
-        return <GestaoUsuarios />;
       case "dashboard":
         return <Dashboard onNavigate={setActiveModule} contasPagar={contasAPagar} contasReceber={contasAReceber} />;
       default:

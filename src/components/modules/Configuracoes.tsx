@@ -6,8 +6,14 @@ import { ConfigComissoes } from "./configuracoes/ConfigComissoes";
 import { ConfigCategorias } from "./configuracoes/ConfigCategorias";
 import { ConfigBancos } from "./configuracoes/ConfigBancos";
 import { ConfigClientes } from "./configuracoes/ConfigClientes";
+import { GestaoUsuarios } from "@/components/modules/GestaoUsuarios";
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 export const Configuracoes = () => {
+  const { hasPermission } = useAuth();
+  const canViewUsers = hasPermission('admin.users.view');
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
@@ -16,12 +22,13 @@ export const Configuracoes = () => {
       </div>
 
       <Tabs defaultValue="geral" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className={cn("grid w-full", canViewUsers ? "grid-cols-6" : "grid-cols-5")}>
           <TabsTrigger value="geral">Geral</TabsTrigger>
           <TabsTrigger value="comissoes">Comissões</TabsTrigger>
           <TabsTrigger value="categorias">Categorias</TabsTrigger>
           <TabsTrigger value="bancos">Bancos</TabsTrigger>
           <TabsTrigger value="clientes">Clientes</TabsTrigger>
+          {canViewUsers && <TabsTrigger value="usuarios">Usuários</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="geral">
@@ -43,6 +50,12 @@ export const Configuracoes = () => {
         <TabsContent value="clientes">
           <ConfigClientes />
         </TabsContent>
+        
+        {canViewUsers && (
+          <TabsContent value="usuarios">
+            <GestaoUsuarios />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
