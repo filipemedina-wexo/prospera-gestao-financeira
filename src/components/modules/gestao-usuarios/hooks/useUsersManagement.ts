@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,38 +55,36 @@ export function useUsersManagement() {
         return;
       }
 
-      // Explicitly filter and validate the profiles data
-      const validProfiles: ProfileData[] = [];
-      for (const profile of profiles) {
-        if (profile && 
-            typeof profile === 'object' && 
-            'id' in profile && 
-            typeof (profile as any).id === 'string' && 
-            (profile as any).id.length > 0) {
-          validProfiles.push({
-            id: (profile as any).id,
-            full_name: (profile as any).full_name
-          });
-        }
-      }
+      // Process profiles with explicit typing
+      const validProfiles: ProfileData[] = profiles
+        .filter((profile): profile is NonNullable<typeof profile> => 
+          profile !== null && 
+          profile !== undefined && 
+          typeof profile === 'object' && 
+          'id' in profile && 
+          typeof profile.id === 'string' && 
+          profile.id.length > 0
+        )
+        .map(profile => ({
+          id: profile.id,
+          full_name: profile.full_name
+        }));
 
-      // Explicitly filter and validate the user roles data
-      const validUserRoles: UserRoleData[] = [];
-      if (userRoles) {
-        for (const roleData of userRoles) {
-          if (roleData && 
-              typeof roleData === 'object' && 
-              'user_id' in roleData && 
-              'role' in roleData &&
-              typeof (roleData as any).user_id === 'string' && 
-              typeof (roleData as any).role === 'string') {
-            validUserRoles.push({
-              user_id: (roleData as any).user_id,
-              role: (roleData as any).role as ExtendedRole
-            });
-          }
-        }
-      }
+      // Process user roles with explicit typing
+      const validUserRoles: UserRoleData[] = (userRoles || [])
+        .filter((roleData): roleData is NonNullable<typeof roleData> => 
+          roleData !== null && 
+          roleData !== undefined && 
+          typeof roleData === 'object' && 
+          'user_id' in roleData && 
+          'role' in roleData &&
+          typeof roleData.user_id === 'string' && 
+          typeof roleData.role === 'string'
+        )
+        .map(roleData => ({
+          user_id: roleData.user_id,
+          role: roleData.role as ExtendedRole
+        }));
 
       // Combine the data with proper typing
       const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
