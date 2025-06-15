@@ -1,9 +1,8 @@
-
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Dashboard } from "@/components/Dashboard";
-import { ContasPagar } from "@/components/modules/ContasPagar";
-import { ContasReceber } from "@/components/modules/ContasReceber";
+import { ContasPagar as ContasPagarModule } from "@/components/modules/ContasPagar";
+import { ContasReceber as ContasReceberModule } from "@/components/modules/ContasReceber";
 import { Caixa } from "@/components/modules/Caixa";
 import { Comercial } from "@/components/modules/Comercial";
 import { Relatorios } from "@/components/modules/Relatorios";
@@ -16,6 +15,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Proposta, Vendedor } from "@/components/modules/comercial/types";
 import { ContaReceber } from "@/components/modules/contas-receber/types";
 import { useToast } from "@/hooks/use-toast";
+import { ContaPagar } from "@/components/modules/contas-pagar/types";
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState("dashboard");
@@ -109,7 +109,8 @@ const Index = () => {
       status: "pendente",
       cliente: "XYZ Ltda",
       categoria: "Vendas de Serviços",
-      numeroFatura: "FAT-001"
+      numeroFatura: "FAT-001",
+      competencia: "06/2024",
     },
     {
       id: "2", 
@@ -121,7 +122,8 @@ const Index = () => {
       categoria: "Vendas de Produtos",
       numeroFatura: "NF-456",
       dataRecebimento: new Date(2024, 5, 19),
-      formaRecebimento: "PIX"
+      formaRecebimento: "PIX",
+      competencia: "06/2024",
     },
     {
       id: "3",
@@ -131,7 +133,8 @@ const Index = () => {
       status: "atrasado",
       cliente: "Empresa DEF",
       categoria: "Mensalidades",
-      numeroFatura: "REC-789"
+      numeroFatura: "REC-789",
+      competencia: "05/2024",
     },
     {
       id: "prop-2",
@@ -141,10 +144,67 @@ const Index = () => {
       status: "pendente",
       cliente: "StartupXYZ",
       categoria: "Venda de Projeto",
+      competencia: "07/2024",
     }
   ]);
 
+  const [contasAPagar, setContasAPagar] = useState<ContaPagar[]>([
+    {
+      id: "1",
+      descricao: "Aluguel Escritório",
+      valor: 4500.00,
+      dataVencimento: new Date(2024, 5, 5),
+      status: "pago",
+      fornecedor: "Imobiliária Central",
+      categoria: "Despesas Administrativas",
+      competencia: "06/2024",
+      dataPagamento: new Date(2024, 5, 4),
+      formaPagamento: "Boleto"
+    },
+    {
+      id: "2",
+      descricao: "Software de Gestão",
+      valor: 850.00,
+      dataVencimento: new Date(2024, 5, 10),
+      status: "pago",
+      fornecedor: "Tech Solutions",
+      categoria: "Despesas com Vendas",
+      competencia: "06/2024",
+    },
+    {
+      id: "3",
+      descricao: "Fornecedor Matéria Prima",
+      valor: 12800.00,
+      dataVencimento: new Date(2024, 5, 15),
+      status: "pendente",
+      fornecedor: "Matérias ABC",
+      categoria: "Custo de Mercadorias",
+      competencia: "06/2024",
+    },
+    {
+      id: "4",
+      descricao: "Energia Elétrica",
+      valor: 1250.40,
+      dataVencimento: new Date(2024, 5, 20),
+      status: "pendente",
+      fornecedor: "Companhia de Energia",
+      categoria: "Despesas Administrativas",
+      competencia: "06/2024",
+    },
+    {
+        id: "5",
+        descricao: "Marketing Digital",
+        valor: 3200.00,
+        dataVencimento: new Date(2024, 4, 15),
+        status: "pago",
+        fornecedor: "Agência Digital XYZ",
+        categoria: "Despesas com Vendas",
+        competencia: "05/2024",
+    },
+  ]);
+
   const handlePropostaAceita = (proposta: Proposta) => {
+    const competencia = `${(proposta.dataValidade.getMonth() + 1).toString().padStart(2, '0')}/${proposta.dataValidade.getFullYear()}`;
     const novaConta: ContaReceber = {
       id: `prop-${proposta.id}-${Date.now()}`,
       descricao: `Recebimento da Proposta: ${proposta.titulo}`,
@@ -153,6 +213,7 @@ const Index = () => {
       status: 'pendente',
       cliente: proposta.cliente,
       categoria: 'Venda de Projeto',
+      competencia,
     };
 
     setContasAReceber(prevContas => [...prevContas, novaConta]);
@@ -168,9 +229,9 @@ const Index = () => {
       case "caixa":
         return <Caixa />;
       case "contas-pagar":
-        return <ContasPagar />;
+        return <ContasPagarModule />;
       case "contas-receber":
-        return <ContasReceber contas={contasAReceber} setContas={setContasAReceber} />;
+        return <ContasReceberModule contas={contasAReceber} setContas={setContasAReceber} />;
       case "comercial":
         return <Comercial 
           propostas={propostas}
@@ -183,7 +244,7 @@ const Index = () => {
       case "relatorios":
         return <Relatorios />;
       case "dre":
-        return <DRE />;
+        return <DRE contasPagar={contasAPagar} contasReceber={contasAReceber} />;
       case "configuracoes":
         return <Configuracoes />;
       case "crm":
