@@ -40,8 +40,8 @@ import { useToast } from "@/hooks/use-toast";
 const funcionarioSchema = z.object({
   nome: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres." }),
   email: z.string().email({ message: "Por favor, insira um email válido." }),
-  departamento: z.string({ required_error: "Por favor, selecione um departamento." }),
-  cargo: z.string({ required_error: "Por favor, selecione um cargo." }),
+  departamento: z.string({ required_error: "Por favor, selecione um departamento." }).min(1, { message: "Por favor, selecione um departamento." }),
+  cargo: z.string({ required_error: "Por favor, selecione um cargo." }).min(1, { message: "Por favor, selecione um cargo." }),
   dataAdmissao: z.date({ required_error: "A data de admissão é obrigatória." }),
   salario: z.coerce.number().positive({ message: "O salário deve ser um número positivo." }),
   status: z.enum(["ativo", "inativo", "ferias"], { required_error: "Por favor, selecione um status." }),
@@ -88,8 +88,8 @@ export function FuncionarioDialog({ isOpen, setIsOpen, onSave, funcionario, depa
       form.reset({
         nome: '',
         email: '',
-        departamento: undefined,
-        cargo: undefined,
+        departamento: '',
+        cargo: '',
         dataAdmissao: new Date(),
         salario: 0,
         status: 'ativo',
@@ -100,7 +100,13 @@ export function FuncionarioDialog({ isOpen, setIsOpen, onSave, funcionario, depa
   const onSubmit = (data: FuncionarioFormValues) => {
     const newFuncionario: Funcionario = {
       id: funcionario ? funcionario.id : `func-${Date.now()}`,
-      ...data,
+      nome: data.nome,
+      email: data.email,
+      departamento: data.departamento,
+      cargo: data.cargo,
+      dataAdmissao: data.dataAdmissao,
+      salario: data.salario,
+      status: data.status,
     };
     onSave(newFuncionario);
     toast({
