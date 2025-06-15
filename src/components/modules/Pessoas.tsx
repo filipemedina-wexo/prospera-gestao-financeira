@@ -1,7 +1,7 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Departamento, Funcionario } from "./pessoas/types";
+import { Departamento, Funcionario, Cargo } from "./pessoas/types";
 import DashboardPessoas from "./pessoas/DashboardPessoas";
 import Funcionarios from "./pessoas/Funcionarios";
 import Departamentos from "./pessoas/Departamentos";
@@ -14,9 +14,11 @@ interface PessoasProps {
     setFuncionarios: React.Dispatch<React.SetStateAction<Funcionario[]>>;
     departamentos: Departamento[];
     setDepartamentos: React.Dispatch<React.SetStateAction<Departamento[]>>;
+    cargos: Cargo[];
+    setCargos: React.Dispatch<React.SetStateAction<Cargo[]>>;
 }
 
-const Pessoas = ({ funcionarios }: PessoasProps) => {
+const Pessoas = ({ funcionarios, departamentos, setDepartamentos, cargos, setCargos }: PessoasProps) => {
   return (
     <div>
       <Card className="mb-4">
@@ -40,13 +42,19 @@ const Pessoas = ({ funcionarios }: PessoasProps) => {
           <TabsTrigger value="relatorios">Relatórios</TabsTrigger>
         </TabsList>
         <TabsContent value="dashboard">
-          <DashboardPessoas />
+          <DashboardPessoas funcionarios={funcionarios} departamentos={departamentos} />
         </TabsContent>
         <TabsContent value="funcionarios">
           <Funcionarios funcionarios={funcionarios} />
         </TabsContent>
         <TabsContent value="departamentos">
-          <Departamentos />
+          <Departamentos 
+            departamentos={departamentos} 
+            setDepartamentos={setDepartamentos}
+            cargos={cargos}
+            setCargos={setCargos}
+            funcionarios={funcionarios}
+          />
         </TabsContent>
         <TabsContent value="folha">
           <FolhaPagamento />

@@ -3,7 +3,7 @@ import { ContaPagar } from "@/components/modules/contas-pagar/types";
 import { ContaReceber } from "@/components/modules/contas-receber/types";
 import { Client, Compra } from "@/components/modules/crm/types";
 import { ProdutoServico } from "@/components/modules/produtos-servicos/types";
-import { Funcionario, Departamento } from "@/components/modules/pessoas/types";
+import { Funcionario, Departamento, Cargo } from "@/components/modules/pessoas/types";
 
 export const initialPropostas: Proposta[] = [
   {
@@ -295,6 +295,14 @@ export const initialDepartamentos: Departamento[] = [
   { id: 'dep-1', nome: 'Tecnologia', responsavelId: 'func-1' },
   { id: 'dep-2', nome: 'Comercial', responsavelId: 'func-2' },
   { id: 'dep-3', nome: 'Administrativo', responsavelId: 'func-4' },
+];
+
+export const initialCargos: Cargo[] = [
+    { id: 'cargo-1', nome: 'Desenvolvedor Full-Stack', descricao: 'Responsável pelo desenvolvimento de aplicações web, do back-end ao front-end.' },
+    { id: 'cargo-2', nome: 'Gerente de Vendas', descricao: 'Lidera a equipe de vendas, define metas e estratégias comerciais.' },
+    { id: 'cargo-3', nome: 'Analista de Marketing', descricao: 'Cria e executa campanhas de marketing digital e offline.' },
+    { id: 'cargo-4', nome: 'Gerente Financeiro', descricao: 'Supervisiona todas as atividades financeiras da empresa.' },
+    { id: 'cargo-5', nome: 'Designer UX/UI', descricao: 'Projeta a experiência e a interface de usuário para produtos digitais.' },
 ];
 
 export const initialFuncionarios: Funcionario[] = [

@@ -5,7 +5,7 @@ import { ContaReceber } from "@/components/modules/contas-receber/types";
 import { ContaPagar } from "@/components/modules/contas-pagar/types";
 import { Client } from "@/components/modules/crm/types";
 import { ProdutoServico } from "@/components/modules/produtos-servicos/types";
-import { Funcionario, Departamento } from "@/components/modules/pessoas/types";
+import { Funcionario, Departamento, Cargo } from "@/components/modules/pessoas/types";
 import {
   initialPropostas,
   initialVendedores,
@@ -15,6 +15,7 @@ import {
   initialProdutosServicos,
   initialFuncionarios,
   initialDepartamentos,
+  initialCargos,
 } from "@/data/mockData";
 
 export const useAppData = () => {
@@ -28,6 +29,7 @@ export const useAppData = () => {
   const [produtosServicos, setProdutosServicos] = useState<ProdutoServico[]>(initialProdutosServicos);
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>(initialFuncionarios);
   const [departamentos, setDepartamentos] = useState<Departamento[]>(initialDepartamentos);
+  const [cargos, setCargos] = useState<Cargo[]>(initialCargos);
 
   useEffect(() => {
     const today = new Date();
@@ -95,5 +97,7 @@ export const useAppData = () => {
     setFuncionarios,
     departamentos,
     setDepartamentos,
+    cargos,
+    setCargos,
   };
 };
