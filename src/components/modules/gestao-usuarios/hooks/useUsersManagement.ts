@@ -52,10 +52,15 @@ export function useUsersManagement() {
       if (rolesError) throw rolesError;
 
       // Fetch auth users to get email
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      const { data: authUsersResponse, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
-      const authUsersList: AuthUser[] = authUsers?.users || [];
+      const authUsersList: AuthUser[] = authUsersResponse?.users?.map(user => ({
+        id: user.id,
+        email: user.email || '',
+        created_at: user.created_at,
+        last_sign_in_at: user.last_sign_in_at || null
+      })) || [];
 
       // Handle the case when profiles is null or empty
       if (!profiles || profiles.length === 0) {
