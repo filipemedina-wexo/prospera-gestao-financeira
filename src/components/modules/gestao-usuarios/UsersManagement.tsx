@@ -57,14 +57,16 @@ export function UsersManagement() {
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
-      // Type the profiles data properly and handle null case
-      const typedProfiles = profiles as ProfileData[] | null;
-      const typedUserRoles = userRoles as UserRoleData[] | null;
+      // Handle the case when profiles is null or empty
+      if (!profiles || profiles.length === 0) {
+        setUsers([]);
+        return;
+      }
 
-      // Combine the data - handle null case properly
-      const combinedUsers: User[] = typedProfiles ? typedProfiles.map(profile => {
+      // Combine the data with proper typing
+      const combinedUsers: User[] = profiles.map((profile: ProfileData) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
-        const userRole = typedUserRoles?.find(r => r.user_id === profile.id);
+        const userRole = userRoles?.find((r: UserRoleData) => r.user_id === profile.id);
         const role = (userRole?.role as ExtendedRole) || 'contador';
         
         return {
@@ -76,7 +78,7 @@ export function UsersManagement() {
           createdAt: authUser?.created_at || new Date().toISOString(),
           lastLogin: authUser?.last_sign_in_at || undefined,
         };
-      }) : [];
+      });
 
       setUsers(combinedUsers);
     } catch (error) {
