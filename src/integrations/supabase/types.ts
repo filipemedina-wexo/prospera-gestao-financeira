@@ -98,6 +98,7 @@ export type Database = {
           full_name: string | null
           id: string
           updated_at: string
+          welcome_email_sent: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -105,6 +106,7 @@ export type Database = {
           full_name?: string | null
           id: string
           updated_at?: string
+          welcome_email_sent?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -112,6 +114,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+          welcome_email_sent?: boolean
         }
         Relationships: []
       }

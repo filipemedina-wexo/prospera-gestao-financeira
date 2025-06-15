@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { permissionsByRole, ExtendedRole } from '@/config/permissions';
@@ -37,7 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('full_name')
+      .select('full_name, welcome_email_sent')
       .eq('id', supabaseUser.id)
       .maybeSingle();
 
@@ -48,6 +47,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       role: (roleData?.role as ExtendedRole) || null,
     };
     setUser(appUser);
+
+    // If user is confirmed and welcome email hasn't been sent, send it
+    if (supabaseUser.email_confirmed_at && !profileData?.welcome_email_sent) {
+      try {
+        const { error } = await supabase.functions.invoke('send-welcome-email', {
+          body: { user: supabaseUser },
+        });
+        
+        if (error) {
+          console.error('Error sending welcome email:', error);
+        }
+      } catch (error) {
+        console.error('Error invoking welcome email function:', error);
+      }
+    }
   };
   
   useEffect(() => {
