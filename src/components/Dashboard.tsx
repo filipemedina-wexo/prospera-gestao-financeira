@@ -1,3 +1,4 @@
+
 import { Alert } from "@/types/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -207,9 +208,6 @@ export function Dashboard({ onNavigate }: { onNavigate: (module: string) => void
         </Card>
       </div>
 
-      {/* Nova Seção: Gráficos Rápidos */}
-      <QuickChartsSection />
-
       {/* Ações Rápidas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
@@ -296,6 +294,10 @@ export function Dashboard({ onNavigate }: { onNavigate: (module: string) => void
           </CardContent>
         </Card>
       </div>
+
+      {/* Nova Seção: Gráficos Rápidos */}
+      <QuickChartsSection />
+      
       <AlertsPopup
         open={alertsOpen}
         alerts={alerts}
