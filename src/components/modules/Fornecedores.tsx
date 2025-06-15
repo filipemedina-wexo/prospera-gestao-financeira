@@ -1,8 +1,10 @@
+
 import { useState } from "react";
 import { Fornecedor } from "./fornecedores/types";
 import { Button } from "@/components/ui/button";
 import { FornecedoresTable } from "./fornecedores/FornecedoresTable";
 import { FornecedorDialog } from "./fornecedores/FornecedorDialog";
+import { GerenciarTipos, TipoFornecedor } from "./fornecedores/GerenciarTipos";
 import { Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -19,6 +21,13 @@ export const Fornecedores = ({ fornecedores, setFornecedores }: FornecedoresProp
   const [selectedFornecedor, setSelectedFornecedor] = useState<Fornecedor | null>(null);
   const [tipoFilter, setTipoFilter] = useState('Todos');
   const [searchFilter, setSearchFilter] = useState('');
+  
+  // Estado para gerenciar tipos de fornecedores
+  const [tiposFornecedor, setTiposFornecedor] = useState<TipoFornecedor[]>([
+    { id: '1', nome: 'Produto' },
+    { id: '2', nome: 'Serviço' },
+    { id: '3', nome: 'Ambos' },
+  ]);
 
   const handleSave = (fornecedor: Fornecedor) => {
     const isEditing = !!selectedFornecedor;
@@ -70,7 +79,10 @@ export const Fornecedores = ({ fornecedores, setFornecedores }: FornecedoresProp
             <Briefcase className="h-6 w-6 text-primary" />
             <h2 className="text-2xl font-bold">Fornecedores</h2>
         </div>
-        <Button onClick={handleAddNew}>Adicionar Fornecedor</Button>
+        <div className="flex gap-2">
+          <GerenciarTipos tipos={tiposFornecedor} setTipos={setTiposFornecedor} />
+          <Button onClick={handleAddNew}>Adicionar Fornecedor</Button>
+        </div>
       </div>
       <p className="text-muted-foreground">
         Gerencie seus fornecedores de produtos e serviços.
@@ -89,9 +101,9 @@ export const Fornecedores = ({ fornecedores, setFornecedores }: FornecedoresProp
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="Todos">Todos os tipos</SelectItem>
-            <SelectItem value="Produto">Produto</SelectItem>
-            <SelectItem value="Serviço">Serviço</SelectItem>
-            <SelectItem value="Ambos">Ambos</SelectItem>
+            {tiposFornecedor.map((tipo) => (
+              <SelectItem key={tipo.id} value={tipo.nome}>{tipo.nome}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -103,6 +115,7 @@ export const Fornecedores = ({ fornecedores, setFornecedores }: FornecedoresProp
         onOpenChange={setDialogOpen}
         onSave={handleSave}
         fornecedor={selectedFornecedor}
+        tiposFornecedor={tiposFornecedor}
       />
     </div>
   );

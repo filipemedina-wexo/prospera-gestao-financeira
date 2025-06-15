@@ -7,7 +7,7 @@ export interface Fornecedor {
   email: string;
   telefone: string;
   status: 'Ativo' | 'Inativo';
-  tipo: 'Produto' | 'Serviço' | 'Ambos';
+  tipo: string;
   chavePix?: string;
   endereco?: string;
   cidade?: string;

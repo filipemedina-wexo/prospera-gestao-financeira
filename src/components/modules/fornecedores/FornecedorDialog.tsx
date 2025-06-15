@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Fornecedor } from "./types";
+import { TipoFornecedor } from "./GerenciarTipos";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -19,7 +20,7 @@ const fornecedorSchema = z.object({
   email: z.string().email("E-mail inválido"),
   telefone: z.string().min(10, "Telefone inválido"),
   status: z.enum(["Ativo", "Inativo"]),
-  tipo: z.enum(["Produto", "Serviço", "Ambos"]),
+  tipo: z.string().min(1, "Tipo é obrigatório"),
   chavePix: z.string().optional(),
   endereco: z.string().optional(),
   cidade: z.string().optional(),
@@ -42,9 +43,10 @@ interface FornecedorDialogProps {
   onOpenChange: (open: boolean) => void;
   onSave: (fornecedor: Fornecedor) => void;
   fornecedor: Fornecedor | null;
+  tiposFornecedor: TipoFornecedor[];
 }
 
-export const FornecedorDialog = ({ open, onOpenChange, onSave, fornecedor }: FornecedorDialogProps) => {
+export const FornecedorDialog = ({ open, onOpenChange, onSave, fornecedor, tiposFornecedor }: FornecedorDialogProps) => {
   const form = useForm<FornecedorFormData>({
     resolver: zodResolver(fornecedorSchema),
     defaultValues: {
@@ -54,7 +56,7 @@ export const FornecedorDialog = ({ open, onOpenChange, onSave, fornecedor }: For
       email: '',
       telefone: '',
       status: 'Ativo',
-      tipo: 'Produto',
+      tipo: '',
       chavePix: '',
       endereco: '',
       cidade: '',
@@ -83,7 +85,7 @@ export const FornecedorDialog = ({ open, onOpenChange, onSave, fornecedor }: For
         email: '',
         telefone: '',
         status: 'Ativo',
-        tipo: 'Produto',
+        tipo: tiposFornecedor.length > 0 ? tiposFornecedor[0].nome : '',
         chavePix: '',
         endereco: '',
         cidade: '',
@@ -96,7 +98,7 @@ export const FornecedorDialog = ({ open, onOpenChange, onSave, fornecedor }: For
         valorProximoPagamento: undefined,
       });
     }
-  }, [fornecedor, form, open]);
+  }, [fornecedor, form, open, tiposFornecedor]);
 
   const onSubmit = (data: FornecedorFormData) => {
     onSave({
@@ -142,7 +144,7 @@ export const FornecedorDialog = ({ open, onOpenChange, onSave, fornecedor }: For
               <FormField control={form.control} name="telefone" render={({ field }) => ( <FormItem><FormLabel>Telefone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
               <FormField control={form.control} name="nomeContato" render={({ field }) => ( <FormItem><FormLabel>Nome do Contato</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
               <FormField control={form.control} name="status" render={({ field }) => ( <FormItem><FormLabel>Status</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Ativo">Ativo</SelectItem><SelectItem value="Inativo">Inativo</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
-              <FormField control={form.control} name="tipo" render={({ field }) => ( <FormItem><FormLabel>Tipo</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Produto">Produto</SelectItem><SelectItem value="Serviço">Serviço</SelectItem><SelectItem value="Ambos">Ambos</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+              <FormField control={form.control} name="tipo" render={({ field }) => ( <FormItem><FormLabel>Tipo</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger></FormControl><SelectContent>{tiposFornecedor.map((tipo) => (<SelectItem key={tipo.id} value={tipo.nome}>{tipo.nome}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>)} />
               <FormField control={form.control} name="chavePix" render={({ field }) => ( <FormItem><FormLabel>Chave PIX</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
               <FormField control={form.control} name="cep" render={({ field }) => ( <FormItem><FormLabel>CEP</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
               <FormField control={form.control} name="endereco" render={({ field }) => ( <FormItem><FormLabel>Endereço</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
