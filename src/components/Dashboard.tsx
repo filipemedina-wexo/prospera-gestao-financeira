@@ -135,6 +135,7 @@ export function Dashboard() {
 
       {/* Cards de Resumo */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Card A Receber */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">A Receber</CardTitle>
@@ -150,6 +151,13 @@ export function Dashboard() {
             <p className="text-xs text-muted-foreground mt-1">
               +5.2% em relação ao mês anterior
             </p>
+            <Button
+              variant="link"
+              className="mt-2 px-0 text-green-700 hover:text-green-900"
+              onClick={() => setActiveModule("contas-receber")}
+            >
+              Ver Contas a Receber
+            </Button>
           </CardContent>
         </Card>
 
