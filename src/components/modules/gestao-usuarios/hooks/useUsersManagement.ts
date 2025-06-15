@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,14 +6,21 @@ import { ExtendedRole } from '@/config/permissions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiTenant } from '@/contexts/MultiTenantContext';
 
-interface SupabaseProfile {
+interface ProfileData {
   id: string;
   full_name: string | null;
 }
 
-interface SupabaseUserRole {
+interface UserRoleData {
   user_id: string;
-  role: string;
+  role: ExtendedRole;
+}
+
+interface AuthUser {
+  id: string;
+  email: string;
+  created_at: string;
+  last_sign_in_at: string | null;
 }
 
 export function useUsersManagement() {
@@ -28,22 +34,20 @@ export function useUsersManagement() {
 
   const fetchUsers = async () => {
     if (!canManageUsers) return;
-    
+
     setLoading(true);
     try {
-      // Fetch user profiles with explicit typing
-      const { data: profilesData, error: profilesError } = await supabase
+      // Fetch user profiles first
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name')
-        .returns<SupabaseProfile[]>();
+        .select('id, full_name');
 
       if (profilesError) throw profilesError;
 
-      // Fetch user roles with explicit typing
-      const { data: userRolesData, error: rolesError } = await supabase
+      // Fetch user roles separately
+      const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
-        .select('user_id, role')
-        .returns<SupabaseUserRole[]>();
+        .select('user_id, role');
 
       if (rolesError) throw rolesError;
 
@@ -51,18 +55,57 @@ export function useUsersManagement() {
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
-      // Handle empty profiles
-      if (!profilesData || profilesData.length === 0) {
+      const authUsersList: AuthUser[] = authUsers?.users || [];
+
+      // Handle the case when profiles is null or empty
+      if (!profiles || profiles.length === 0) {
         setUsers([]);
         return;
       }
 
-      // Process the data with proper typing
-      const combinedUsers: User[] = profilesData.map((profile: SupabaseProfile) => {
-        const authUser = authUsers.users.find(u => u.id === profile.id);
-        const userRole = userRolesData?.find((roleData: SupabaseUserRole) => roleData.user_id === profile.id);
-        const role = (userRole?.role as ExtendedRole) || 'contador';
-        
+      // Process profiles with proper type handling
+      const validProfiles: ProfileData[] = [];
+      for (const profile of profiles) {
+        if (
+          profile &&
+          typeof profile === 'object' &&
+          'id' in profile &&
+          typeof profile.id === 'string' &&
+          profile.id.length > 0
+        ) {
+          validProfiles.push({
+            id: profile.id,
+            full_name: typeof profile.full_name === 'string' ? profile.full_name : null,
+          });
+        }
+      }
+
+      // Process user roles with proper type handling
+      const validUserRoles: UserRoleData[] = [];
+      if (userRoles) {
+        for (const roleData of userRoles) {
+          if (
+            roleData &&
+            typeof roleData === 'object' &&
+            'user_id' in roleData &&
+            'role' in roleData &&
+            typeof roleData.user_id === 'string' &&
+            typeof roleData.role === 'string'
+          ) {
+            validUserRoles.push({
+              user_id: roleData.user_id,
+              role: roleData.role as ExtendedRole,
+            });
+          }
+        }
+      }
+
+      // Create users array with explicit typing
+      const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
+        const authUser = authUsersList.find((u) => u.id === profile.id);
+        const userRole = validUserRoles.find((roleData) => roleData.user_id === profile.id);
+        const role = userRole?.role || 'contador';
+
         return {
           id: profile.id,
           name: profile.full_name || 'Sem nome',
