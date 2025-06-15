@@ -12,4 +12,7 @@ export interface Client {
   telefone: string;
   whatsapp: string;
   status: "Ativo" | "Inativo";
+  dataCadastro?: Date;
+  origem?: string;
+  observacoes?: string;
 }

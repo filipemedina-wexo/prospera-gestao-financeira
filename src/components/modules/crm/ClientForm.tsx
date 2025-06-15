@@ -1,10 +1,10 @@
-
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { useEffect } from "react";
+import { Textarea } from "@/components/ui/textarea";
 import type { Client } from "./types";
 
 interface ClientFormProps {
@@ -28,6 +28,8 @@ export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormP
       telefone: "",
       whatsapp: "",
       status: "Ativo",
+      origem: "",
+      observacoes: "",
     }
   });
 
@@ -47,6 +49,8 @@ export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormP
         telefone: "",
         whatsapp: "",
         status: "Ativo",
+        origem: "",
+        observacoes: "",
       });
     }
   }, [initialValues, open, form]);
@@ -56,7 +60,8 @@ export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormP
       ...initialValues,
       ...values,
       id: initialValues?.id ?? Math.random().toString(36).slice(2, 10),
-      status: values.status || "Ativo"
+      status: values.status || "Ativo",
+      dataCadastro: initialValues?.dataCadastro ?? new Date()
     };
     onSave(data);
     onClose();
@@ -198,6 +203,30 @@ export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormP
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="origem"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Origem do Cliente</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Indicação, Website, Evento" {...field} value={field.value ?? ""} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="observacoes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Observações</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Informações adicionais sobre o cliente" {...field} value={field.value ?? ""} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
             <DialogFooter>
               <Button type="submit" variant="default">Salvar</Button>
               <Button type="button" variant="outline" onClick={onClose}>

@@ -60,8 +60,8 @@ const Clients = ({ clients, setClients }: ClientsProps) => {
               <TableRow>
                 <TableHead>Razão Social</TableHead>
                 <TableHead>Contato</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Telefone</TableHead>
+                <TableHead className="hidden md:table-cell">Email</TableHead>
+                <TableHead>Data Cadastro</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead><span className="sr-only">Ações</span></TableHead>
               </TableRow>
@@ -71,8 +71,10 @@ const Clients = ({ clients, setClients }: ClientsProps) => {
                 <TableRow key={client.id}>
                   <TableCell className="font-medium">{client.razaoSocial}</TableCell>
                   <TableCell>{client.nomeContato}</TableCell>
-                  <TableCell>{client.email}</TableCell>
-                  <TableCell>{client.telefone}</TableCell>
+                  <TableCell className="hidden md:table-cell">{client.email}</TableCell>
+                  <TableCell>
+                    {client.dataCadastro ? new Date(client.dataCadastro).toLocaleDateString('pt-BR') : '-'}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={client.status === 'Ativo' ? 'default' : 'secondary'}>{client.status}</Badge>
                   </TableCell>

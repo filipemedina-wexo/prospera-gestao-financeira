@@ -200,6 +200,9 @@ export const initialClients: Client[] = [
     telefone: "(11) 99999-1111",
     whatsapp: "(11) 99999-1111",
     status: "Ativo",
+    dataCadastro: new Date(2023, 10, 15),
+    origem: "Website",
+    observacoes: "Cliente antigo, bom pagador.",
   },
   {
     id: "2",
@@ -214,6 +217,9 @@ export const initialClients: Client[] = [
     telefone: "(21) 98888-2222",
     whatsapp: "(21) 98888-2222",
     status: "Ativo",
+    dataCadastro: new Date(2024, 2, 20),
+    origem: "Indicação",
+    observacoes: "",
   },
   {
     id: "3",
@@ -228,6 +234,9 @@ export const initialClients: Client[] = [
     telefone: "(31) 97777-3333",
     whatsapp: "(31) 97777-3333",
     status: "Inativo",
+    dataCadastro: new Date(2023, 5, 1),
+    origem: "Feira de negócios",
+    observacoes: "Inativo por falta de compras há mais de 6 meses.",
   }
 ];
 
