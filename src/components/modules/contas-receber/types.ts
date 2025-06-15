@@ -10,4 +10,5 @@ export interface ContaReceber {
   numeroFatura?: string;
   dataRecebimento?: Date;
   formaRecebimento?: string;
+  observacoes?: string;
 }

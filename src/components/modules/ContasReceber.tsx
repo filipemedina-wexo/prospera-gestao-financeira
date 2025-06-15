@@ -18,13 +18,16 @@ import {
   CheckCircle,
   Clock,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  Trash,
+  Edit
 } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ContaReceber } from "./contas-receber/types";
+import { useToast } from "@/hooks/use-toast";
 
 interface ContasReceberProps {
   contas: ContaReceber[];
@@ -50,11 +53,18 @@ const formasRecebimento = [
 ];
 
 export function ContasReceber({ contas, setContas }: ContasReceberProps) {
+  const { toast } = useToast();
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
   const [busca, setBusca] = useState("");
-  const [showDialog, setShowDialog] = useState(false);
+  const [showFormDialog, setShowFormDialog] = useState(false);
+  const [showReceberDialog, setShowReceberDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const [contaParaEditar, setContaParaEditar] = useState<ContaReceber | null>(null);
   const [contaParaReceber, setContaParaReceber] = useState<ContaReceber | null>(null);
+  const [contaParaRemover, setContaParaRemover] = useState<ContaReceber | null>(null);
+  
   const [dataRecebimento, setDataRecebimento] = useState<Date | undefined>(new Date());
   const [formaRecebimento, setFormaRecebimento] = useState<string>("");
 
@@ -105,25 +115,8 @@ export function ContasReceber({ contas, setContas }: ContasReceberProps) {
   const totalRecebido = contas
     .filter(c => c.status === 'recebido')
     .reduce((sum, c) => sum + c.valor, 0);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const novaConta: ContaReceber = {
-      id: Date.now().toString(),
-      descricao: formData.descricao,
-      valor: parseFloat(formData.valor),
-      dataVencimento: formData.dataVencimento!,
-      status: 'pendente',
-      cliente: formData.cliente,
-      categoria: formData.categoria,
-      numeroFatura: formData.numeroFatura || undefined
-    };
-    
-    setContas([...contas, novaConta]);
-    setShowDialog(false);
-    
-    // Reset form
+  
+  const resetForm = () => {
     setFormData({
       descricao: "",
       valor: "",
@@ -133,6 +126,62 @@ export function ContasReceber({ contas, setContas }: ContasReceberProps) {
       numeroFatura: "",
       observacoes: ""
     });
+    setContaParaEditar(null);
+  }
+
+  const handleOpenCreateDialog = () => {
+    resetForm();
+    setShowFormDialog(true);
+  }
+
+  const handleOpenEditDialog = (conta: ContaReceber) => {
+    setContaParaEditar(conta);
+    setFormData({
+      descricao: conta.descricao,
+      valor: String(conta.valor),
+      dataVencimento: conta.dataVencimento,
+      cliente: conta.cliente,
+      categoria: conta.categoria,
+      numeroFatura: conta.numeroFatura || "",
+      observacoes: conta.observacoes || ""
+    });
+    setShowFormDialog(true);
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (contaParaEditar) {
+      const contaAtualizada: ContaReceber = {
+        ...contaParaEditar,
+        descricao: formData.descricao,
+        valor: parseFloat(formData.valor),
+        dataVencimento: formData.dataVencimento!,
+        cliente: formData.cliente,
+        categoria: formData.categoria,
+        numeroFatura: formData.numeroFatura || undefined,
+        observacoes: formData.observacoes || undefined,
+      };
+      setContas(contas.map(c => c.id === contaParaEditar.id ? contaAtualizada : c));
+      toast({ title: "Conta atualizada!", description: `A conta "${contaAtualizada.descricao}" foi atualizada.`});
+    } else {
+      const novaConta: ContaReceber = {
+        id: Date.now().toString(),
+        descricao: formData.descricao,
+        valor: parseFloat(formData.valor),
+        dataVencimento: formData.dataVencimento!,
+        status: 'pendente',
+        cliente: formData.cliente,
+        categoria: formData.categoria,
+        numeroFatura: formData.numeroFatura || undefined,
+        observacoes: formData.observacoes || undefined,
+      };
+      setContas([...contas, novaConta]);
+      toast({ title: "Conta criada!", description: `A conta "${novaConta.descricao}" foi adicionada.`});
+    }
+    
+    setShowFormDialog(false);
+    resetForm();
   };
 
   const handleConfirmarRecebimento = () => {
@@ -143,384 +192,425 @@ export function ContasReceber({ contas, setContas }: ContasReceberProps) {
         ? { ...c, status: 'recebido' as const, dataRecebimento: dataRecebimento, formaRecebimento: formaRecebimento }
         : c
     ));
+    
+    toast({ title: "Recebimento confirmado!", description: `A conta "${contaParaReceber.descricao}" foi marcada como recebida.`});
 
+    setShowReceberDialog(false);
     setContaParaReceber(null);
     setDataRecebimento(new Date());
     setFormaRecebimento("");
   };
 
+  const handleConfirmarRemocao = () => {
+    if (!contaParaRemover) return;
+    setContas(contas.filter(c => c.id !== contaParaRemover.id));
+    toast({ title: "Conta removida!", description: `A conta "${contaParaRemover.descricao}" foi removida.`, variant: 'destructive' });
+    setShowDeleteDialog(false);
+    setContaParaRemover(null);
+  }
+
   return (
-    <AlertDialog>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">Contas a Receber</h2>
-            <p className="text-muted-foreground">
-              Gerencie suas receitas e controle a inadimplência
-            </p>
-          </div>
-          <Dialog open={showDialog} onOpenChange={setShowDialog}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800">
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Conta a Receber
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Nova Conta a Receber</DialogTitle>
-                <DialogDescription>
-                  Cadastre uma nova receita esperada da sua empresa
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="descricao">Descrição da Receita *</Label>
-                    <Input
-                      id="descricao"
-                      value={formData.descricao}
-                      onChange={(e) => setFormData({...formData, descricao: e.target.value})}
-                      placeholder="Ex: Venda de produto X"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="valor">Valor *</Label>
-                    <Input
-                      id="valor"
-                      type="number"
-                      step="0.01"
-                      value={formData.valor}
-                      onChange={(e) => setFormData({...formData, valor: e.target.value})}
-                      placeholder="0,00"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Data de Vencimento *</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "justify-start text-left font-normal w-full",
-                            !formData.dataVencimento && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.dataVencimento ? (
-                            format(formData.dataVencimento, "dd/MM/yyyy")
-                          ) : (
-                            "Selecione a data"
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={formData.dataVencimento}
-                          onSelect={(date) => setFormData({...formData, dataVencimento: date})}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cliente">Cliente/Devedor *</Label>
-                    <Input
-                      id="cliente"
-                      value={formData.cliente}
-                      onChange={(e) => setFormData({...formData, cliente: e.target.value})}
-                      placeholder="Nome da empresa ou pessoa"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Categoria *</Label>
-                    <Select 
-                      value={formData.categoria} 
-                      onValueChange={(value) => setFormData({...formData, categoria: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categorias.map(cat => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="numeroFatura">Número da Fatura</Label>
-                    <Input
-                      id="numeroFatura"
-                      value={formData.numeroFatura}
-                      onChange={(e) => setFormData({...formData, numeroFatura: e.target.value})}
-                      placeholder="FAT, NF, etc."
-                    />
-                  </div>
-                </div>
-
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Contas a Receber</h2>
+          <p className="text-muted-foreground">
+            Gerencie suas receitas e controle a inadimplência
+          </p>
+        </div>
+        <Dialog open={showFormDialog} onOpenChange={(isOpen) => {
+          setShowFormDialog(isOpen);
+          if (!isOpen) resetForm();
+        }}>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800" onClick={handleOpenCreateDialog}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Conta a Receber
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{contaParaEditar ? 'Editar Conta a Receber' : 'Nova Conta a Receber'}</DialogTitle>
+              <DialogDescription>
+                {contaParaEditar ? 'Altere os dados da receita.' : 'Cadastre uma nova receita esperada da sua empresa.'}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="observacoes">Observações</Label>
-                  <Textarea
-                    id="observacoes"
-                    value={formData.observacoes}
-                    onChange={(e) => setFormData({...formData, observacoes: e.target.value})}
-                    placeholder="Informações adicionais..."
-                    rows={3}
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit">
-                    Cadastrar Conta
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Resumo Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total a Receber</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <DollarSign className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Recebido</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    R$ {totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Contas Atrasadas</p>
-                  <p className="text-2xl font-bold text-orange-600">
-                    {contas.filter(c => c.status === 'atrasado').length}
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-orange-100 rounded-full flex items-center justify-center">
-                  <AlertCircle className="h-6 w-6 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Taxa Recebimento</p>
-                  <p className="text-2xl font-bold text-purple-600">
-                    {Math.round((contas.filter(c => c.status === 'recebido').length / contas.length) * 100)}%
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filtros */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Filtros e Busca</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-4">
-              <div className="flex-1 min-w-64">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="descricao">Descrição da Receita *</Label>
                   <Input
-                    placeholder="Buscar por descrição ou cliente..."
-                    value={busca}
-                    onChange={(e) => setBusca(e.target.value)}
-                    className="pl-10"
+                    id="descricao"
+                    value={formData.descricao}
+                    onChange={(e) => setFormData({...formData, descricao: e.target.value})}
+                    placeholder="Ex: Venda de produto X"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="valor">Valor *</Label>
+                  <Input
+                    id="valor"
+                    type="number"
+                    step="0.01"
+                    value={formData.valor}
+                    onChange={(e) => setFormData({...formData, valor: e.target.value})}
+                    placeholder="0,00"
+                    required
                   />
                 </div>
               </div>
-              <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-                <SelectTrigger className="w-48">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os Status</SelectItem>
-                  <SelectItem value="pendente">Pendente</SelectItem>
-                  <SelectItem value="recebido">Recebido</SelectItem>
-                  <SelectItem value="atrasado">Atrasado</SelectItem>
-                  <SelectItem value="parcial">Parcial</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas as Categorias</SelectItem>
-                  {categorias.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Data de Vencimento *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal w-full",
+                          !formData.dataVencimento && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.dataVencimento ? (
+                          format(formData.dataVencimento, "dd/MM/yyyy")
+                        ) : (
+                          "Selecione a data"
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={formData.dataVencimento}
+                        onSelect={(date) => setFormData({...formData, dataVencimento: date})}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cliente">Cliente/Devedor *</Label>
+                  <Input
+                    id="cliente"
+                    value={formData.cliente}
+                    onChange={(e) => setFormData({...formData, cliente: e.target.value})}
+                    placeholder="Nome da empresa ou pessoa"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Categoria *</Label>
+                  <Select 
+                    value={formData.categoria} 
+                    onValueChange={(value) => setFormData({...formData, categoria: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categorias.map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="numeroFatura">Número da Fatura</Label>
+                  <Input
+                    id="numeroFatura"
+                    value={formData.numeroFatura}
+                    onChange={(e) => setFormData({...formData, numeroFatura: e.target.value})}
+                    placeholder="FAT, NF, etc."
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="observacoes">Observações</Label>
+                <Textarea
+                  id="observacoes"
+                  value={formData.observacoes}
+                  onChange={(e) => setFormData({...formData, observacoes: e.target.value})}
+                  placeholder="Informações adicionais..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button type="button" variant="outline" onClick={() => setShowFormDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  {contaParaEditar ? 'Salvar Alterações' : 'Cadastrar Conta'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Resumo Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total a Receber</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Recebido</p>
+                <p className="text-2xl font-bold text-green-600">
+                  R$ {totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-green-600" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Tabela de Contas */}
         <Card>
-          <CardHeader>
-            <CardTitle>Lista de Contas a Receber</CardTitle>
-            <CardDescription>
-              {contasFiltradas.length} conta(s) encontrada(s)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Vencimento</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {contasFiltradas.map((conta) => (
-                  <TableRow key={conta.id}>
-                    <TableCell className="font-medium">{conta.descricao}</TableCell>
-                    <TableCell>{conta.cliente}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{conta.categoria}</Badge>
-                    </TableCell>
-                    <TableCell className="font-semibold">
-                      R$ {conta.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell>
-                      {format(conta.dataVencimento, "dd/MM/yyyy")}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(conta.status)}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          Editar
-                        </Button>
-                        {conta.status === 'pendente' && (
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => setContaParaReceber(conta)}>
-                              Receber
-                            </Button>
-                          </AlertDialogTrigger>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Contas Atrasadas</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {contas.filter(c => c.status === 'atrasado').length}
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-orange-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Taxa Recebimento</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {contas.length > 0 ? Math.round((contas.filter(c => c.status === 'recebido').length / contas.length) * 100) : 0}%
+                </p>
+              </div>
+              <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Confirmar Recebimento</AlertDialogTitle>
-          {contaParaReceber && (
-            <AlertDialogDescription>
-              Você está confirmando o recebimento da conta "{contaParaReceber.descricao}" no valor de R$ {contaParaReceber.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.
-            </AlertDialogDescription>
-          )}
-        </AlertDialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Forma de Recebimento *</Label>
-            <Select required value={formaRecebimento} onValueChange={setFormaRecebimento}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a forma" />
+
+      {/* Filtros */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtros e Busca</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-64">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por descrição ou cliente..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+              <SelectTrigger className="w-48">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {formasRecebimento.map(forma => (
-                  <SelectItem key={forma} value={forma}>{forma}</SelectItem>
+                <SelectItem value="todos">Todos os Status</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="recebido">Recebido</SelectItem>
+                <SelectItem value="atrasado">Atrasado</SelectItem>
+                <SelectItem value="parcial">Parcial</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas as Categorias</SelectItem>
+                {categorias.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label>Data de Recebimento *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-start text-left font-normal w-full",
-                    !dataRecebimento && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataRecebimento ? (
-                    format(dataRecebimento, "dd/MM/yyyy")
-                  ) : (
-                    "Selecione a data"
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={dataRecebimento}
-                  onSelect={setDataRecebimento}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+        </CardContent>
+      </Card>
+
+      {/* Tabela de Contas */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Contas a Receber</CardTitle>
+          <CardDescription>
+            {contasFiltradas.length} conta(s) encontrada(s)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Vencimento</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {contasFiltradas.map((conta) => (
+                <TableRow key={conta.id}>
+                  <TableCell className="font-medium">{conta.descricao}</TableCell>
+                  <TableCell>{conta.cliente}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{conta.categoria}</Badge>
+                  </TableCell>
+                  <TableCell className="font-semibold">
+                    R$ {conta.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </TableCell>
+                  <TableCell>
+                    {format(conta.dataVencimento, "dd/MM/yyyy")}
+                  </TableCell>
+                  <TableCell>{getStatusBadge(conta.status)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex space-x-2 justify-end">
+                      <Button size="sm" variant="outline" onClick={() => handleOpenEditDialog(conta)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                      {(conta.status === 'pendente' || conta.status === 'atrasado') && (
+                        <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => {
+                          setContaParaReceber(conta);
+                          setShowReceberDialog(true);
+                        }}>
+                          Receber
+                        </Button>
+                      )}
+                       <Button size="sm" variant="destructive" onClick={() => {
+                          setContaParaRemover(conta);
+                          setShowDeleteDialog(true);
+                        }}>
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Dialog Confirmar Recebimento */}
+      <AlertDialog open={showReceberDialog} onOpenChange={setShowReceberDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Recebimento</AlertDialogTitle>
+            {contaParaReceber && (
+              <AlertDialogDescription>
+                Você está confirmando o recebimento da conta "{contaParaReceber.descricao}" no valor de R$ {contaParaReceber.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.
+              </AlertDialogDescription>
+            )}
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Forma de Recebimento *</Label>
+              <Select required value={formaRecebimento} onValueChange={setFormaRecebimento}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a forma" />
+                </SelectTrigger>
+                <SelectContent>
+                  {formasRecebimento.map(forma => (
+                    <SelectItem key={forma} value={forma}>{forma}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Data de Recebimento *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "justify-start text-left font-normal w-full",
+                      !dataRecebimento && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dataRecebimento ? (
+                      format(dataRecebimento, "dd/MM/yyyy")
+                    ) : (
+                      "Selecione a data"
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={dataRecebimento}
+                    onSelect={setDataRecebimento}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
-        </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setContaParaReceber(null)}>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirmarRecebimento} disabled={!dataRecebimento || !formaRecebimento}>Confirmar</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowReceberDialog(false)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmarRecebimento} disabled={!dataRecebimento || !formaRecebimento}>Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog Confirmar Remoção */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Remoção</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem certeza que deseja remover a conta "{contaParaRemover?.descricao}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmarRemocao} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Remover</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
