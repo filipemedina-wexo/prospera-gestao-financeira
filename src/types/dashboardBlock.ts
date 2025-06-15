@@ -8,7 +8,11 @@ export type DashboardBlockType =
   | "alertas"
   | "quick-charts"
   | "acoes"
-  | "vencimentos";
+  | "vencimentos"
+  | "faturamento"
+  | "despesas"
+  | "vencendohoje"
+  | "atrasadas";
 
 export interface DashboardBlock {
   id: string;
@@ -18,3 +22,4 @@ export interface DashboardBlock {
   component: React.ComponentType<any>;
   props?: any;
 }
+
