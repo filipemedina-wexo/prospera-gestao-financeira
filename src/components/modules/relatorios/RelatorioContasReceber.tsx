@@ -1,4 +1,3 @@
-
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -17,74 +16,68 @@ import {
 } from "recharts";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { ContaReceber } from "../contas-receber/types";
 
-// Mock Data
-const contasReceber = [
-  { id: 'cr-001', cliente: 'Soluções Tech Ltda', descricao: 'Desenvolvimento de E-commerce', valor: 15000.00, dataVencimento: new Date(2025, 4, 20), status: 'recebido', categoria: 'Vendas de Serviços', dataRecebimento: new Date(2025, 4, 18) },
-  { id: 'cr-002', cliente: 'Inova Corp', descricao: 'Assinatura Software (Maio)', valor: 890.00, dataVencimento: new Date(2025, 4, 25), status: 'recebido', categoria: 'Assinaturas', dataRecebimento: new Date(2025, 4, 25) },
-  { id: 'cr-003', cliente: 'Mercado Central', descricao: 'Venda de produtos - Lote A', valor: 8500.00, dataVencimento: new Date(2025, 5, 5), status: 'pendente', categoria: 'Vendas de Produtos' },
-  { id: 'cr-004', cliente: 'Construir & Cia', descricao: 'Consultoria Financeira', valor: 4200.00, dataVencimento: new Date(2025, 5, 1), status: 'atrasado', categoria: 'Vendas de Serviços' },
-  { id: 'cr-005', cliente: 'Soluções Tech Ltda', descricao: 'Manutenção Servidor', valor: 1200.00, dataVencimento: new Date(2025, 5, 10), status: 'pendente', categoria: 'Vendas de Serviços' },
-  { id: 'cr-006', cliente: 'Design Criativo', descricao: 'Criação de Logo', valor: 3500.00, dataVencimento: new Date(2025, 5, 12), status: 'pendente', categoria: 'Vendas de Serviços' },
-  { id: 'cr-007', cliente: 'Inova Corp', descricao: 'Licença de Uso - Módulo Extra', valor: 2200.00, dataVencimento: new Date(2025, 5, 15), status: 'pendente', categoria: 'Vendas de Produtos' },
-  { id: 'cr-008', cliente: 'Mercado Central', descricao: 'Venda de produtos - Lote B', valor: 6300.00, dataVencimento: new Date(2025, 6, 2), status: 'pendente', categoria: 'Vendas de Produtos' },
-  { id: 'cr-009', cliente: 'Soluções Tech Ltda', descricao: 'Consultoria SEO', valor: 2500.00, dataVencimento: new Date(2025, 4, 30), status: 'atrasado', categoria: 'Vendas de Serviços' },
-];
+interface RelatorioContasReceberProps {
+  contas: ContaReceber[];
+}
 
-// Calculations
-const totalRecebido = contasReceber.filter(c => c.status === 'recebido').reduce((acc, item) => acc + item.valor, 0);
-const totalPendente = contasReceber.filter(c => c.status === 'pendente').reduce((acc, item) => acc + item.valor, 0);
-const totalAtrasado = contasReceber.filter(c => c.status === 'atrasado').reduce((acc, item) => acc + item.valor, 0);
-const totalAReceber = totalPendente + totalAtrasado;
-const contasAtrasadasCount = contasReceber.filter(c => c.status === 'atrasado').length;
+export function RelatorioContasReceber({ contas }: RelatorioContasReceberProps) {
+  // Calculations
+  const totalRecebido = contas.filter(c => c.status === 'recebido').reduce((acc, item) => acc + item.valor, 0);
+  const totalPendente = contas.filter(c => c.status === 'pendente').reduce((acc, item) => acc + item.valor, 0);
+  const totalAtrasado = contas.filter(c => c.status === 'atrasado').reduce((acc, item) => acc + item.valor, 0);
+  const totalAReceber = totalPendente + totalAtrasado;
+  const contasAtrasadasCount = contas.filter(c => c.status === 'atrasado').length;
 
-const recebimentosPorCategoria = contasReceber.reduce((acc, conta) => {
-  const { categoria, valor } = conta;
-  if (!acc[categoria]) {
-    acc[categoria] = 0;
-  }
-  acc[categoria] += valor;
-  return acc;
-}, {} as Record<string, number>);
+  const recebimentosPorCategoria = contas.reduce((acc, conta) => {
+    const { categoria, valor } = conta;
+    if (!categoria) return acc;
+    if (!acc[categoria]) {
+      acc[categoria] = 0;
+    }
+    acc[categoria] += valor;
+    return acc;
+  }, {} as Record<string, number>);
 
-const recebimentosPorCliente = contasReceber
-    .filter(c => c.status === 'pendente' || c.status === 'atrasado')
-    .reduce((acc, conta) => {
-        const { cliente, valor } = conta;
-        if(!acc[cliente]){
-            acc[cliente] = 0;
-        }
-        acc[cliente] += valor;
-        return acc;
-    }, {} as Record<string, number>);
+  const recebimentosPorCliente = contas
+      .filter(c => c.status === 'pendente' || c.status === 'atrasado')
+      .reduce((acc, conta) => {
+          const { cliente, valor } = conta;
+          if(!cliente) return acc;
+          if(!acc[cliente]){
+              acc[cliente] = 0;
+          }
+          acc[cliente] += valor;
+          return acc;
+      }, {} as Record<string, number>);
 
-const [clienteComMaiorValor] = Object.entries(recebimentosPorCliente).length > 0
-    ? Object.entries(recebimentosPorCliente).sort(([, a], [, b]) => b - a)[0]
-    : ["N/A"];
+  const [clienteComMaiorValor] = Object.entries(recebimentosPorCliente).length > 0
+      ? Object.entries(recebimentosPorCliente).sort(([, a], [, b]) => b - a)[0]
+      : ["N/A"];
 
+  const pieChartData = Object.entries(recebimentosPorCategoria).map(([name, value]) => ({ name, value }));
 
-const pieChartData = Object.entries(recebimentosPorCategoria).map(([name, value]) => ({ name, value }));
+  const barChartData = Object.entries(recebimentosPorCliente)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a,b) => b.value - a.value)
+      .slice(0, 5); // Top 5
 
-const barChartData = Object.entries(recebimentosPorCliente)
-    .map(([name, value]) => ({ name, value }))
-    .sort((a,b) => b.value - a.value)
-    .slice(0, 5); // Top 5
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
+  const categoryColorMapping: { [key: string]: string } = {
+    'Vendas de Serviços': "bg-blue-100 text-blue-800 border-blue-200",
+    'Vendas de Produtos': "bg-green-100 text-green-800 border-green-200",
+    'Assinaturas': "bg-purple-100 text-purple-800 border-purple-200",
+  };
 
-const categoryColorMapping: { [key: string]: string } = {
-  'Vendas de Serviços': "bg-blue-100 text-blue-800 border-blue-200",
-  'Vendas de Produtos': "bg-green-100 text-green-800 border-green-200",
-  'Assinaturas': "bg-purple-100 text-purple-800 border-purple-200",
-};
-
-const statusConfig: { [key: string]: { variant: "default" | "destructive" | "secondary", label: string, icon: React.ElementType, className?: string } } = {
+  const statusConfig: { [key: string]: { variant: "default" | "destructive" | "secondary", label: string, icon: React.ElementType, className?: string } } = {
     pendente: { variant: "secondary", label: "Pendente", icon: Clock },
     recebido: { variant: "default", label: "Recebido", icon: CheckCircle, className: "bg-green-100 text-green-800 border border-green-200" },
     atrasado: { variant: "destructive", label: "Atrasado", icon: AlertCircle },
-};
+  };
 
-const getStatusBadge = (status: 'pendente' | 'recebido' | 'atrasado') => {
+  const getStatusBadge = (status: 'pendente' | 'recebido' | 'atrasado') => {
     const config = statusConfig[status];
     const Icon = config.icon;
     
@@ -94,10 +87,8 @@ const getStatusBadge = (status: 'pendente' | 'recebido' | 'atrasado') => {
             <span>{config.label}</span>
         </Badge>
     );
-};
+  };
 
-
-export function RelatorioContasReceber() {
   return (
     <div className="space-y-6">
       <Card>
@@ -243,12 +234,12 @@ export function RelatorioContasReceber() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {contasReceber.sort((a,b) => b.dataVencimento.getTime() - a.dataVencimento.getTime()).map((item) => (
+              {contas.sort((a,b) => b.dataVencimento.getTime() - a.dataVencimento.getTime()).map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.cliente}</TableCell>
                   <TableCell>{item.descricao}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={categoryColorMapping[item.categoria] || "bg-gray-100 text-gray-800"}>
+                    <Badge variant="outline" className={cn(categoryColorMapping[item.categoria], !categoryColorMapping[item.categoria] && "bg-gray-100 text-gray-800")}>
                       {item.categoria}
                     </Badge>
                   </TableCell>

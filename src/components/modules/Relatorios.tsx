@@ -27,9 +27,10 @@ import { RelatorioContasPagar } from "./relatorios/RelatorioContasPagar";
 import { RelatorioContasReceber } from "./relatorios/RelatorioContasReceber";
 import { RelatorioDespesasCategoria } from "./relatorios/RelatorioDespesasCategoria";
 import { RelatorioInadimplencia } from "./relatorios/RelatorioInadimplencia";
+import { useAppData } from "@/hooks/useAppData";
 
 export function Relatorios() {
-  const [periodoSelecionado, setPeriodoSelecionado] = useState("mes-atual");
+  const { contasAReceber, contasAPagar } = useAppData();
   const [tipoRelatorio, setTipoRelatorio] = useState("fluxo-caixa");
   const [extratoPeriodoInicio, setExtratoPeriodoInicio] = useState<Date | undefined>(subDays(new Date(), 15));
   const [extratoPeriodoFim, setExtratoPeriodoFim] = useState<Date | undefined>(new Date());
@@ -136,6 +137,8 @@ export function Relatorios() {
             extratoPeriodoFim={extratoPeriodoFim}
             setExtratoPeriodoInicio={setExtratoPeriodoInicio}
             setExtratoPeriodoFim={setExtratoPeriodoFim}
+            contasAReceber={contasAReceber}
+            contasAPagar={contasAPagar}
           />
         );
       case "fluxo-caixa":
@@ -143,9 +146,9 @@ export function Relatorios() {
       case "vendas":
         return <RelatorioVendas dados={dadosVendas} />;
       case "contas-pagar":
-        return <RelatorioContasPagar />;
+        return <RelatorioContasPagar contas={contasAPagar} />;
       case "contas-receber":
-        return <RelatorioContasReceber />;
+        return <RelatorioContasReceber contas={contasAReceber} />;
       case "despesas-categoria":
         return <RelatorioDespesasCategoria />;
       case "inadimplencia":

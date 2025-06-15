@@ -1,4 +1,3 @@
-
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -17,76 +16,70 @@ import {
 } from "recharts";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { ContaPagar } from "../contas-pagar/types";
 
-// Mock Data for RelatorioContasPagar
-const contasPagar = [
-  { id: 'cp-001', fornecedor: 'Fornecedores Inc.', descricao: 'Compra de matéria-prima', valor: 7500.00, dataVencimento: new Date(2025, 4, 15), status: 'pago', categoria: 'Custos de Mercadoria', dataPagamento: new Date(2025, 4, 14) },
-  { id: 'cp-002', fornecedor: 'Serviços de Nuvem SA', descricao: 'Assinatura Cloud (Maio)', valor: 450.00, dataVencimento: new Date(2025, 4, 20), status: 'pago', categoria: 'Despesas Operacionais', dataPagamento: new Date(2025, 4, 20) },
-  { id: 'cp-003', fornecedor: 'Imobiliária Central', descricao: 'Aluguel Escritório (Junho)', valor: 3200.00, dataVencimento: new Date(2025, 5, 5), status: 'pendente', categoria: 'Despesas Fixas' },
-  { id: 'cp-004', fornecedor: 'Agência Marketing Digital', descricao: 'Campanha Redes Sociais', valor: 2800.00, dataVencimento: new Date(2025, 5, 1), status: 'atrasado', categoria: 'Marketing' },
-  { id: 'cp-005', fornecedor: 'Fornecedores Inc.', descricao: 'Compra de insumos', valor: 1800.00, dataVencimento: new Date(2025, 5, 10), status: 'pendente', categoria: 'Custos de Mercadoria' },
-  { id: 'cp-006', fornecedor: 'Consultoria RH Ltda', descricao: 'Recrutamento de Vaga', valor: 4000.00, dataVencimento: new Date(2025, 5, 12), status: 'pendente', categoria: 'Despesas Administrativas' },
-  { id: 'cp-007', fornecedor: 'Telecomunicações Veloz', descricao: 'Internet e Telefonia (Maio)', valor: 650.00, dataVencimento: new Date(2025, 5, 15), status: 'pendente', categoria: 'Despesas Fixas' },
-  { id: 'cp-008', fornecedor: 'Gráfica Express', descricao: 'Impressão de material', valor: 950.00, dataVencimento: new Date(2025, 6, 2), status: 'pendente', categoria: 'Marketing' },
-  { id: 'cp-009', fornecedor: 'Software House', descricao: 'Licença de Software', valor: 1500.00, dataVencimento: new Date(2025, 4, 28), status: 'atrasado', categoria: 'Despesas Operacionais' },
-];
+interface RelatorioContasPagarProps {
+  contas: ContaPagar[];
+}
 
-// Calculations
-const totalPago = contasPagar.filter(c => c.status === 'pago').reduce((acc, item) => acc + item.valor, 0);
-const totalPendente = contasPagar.filter(c => c.status === 'pendente').reduce((acc, item) => acc + item.valor, 0);
-const totalAtrasado = contasPagar.filter(c => c.status === 'atrasado').reduce((acc, item) => acc + item.valor, 0);
-const totalAPagar = totalPendente + totalAtrasado;
-const contasAtrasadasCount = contasPagar.filter(c => c.status === 'atrasado').length;
+export function RelatorioContasPagar({ contas }: RelatorioContasPagarProps) {
+  // Calculations
+  const totalPago = contas.filter(c => c.status === 'pago').reduce((acc, item) => acc + item.valor, 0);
+  const totalPendente = contas.filter(c => c.status === 'pendente').reduce((acc, item) => acc + item.valor, 0);
+  const totalAtrasado = contas.filter(c => c.status === 'atrasado').reduce((acc, item) => acc + item.valor, 0);
+  const totalAPagar = totalPendente + totalAtrasado;
+  const contasAtrasadasCount = contas.filter(c => c.status === 'atrasado').length;
 
-const pagamentosPorCategoria = contasPagar.reduce((acc, conta) => {
-  const { categoria, valor } = conta;
-  if (!acc[categoria]) {
-    acc[categoria] = 0;
-  }
-  acc[categoria] += valor;
-  return acc;
-}, {} as Record<string, number>);
+  const pagamentosPorCategoria = contas.reduce((acc, conta) => {
+    const { categoria, valor } = conta;
+    if (!categoria) return acc;
+    if (!acc[categoria]) {
+      acc[categoria] = 0;
+    }
+    acc[categoria] += valor;
+    return acc;
+  }, {} as Record<string, number>);
 
-const pagamentosPorFornecedor = contasPagar
-    .filter(c => c.status === 'pendente' || c.status === 'atrasado')
-    .reduce((acc, conta) => {
-        const { fornecedor, valor } = conta;
-        if(!acc[fornecedor]){
-            acc[fornecedor] = 0;
-        }
-        acc[fornecedor] += valor;
-        return acc;
-    }, {} as Record<string, number>);
+  const pagamentosPorFornecedor = contas
+      .filter(c => c.status === 'pendente' || c.status === 'atrasado')
+      .reduce((acc, conta) => {
+          const { fornecedor, valor } = conta;
+          if(!fornecedor) return acc;
+          if(!acc[fornecedor]){
+              acc[fornecedor] = 0;
+          }
+          acc[fornecedor] += valor;
+          return acc;
+      }, {} as Record<string, number>);
 
-const [fornecedorComMaiorValor] = Object.entries(pagamentosPorFornecedor).length > 0
-    ? Object.entries(pagamentosPorFornecedor).sort(([, a], [, b]) => b - a)[0]
-    : ["N/A"];
+  const [fornecedorComMaiorValor] = Object.entries(pagamentosPorFornecedor).length > 0
+      ? Object.entries(pagamentosPorFornecedor).sort(([, a], [, b]) => b - a)[0]
+      : ["N/A"];
 
+  const pieChartData = Object.entries(pagamentosPorCategoria).map(([name, value]) => ({ name, value }));
 
-const pieChartData = Object.entries(pagamentosPorCategoria).map(([name, value]) => ({ name, value }));
+  const barChartData = Object.entries(pagamentosPorFornecedor)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a,b) => b.value - a.value)
+      .slice(0, 5); // Top 5
 
-const barChartData = Object.entries(pagamentosPorFornecedor)
-    .map(([name, value]) => ({ name, value }))
-    .sort((a,b) => b.value - a.value)
-    .slice(0, 5); // Top 5
+  const COLORS = ['#FF8042', '#00C49F', '#0088FE', '#FFBB28', '#AF19FF'];
 
-const COLORS = ['#FF8042', '#00C49F', '#0088FE', '#FFBB28', '#AF19FF'];
+  const categoryColorMapping: { [key: string]: string } = {
+    'Despesas Fixas': "bg-blue-100 text-blue-800 border-blue-200",
+    'Custos de Mercadoria': "bg-yellow-100 text-yellow-800 border-yellow-200",
+    'Despesas Operacionais': "bg-indigo-100 text-indigo-800 border-indigo-200",
+    'Marketing': "bg-pink-100 text-pink-800 border-pink-200",
+    'Despesas Administrativas': "bg-gray-100 text-gray-800 border-gray-200",
+  };
 
-const categoryColorMapping: { [key: string]: string } = {
-  'Despesas Fixas': "bg-blue-100 text-blue-800 border-blue-200",
-  'Custos de Mercadoria': "bg-yellow-100 text-yellow-800 border-yellow-200",
-  'Despesas Operacionais': "bg-indigo-100 text-indigo-800 border-indigo-200",
-  'Marketing': "bg-pink-100 text-pink-800 border-pink-200",
-  'Despesas Administrativas': "bg-gray-100 text-gray-800 border-gray-200",
-};
-
-const statusConfig: { [key: string]: { variant: "default" | "destructive" | "secondary", label: string, icon: React.ElementType, className?: string } } = {
+  const statusConfig: { [key: string]: { variant: "default" | "destructive" | "secondary", label: string, icon: React.ElementType, className?: string } } = {
     pendente: { variant: "secondary", label: "Pendente", icon: Clock },
     pago: { variant: "default", label: "Pago", icon: CheckCircle, className: "bg-green-100 text-green-800 border border-green-200" },
     atrasado: { variant: "destructive", label: "Atrasado", icon: AlertCircle },
-};
+  };
 
-const getStatusBadge = (status: 'pendente' | 'pago' | 'atrasado') => {
+  const getStatusBadge = (status: 'pendente' | 'pago' | 'atrasado') => {
     const config = statusConfig[status];
     if (!config) return null;
     const Icon = config.icon;
@@ -97,10 +90,8 @@ const getStatusBadge = (status: 'pendente' | 'pago' | 'atrasado') => {
             <span>{config.label}</span>
         </Badge>
     );
-};
+  };
 
-
-export function RelatorioContasPagar() {
   return (
     <div className="space-y-6">
       <Card>
@@ -246,12 +237,12 @@ export function RelatorioContasPagar() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {contasPagar.sort((a,b) => b.dataVencimento.getTime() - a.dataVencimento.getTime()).map((item) => (
+              {contas.sort((a,b) => b.dataVencimento.getTime() - a.dataVencimento.getTime()).map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.fornecedor}</TableCell>
                   <TableCell>{item.descricao}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={categoryColorMapping[item.categoria] || "bg-gray-100 text-gray-800 border-gray-200"}>
+                    <Badge variant="outline" className={cn(categoryColorMapping[item.categoria], !categoryColorMapping[item.categoria] && "bg-gray-100 text-gray-800")}>
                       {item.categoria}
                     </Badge>
                   </TableCell>
