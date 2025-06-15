@@ -30,6 +30,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
+import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 const clientSchema = z.object({
   company_name: z.string().min(1, "Nome da empresa é obrigatório"),
@@ -44,11 +45,12 @@ const clientSchema = z.object({
 });
 
 type ClientFormValues = z.infer<typeof clientSchema>;
+type SaasClient = Tables<'saas_clients'>;
 
 interface ClienteSaaSDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  client?: any;
+  client?: SaasClient;
   onSave: () => void;
 }
 
@@ -104,9 +106,22 @@ export function ClienteSaaSDialog({ isOpen, setIsOpen, client, onSave }: Cliente
   async function onSubmit(data: ClientFormValues) {
     try {
       if (isEditing) {
+        // Prepare update data with proper typing
+        const updateData: TablesUpdate<'saas_clients'> = {
+          company_name: data.company_name,
+          contact_name: data.contact_name,
+          contact_email: data.contact_email,
+          contact_phone: data.contact_phone || null,
+          cnpj: data.cnpj || null,
+          address: data.address || null,
+          city: data.city || null,
+          state: data.state || null,
+          status: data.status,
+        };
+
         const { error } = await supabase
           .from('saas_clients')
-          .update(data)
+          .update(updateData)
           .eq('id', client.id);
 
         if (error) throw error;
@@ -116,9 +131,22 @@ export function ClienteSaaSDialog({ isOpen, setIsOpen, client, onSave }: Cliente
           description: 'Os dados do cliente foram atualizados com sucesso.',
         });
       } else {
+        // Prepare insert data with proper typing
+        const insertData: TablesInsert<'saas_clients'> = {
+          company_name: data.company_name,
+          contact_name: data.contact_name,
+          contact_email: data.contact_email,
+          contact_phone: data.contact_phone || null,
+          cnpj: data.cnpj || null,
+          address: data.address || null,
+          city: data.city || null,
+          state: data.state || null,
+          status: data.status,
+        };
+
         const { error } = await supabase
           .from('saas_clients')
-          .insert([data]);
+          .insert([insertData]);
 
         if (error) throw error;
 
