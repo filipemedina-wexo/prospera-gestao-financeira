@@ -1,6 +1,8 @@
+
 import { createContext, useState, useContext, ReactNode } from 'react';
 import { User, users } from '@/data/users';
 import { useToast } from "@/hooks/use-toast";
+import { permissionsByRole } from '@/config/permissions';
 
 interface AuthContextType {
   user: User | null;
@@ -51,8 +53,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const hasPermission = (permission: string): boolean => {
     if (!user) return false;
-    if (user.permissions.includes('*')) return true;
-    return user.permissions.includes(permission);
+
+    const userPermissions = permissionsByRole[user.role];
+    if (!userPermissions) return false;
+    
+    if (userPermissions.includes('*')) return true;
+    
+    return userPermissions.includes(permission);
   };
 
   return (

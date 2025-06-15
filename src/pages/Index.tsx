@@ -25,10 +25,7 @@ const Index = () => {
     hasPermission
   } = useAuth();
   const getInitialModule = () => {
-    // Adicionando 'fornecedores.view' temporariamente para garantir visibilidade
-    const tempPermissions = new Set(user?.permissions || []);
-    tempPermissions.add('fornecedores.view');
-    const visibleItems = menuItems.filter(item => tempPermissions.has(item.permission));
+    const visibleItems = menuItems.filter(item => hasPermission(item.permission));
     return visibleItems.length > 0 ? visibleItems[0].id : "";
   };
   const [activeModule, setActiveModule] = useState(getInitialModule);
