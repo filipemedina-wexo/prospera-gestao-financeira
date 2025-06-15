@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   TrendingUp, 
-  TrendingDown, 
   AlertCircle, 
   Calendar,
   DollarSign,
@@ -16,73 +15,63 @@ import {
 import { useState } from "react";
 import { AlertsPopup } from "./AlertsPopup";
 import { QuickChartsSection } from "./QuickChartsSection";
+import { ContaPagar } from "./modules/contas-pagar/types";
+import { ContaReceber } from "./modules/contas-receber/types";
+import { isToday, isWithinInterval, addDays, startOfDay } from "date-fns";
 
-// Mocked alert data
-const initialAlerts: Alert[] = [
-  {
-    id: "at01",
-    title: "Aluguel do Escritório",
-    description: "Vencido há 2 dias",
-    type: "Atrasado",
-    amount: 2500,
-    category: "contas-pagar",
-    resolved: false
-  },
-  {
-    id: "at02",
-    title: "Internet/Telefonia",
-    description: "Vencido ontem",
-    type: "Atrasado",
-    amount: 390.75,
-    category: "contas-pagar",
-    resolved: false
-  },
-  {
-    id: "vh01",
-    title: "Fornecedor ABC",
-    description: "Vence hoje",
-    type: "Vencendo hoje",
-    amount: 1200.00,
-    category: "contas-pagar",
-    resolved: false
-  },
-  {
-    id: "vh02",
-    title: "Contador",
-    description: "Vence hoje",
-    type: "Vencendo hoje",
-    amount: 800.00,
-    category: "contas-pagar",
-    resolved: false
-  },
-  {
-    id: "rec01",
-    title: "Cliente XYZ - Projeto",
-    description: "Pagamento esperado em 3 dias",
-    type: "A Receber",
-    amount: 5800,
-    category: "contas-receber",
-    resolved: false
-  }
-];
+interface DashboardProps {
+  onNavigate: (module: string) => void;
+  contasPagar: ContaPagar[];
+  contasReceber: ContaReceber[];
+}
 
-export function Dashboard({ onNavigate }: { onNavigate: (module: string) => void }) {
-  const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
+export function Dashboard({ onNavigate, contasPagar = [], contasReceber = [] }: DashboardProps) {
+  const [resolvedAlertIds, setResolvedAlertIds] = useState<string[]>([]);
   const [alertsOpen, setAlertsOpen] = useState(false);
 
-  // Dados mockados para demonstração
-  const dashboardData = {
-    totalReceber: 45680.50,
-    totalPagar: 23450.75,
-    saldoLiquido: 22229.75,
-    contasVencendoHoje: 3,
-    contasAtrasadas: 2,
-    faturamentoMes: 89340.25,
-    despesasMes: 34567.80
-  };
+  // Calculate summary data
+  const totalReceber = contasReceber
+    .filter(c => c.status === 'pendente' || c.status === 'atrasado')
+    .reduce((sum, c) => sum + c.valor, 0);
+
+  const totalPagar = contasPagar
+    .filter(c => c.status === 'pendente' || c.status === 'atrasado')
+    .reduce((sum, c) => sum + c.valor, 0);
+
+  const saldoLiquido = totalReceber - totalPagar;
+
+  // Generate alerts dynamically
+  const today = startOfDay(new Date());
+
+  const contasPagarAlerts: Alert[] = contasPagar
+    .filter(c => (c.status === 'atrasado' || (c.status === 'pendente' && isToday(new Date(c.dataVencimento)))))
+    .map(c => ({
+      id: c.id,
+      title: c.fornecedor,
+      description: c.status === 'atrasado' ? `Vencido` : `Vence hoje`,
+      type: c.status === 'atrasado' ? 'Atrasado' : 'Vencendo hoje',
+      amount: c.valor,
+      category: 'contas-pagar',
+      resolved: false,
+    }));
+
+  const contasReceberAlerts: Alert[] = contasReceber
+    .filter(c => (c.status === 'pendente' || c.status === 'atrasado') && isWithinInterval(new Date(c.dataVencimento), { start: today, end: addDays(today, 3) }))
+    .map(c => ({
+        id: c.id,
+        title: c.cliente,
+        description: `Pagamento esperado`,
+        type: 'A Receber',
+        amount: c.valor,
+        category: 'contas-receber',
+        resolved: false,
+    }));
+    
+  const allAlerts = [...contasPagarAlerts, ...contasReceberAlerts];
+  const activeAlerts = allAlerts.filter(a => !resolvedAlertIds.includes(a.id));
 
   const handleResolveAlert = (id: string) => {
-    setAlerts(prev => prev.map(a => a.id === id ? { ...a, resolved: true } : a));
+    setResolvedAlertIds(prev => [...prev, id]);
   };
 
   const handleViewDetails = (alert: Alert) => {
@@ -90,6 +79,23 @@ export function Dashboard({ onNavigate }: { onNavigate: (module: string) => void
     else if (alert.category === "contas-receber") onNavigate("contas-receber");
     setAlertsOpen(false);
   };
+  
+  // Próximos Vencimentos
+  const proximos7dias = { start: today, end: addDays(today, 7) };
+  
+  const proximosVencimentosPagar = contasPagar
+      .filter(c => (c.status === 'pendente' || c.status === 'atrasado') && isWithinInterval(new Date(c.dataVencimento), proximos7dias))
+      .sort((a, b) => new Date(a.dataVencimento).getTime() - new Date(b.dataVencimento).getTime());
+  
+  const proximosVencimentosReceber = contasReceber
+      .filter(c => (c.status === 'pendente' || c.status === 'atrasado') && isWithinInterval(new Date(c.dataVencimento), proximos7dias))
+      .sort((a, b) => new Date(a.dataVencimento).getTime() - new Date(b.dataVencimento).getTime());
+  
+  const todosProximosVencimentos = [
+      ...proximosVencimentosPagar.map(c => ({...c, tipo: 'pagar' as const})),
+      ...proximosVencimentosReceber.map(c => ({...c, tipo: 'receber' as const})),
+  ].sort((a, b) => new Date(a.dataVencimento).getTime() - new Date(b.dataVencimento).getTime()).slice(0, 3);
+
 
   return (
     <div className="space-y-6">
@@ -124,13 +130,13 @@ export function Dashboard({ onNavigate }: { onNavigate: (module: string) => void
               tabIndex={0}
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onNavigate("contas-receber")}
             >
-              R$ {dashboardData.totalReceber.toLocaleString('pt-BR', {
+              R$ {totalReceber.toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              +5.2% em relação ao mês anterior
+              Total em aberto
             </p>
           </CardContent>
         </Card>
@@ -148,31 +154,31 @@ export function Dashboard({ onNavigate }: { onNavigate: (module: string) => void
               tabIndex={0}
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onNavigate("contas-pagar")}
             >
-              R$ {dashboardData.totalPagar.toLocaleString('pt-BR', { 
+              R$ {totalPagar.toLocaleString('pt-BR', { 
                 minimumFractionDigits: 2, 
                 maximumFractionDigits: 2 
               })}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              -2.1% em relação ao mês anterior
+              Total em aberto
             </p>
           </CardContent>
         </Card>
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saldo Líquido</CardTitle>
+            <CardTitle className="text-sm font-medium">Saldo Previsto</CardTitle>
             <DollarSign className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              R$ {dashboardData.saldoLiquido.toLocaleString('pt-BR', { 
+            <div className={`text-2xl font-bold ${saldoLiquido >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+              R$ {saldoLiquido.toLocaleString('pt-BR', { 
                 minimumFractionDigits: 2, 
                 maximumFractionDigits: 2 
               })}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Posição atual
+              Receber - Pagar
             </p>
           </CardContent>
         </Card>
@@ -191,15 +197,14 @@ export function Dashboard({ onNavigate }: { onNavigate: (module: string) => void
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
               {
-                alerts.filter(a => !a.resolved && (a.type === "Atrasado" || a.type === "Vencendo hoje")).length
+                activeAlerts.filter(a => a.type === "Atrasado" || a.type === "Vencendo hoje").length
               }
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {
-                // Detailed text
                 (() => {
-                  const vencendoHoje = alerts.filter(a => !a.resolved && a.type === "Vencendo hoje").length;
-                  const atrasadas = alerts.filter(a => !a.resolved && a.type === "Atrasado").length;
+                  const vencendoHoje = activeAlerts.filter(a => a.type === "Vencendo hoje").length;
+                  const atrasadas = activeAlerts.filter(a => a.type === "Atrasado").length;
                   return `${vencendoHoje} vencendo hoje, ${atrasadas} atrasadas`;
                 })()
               }
@@ -260,36 +265,39 @@ export function Dashboard({ onNavigate }: { onNavigate: (module: string) => void
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Aluguel do Escritório</p>
-                  <p className="text-xs text-muted-foreground">Vence hoje</p>
+              {todosProximosVencimentos.length > 0 ? todosProximosVencimentos.map(item => {
+                const isPagar = item.tipo === 'pagar';
+                const vencimentoDate = new Date(item.dataVencimento);
+                const diffDays = Math.ceil((startOfDay(vencimentoDate).getTime() - today.getTime()) / (1000 * 3600 * 24));
+                
+                let vencimentoText = `Vence em ${diffDays} dias`;
+                if (diffDays === 0) vencimentoText = "Vence hoje";
+                else if (diffDays === 1) vencimentoText = "Vence amanhã";
+                else if (diffDays < 0) vencimentoText = `Venceu há ${Math.abs(diffDays)} dias`;
+                
+                if (!isPagar) {
+                    vencimentoText = vencimentoText.replace('Vence', 'Receber');
+                }
+
+                return (
+                <div key={item.id} className={`flex items-center justify-between p-3 rounded-lg ${
+                    isPagar ? (item.status === 'atrasado' ? 'bg-red-50' : 'bg-orange-50') : 'bg-blue-50'
+                }`}>
+                    <div>
+                    <p className="font-medium text-sm">{isPagar ? (item as ContaPagar).fornecedor : (item as ContaReceber).cliente}</p>
+                    <p className="text-xs text-muted-foreground">{vencimentoText}</p>
+                    </div>
+                    <div className="text-right">
+                    <p className={`font-semibold ${isPagar ? 'text-red-600' : 'text-blue-600'}`}>
+                        R$ {item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                    <Badge variant={isPagar ? (item.status === 'atrasado' ? 'destructive' : 'secondary') : 'outline'} className="text-xs capitalize">
+                        {isPagar ? item.status : 'A Receber'}
+                    </Badge>
+                    </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-red-600">R$ 2.500,00</p>
-                  <Badge variant="destructive" className="text-xs">Atrasado</Badge>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Fornecedor ABC</p>
-                  <p className="text-xs text-muted-foreground">Vence amanhã</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-orange-600">R$ 1.200,00</p>
-                  <Badge variant="secondary" className="text-xs">Pendente</Badge>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Cliente XYZ - Projeto</p>
-                  <p className="text-xs text-muted-foreground">Receber em 3 dias</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-blue-600">R$ 5.800,00</p>
-                  <Badge variant="outline" className="text-xs">A Receber</Badge>
-                </div>
-              </div>
+                );
+              }) : <p className="text-muted-foreground text-sm text-center">Nenhum vencimento nos próximos 7 dias.</p>}
             </div>
           </CardContent>
         </Card>
@@ -300,7 +308,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (module: string) => void
       
       <AlertsPopup
         open={alertsOpen}
-        alerts={alerts}
+        alerts={activeAlerts}
         onClose={() => setAlertsOpen(false)}
         onResolve={handleResolveAlert}
         onViewDetails={handleViewDetails}

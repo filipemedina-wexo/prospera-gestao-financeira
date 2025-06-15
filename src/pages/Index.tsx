@@ -1,3 +1,4 @@
+
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Dashboard } from "@/components/Dashboard";
@@ -17,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { menuItems } from "@/config/menu";
 import { TrendingUp } from "lucide-react";
 import { useClient } from "@/contexts/ClientContext";
+
 const Index = () => {
   const {
     hasPermission
@@ -68,7 +70,7 @@ const Index = () => {
       case "crm":
         return <CRM />;
       case "dashboard":
-        return <Dashboard onNavigate={setActiveModule} />;
+        return <Dashboard onNavigate={setActiveModule} contasPagar={contasAPagar} contasReceber={contasAReceber} />;
       default:
         return <div className="flex flex-col items-center justify-center h-full text-center">
             <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>

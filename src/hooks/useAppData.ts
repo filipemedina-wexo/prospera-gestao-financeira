@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Proposta, Vendedor } from "@/components/modules/comercial/types";
 import { ContaReceber } from "@/components/modules/contas-receber/types";
@@ -18,6 +18,32 @@ export const useAppData = () => {
   const [vendedores] = useState<Vendedor[]>(initialVendedores);
   const [contasAReceber, setContasAReceber] = useState<ContaReceber[]>(initialContasAReceber);
   const [contasAPagar, setContasAPagar] = useState<ContaPagar[]>(initialContasAPagar);
+
+  useEffect(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of day
+
+    const checkAndUpdateStatus = (contas: (ContaPagar | ContaReceber)[]) => {
+      let changed = false;
+      const updatedContas = contas.map(conta => {
+        if (conta.status === 'pendente' && new Date(conta.dataVencimento) < today) {
+          changed = true;
+          return { ...conta, status: 'atrasado' as const };
+        }
+        return conta;
+      });
+      return { updatedContas, changed };
+    };
+
+    setContasAPagar(prevContas => {
+      const { updatedContas, changed } = checkAndUpdateStatus(prevContas);
+      return changed ? updatedContas : prevContas;
+    });
+    setContasAReceber(prevContas => {
+      const { updatedContas, changed } = checkAndUpdateStatus(prevContas);
+      return changed ? updatedContas : prevContas;
+    });
+  }, []); // Run only once on mount
 
   const handlePropostaAceita = (proposta: Proposta) => {
     const competencia = `${(proposta.dataValidade.getMonth() + 1).toString().padStart(2, '0')}/${proposta.dataValidade.getFullYear()}`;
