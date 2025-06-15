@@ -1,3 +1,4 @@
+
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { permissionsByRole, ExtendedRole } from '@/config/permissions';
@@ -28,39 +29,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   const fetchAndSetUser = async (supabaseUser: SupabaseUser) => {
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', supabaseUser.id)
-      .maybeSingle();
+    try {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', supabaseUser.id)
+        .maybeSingle();
 
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('full_name, welcome_email_sent')
-      .eq('id', supabaseUser.id)
-      .maybeSingle();
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name, welcome_email_sent')
+        .eq('id', supabaseUser.id)
+        .maybeSingle();
 
-    const appUser: AppUser = {
-      id: supabaseUser.id,
-      email: supabaseUser.email!,
-      name: profileData?.full_name || supabaseUser.email!,
-      role: (roleData?.role as ExtendedRole) || null,
-    };
-    setUser(appUser);
+      const appUser: AppUser = {
+        id: supabaseUser.id,
+        email: supabaseUser.email!,
+        name: profileData?.full_name || supabaseUser.email!,
+        role: (roleData?.role as ExtendedRole) || null,
+      };
+      
+      console.log('User role loaded:', roleData?.role);
+      console.log('User permissions:', permissionsByRole[roleData?.role as ExtendedRole] || []);
+      
+      setUser(appUser);
 
-    // If user is confirmed and welcome email hasn't been sent, send it
-    if (supabaseUser.email_confirmed_at && !profileData?.welcome_email_sent) {
-      try {
-        const { error } = await supabase.functions.invoke('send-welcome-email', {
-          body: { user: supabaseUser },
-        });
-        
-        if (error) {
-          console.error('Error sending welcome email:', error);
+      // If user is confirmed and welcome email hasn't been sent, send it
+      if (supabaseUser.email_confirmed_at && !profileData?.welcome_email_sent) {
+        try {
+          const { error } = await supabase.functions.invoke('send-welcome-email', {
+            body: { user: supabaseUser },
+          });
+          
+          if (error) {
+            console.error('Error sending welcome email:', error);
+          }
+        } catch (error) {
+          console.error('Error invoking welcome email function:', error);
         }
-      } catch (error) {
-        console.error('Error invoking welcome email function:', error);
       }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar dados do usuário.',
+        variant: 'destructive',
+      });
     }
   };
   
@@ -128,14 +142,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const hasPermission = (permission: string): boolean => {
-    if (!user || !user.role) return false;
+    if (!user || !user.role) {
+      console.log('No user or role found for permission check:', permission);
+      return false;
+    }
 
     const userPermissions = permissionsByRole[user.role];
-    if (!userPermissions) return false;
+    if (!userPermissions) {
+      console.log('No permissions found for role:', user.role);
+      return false;
+    }
     
-    if (userPermissions.includes('*')) return true;
+    if (userPermissions.includes('*')) {
+      console.log('User has all permissions (*)');
+      return true;
+    }
     
-    return userPermissions.includes(permission);
+    const hasAccess = userPermissions.includes(permission);
+    console.log(`Permission check: ${permission} = ${hasAccess}`);
+    
+    return hasAccess;
   };
 
   return (
