@@ -23,6 +23,7 @@ import { QuickChartsSection } from "./QuickChartsSection";
 import { DashboardBlocks } from "./DashboardBlocks";
 import ReceberBlock from "./dashboard-blocks/ReceberBlock";
 import PagarBlock from "./dashboard-blocks/PagarBlock";
+import type { DashboardBlock } from "@/types/dashboardBlock";
 
 // --- Mocked dashboard data ---
 const dashboardData = {
@@ -35,19 +36,12 @@ const dashboardData = {
   despesasMes: 34567.8,
 };
 
-type Block = {
-  id: string;
-  type: string;
-  cols: number;
-  component: React.ComponentType<any>;
-  props?: any;
-};
-
 // Montando os blocos dos cards principais do dashboard para edição
-const initialBlocks: Block[] = [
+const initialBlocks: DashboardBlock[] = [
   {
     id: "receber",
     type: "receber",
+    title: "A Receber",
     cols: 1,
     component: ReceberBlock,
     props: { value: dashboardData.totalReceber },
@@ -55,6 +49,7 @@ const initialBlocks: Block[] = [
   {
     id: "pagar",
     type: "pagar",
+    title: "A Pagar",
     cols: 1,
     component: PagarBlock,
     props: { value: dashboardData.totalPagar },
@@ -62,6 +57,7 @@ const initialBlocks: Block[] = [
   {
     id: "saldo",
     type: "saldo",
+    title: "Saldo Líquido",
     cols: 1,
     // Inline: mesmo layout do card original
     component: () => (
@@ -82,6 +78,7 @@ const initialBlocks: Block[] = [
   {
     id: "faturamento",
     type: "faturamento",
+    title: "Faturamento do Mês",
     cols: 1,
     component: () => (
       <Card className="hover:shadow-lg transition-shadow">
@@ -101,6 +98,7 @@ const initialBlocks: Block[] = [
   {
     id: "despesas",
     type: "despesas",
+    title: "Despesas do Mês",
     cols: 1,
     component: () => (
       <Card className="hover:shadow-lg transition-shadow">
@@ -120,6 +118,7 @@ const initialBlocks: Block[] = [
   {
     id: "vencendohoje",
     type: "vencendohoje",
+    title: "Contas vencendo hoje",
     cols: 1,
     component: () => (
       <Card className="hover:shadow-lg transition-shadow">
@@ -139,6 +138,7 @@ const initialBlocks: Block[] = [
   {
     id: "atrasadas",
     type: "atrasadas",
+    title: "Contas atrasadas",
     cols: 1,
     component: () => (
       <Card className="hover:shadow-lg transition-shadow">
@@ -162,7 +162,7 @@ export function Dashboard() {
   const [isEditMode, setIsEditMode] = useState(false);
 
   // State dos blocos para o modo de edição
-  const [blocks, setBlocks] = useState<Block[]>(initialBlocks);
+  const [blocks, setBlocks] = useState<DashboardBlock[]>(initialBlocks);
 
   const renderActiveModule = () => {
     switch (activeModule) {
