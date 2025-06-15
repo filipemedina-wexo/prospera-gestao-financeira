@@ -1,4 +1,3 @@
-
 import {
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend,
   LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, BarChart, Bar
@@ -32,6 +31,13 @@ const faturamentoMensalMock = [
   { mes: "Nov", faturamento: 10800, metaAcumulada: 110000 },
   { mes: "Dez", faturamento: 11500, metaAcumulada: 120000 },
 ];
+
+// Novo array com campo "faturamentoAcumulado"
+const faturamentoMensalAcumuladoMock = faturamentoMensalMock.map((item, idx, arr) => {
+  const acumulado =
+    arr.slice(0, idx + 1).reduce((sum, cur) => sum + cur.faturamento, 0);
+  return { ...item, faturamentoAcumulado: acumulado };
+});
 
 const extratoHojeMock = [
   { hora: "08:21", descricao: "Recebimento Cliente XPTO", valor: 3500 },
@@ -95,14 +101,14 @@ export function QuickChartsSection() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={230}>
-            <LineChart data={faturamentoMensalMock}>
+            <LineChart data={faturamentoMensalAcumuladoMock}>
               <XAxis dataKey="mes" />
               <YAxis />
               <CartesianGrid strokeDasharray="3 3" />
               <Line
                 type="monotone"
-                dataKey="faturamento"
-                name="Faturamento Mensal"
+                dataKey="faturamentoAcumulado"
+                name="Faturamento Acumulado"
                 stroke="#34d399"
                 strokeWidth={2}
                 dot
@@ -189,4 +195,3 @@ export function QuickChartsSection() {
 }
 
 export default QuickChartsSection;
-
