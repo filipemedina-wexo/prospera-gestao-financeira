@@ -13,7 +13,7 @@ interface ProfileData {
 
 interface UserRoleData {
   user_id: string;
-  role: string;
+  role: ExtendedRole; // Changed from string to ExtendedRole
 }
 
 export function useUsersManagement() {
@@ -54,17 +54,22 @@ export function useUsersManagement() {
         return;
       }
 
-      // Properly type the data with type guards
+      // Use more specific type guards that don't conflict with the interface
       const validProfiles = profiles.filter((p): p is ProfileData => 
-        p !== null && typeof p === 'object' && 'id' in p && 'full_name' in p
+        p !== null && typeof p === 'object' && 'id' in p && 'full_name' in p && typeof p.id === 'string'
       );
       
       const validUserRoles = (userRoles || []).filter((r): r is UserRoleData => 
-        r !== null && typeof r === 'object' && 'user_id' in r && 'role' in r
+        r !== null && 
+        typeof r === 'object' && 
+        'user_id' in r && 
+        'role' in r && 
+        typeof r.user_id === 'string' &&
+        typeof r.role === 'string'
       );
 
       // Combine the data with proper typing
-      const combinedUsers: User[] = validProfiles.map((profile) => {
+      const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
         const userRole = validUserRoles.find((roleData) => roleData.user_id === profile.id);
         const role = (userRole?.role as ExtendedRole) || 'contador';
