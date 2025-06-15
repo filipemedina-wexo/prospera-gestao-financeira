@@ -1,7 +1,7 @@
-
 import { Proposta, Vendedor } from "@/components/modules/comercial/types";
 import { ContaPagar } from "@/components/modules/contas-pagar/types";
 import { ContaReceber } from "@/components/modules/contas-receber/types";
+import { Client } from "@/components/modules/crm/types";
 
 export const initialPropostas: Proposta[] = [
   {
@@ -183,4 +183,49 @@ export const initialContasAPagar: ContaPagar[] = [
       categoria: "Despesas com Vendas",
       competencia: "05/2024",
   },
+];
+
+export const initialClients: Client[] = [
+  {
+    id: "1",
+    razaoSocial: "Empresa ABC Ltda",
+    nomeFantasia: "Empresa ABC",
+    cnpj: "11.111.111/0001-11",
+    endereco: "Rua das Flores, 123",
+    cidade: "São Paulo",
+    estado: "SP",
+    nomeContato: "Carlos Silva",
+    email: "contato@empresaabc.com",
+    telefone: "(11) 99999-1111",
+    whatsapp: "(11) 99999-1111",
+    status: "Ativo",
+  },
+  {
+    id: "2",
+    razaoSocial: "StartupXYZ",
+    nomeFantasia: "StartupXYZ",
+    cnpj: "22.222.222/0001-22",
+    endereco: "Avenida Principal, 456",
+    cidade: "Rio de Janeiro",
+    estado: "RJ",
+    nomeContato: "Ana Pereira",
+    email: "ana@startupxyz.com",
+    telefone: "(21) 98888-2222",
+    whatsapp: "(21) 98888-2222",
+    status: "Ativo",
+  },
+  {
+    id: "3",
+    razaoSocial: "XYZ Ltda",
+    nomeFantasia: "Loja XYZ",
+    cnpj: "33.333.333/0001-33",
+    endereco: "Rua dos Comerciantes, 789",
+    cidade: "Belo Horizonte",
+    estado: "MG",
+    nomeContato: "Mariana Costa",
+    email: "compras@lojaxyz.com.br",
+    telefone: "(31) 97777-3333",
+    whatsapp: "(31) 97777-3333",
+    status: "Inativo",
+  }
 ];
