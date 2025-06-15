@@ -28,6 +28,47 @@ export function Relatorios() {
   const [extratoPeriodoInicio, setExtratoPeriodoInicio] = useState<Date | undefined>(subDays(new Date(), 15));
   const [extratoPeriodoFim, setExtratoPeriodoFim] = useState<Date | undefined>(new Date());
 
+  // MOCK DATA for Fluxo de Caixa
+  const dadosFluxoCaixa = {
+    totalEntradas: 45000.00,
+    totalSaidas: 23400.00,
+    saldoLiquido: 21600.00,
+    entradasPorCategoria: [
+      { categoria: "Vendas", valor: 33000.00, percentual: 73.3 },
+      { categoria: "Investimentos", valor: 8000.00, percentual: 17.8 },
+      { categoria: "Outros", valor: 4000.00, percentual: 8.9 },
+    ],
+    saidasPorCategoria: [
+      { categoria: "Fornecedores", valor: 12400.00, percentual: 53.0 },
+      { categoria: "Folha de Pagamento", valor: 7600.00, percentual: 32.5 },
+      { categoria: "Despesas Gerais", valor: 3400.00, percentual: 14.5 },
+    ],
+  };
+
+  // MOCK DATA for Vendas
+  const dadosVendas = {
+    totalVendas: 38200.00,
+    metaMensal: 50000.00,
+    percentualMeta: 76,
+    vendasPorVendedor: [
+      {
+        vendedor: "Ana Silva",
+        vendas: 15500.00,
+        meta: 20000.00
+      },
+      {
+        vendedor: "Carlos Souza",
+        vendas: 12000.00,
+        meta: 15000.00
+      },
+      {
+        vendedor: "Maria Oliveira",
+        vendas: 10700.00,
+        meta: 15000.00
+      }
+    ]
+  };
+
   const relatoriosDisponiveis = [
     {
       id: "fluxo-caixa",
