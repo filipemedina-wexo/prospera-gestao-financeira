@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Client } from "../types";
+import { format } from "date-fns";
 
 interface ClientFormFieldsProps {
   control: Control<Client>;
@@ -104,6 +105,23 @@ export const ClientFormFields = ({ control }: ClientFormFieldsProps) => {
               <FormLabel>WhatsApp</FormLabel>
               <FormControl>
                 <Input placeholder="(99) 99999-9999" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="dataAniversario"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Data de Aniversário</FormLabel>
+              <FormControl>
+                <Input
+                  type="date"
+                  {...field}
+                  value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
+                  onChange={(e) => field.onChange(e.target.valueAsDate)}
+                />
               </FormControl>
             </FormItem>
           )}

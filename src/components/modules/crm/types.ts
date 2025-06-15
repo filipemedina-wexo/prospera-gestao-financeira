@@ -1,4 +1,11 @@
 
+export interface Compra {
+  id: string;
+  data: Date;
+  valor: number;
+  produtos: string[];
+}
+
 export interface Client {
   id: string;
   razaoSocial: string;
@@ -15,4 +22,9 @@ export interface Client {
   dataCadastro?: Date;
   origem?: string;
   observacoes?: string;
+  dataAniversario?: Date;
+  historicoCompras?: Compra[];
+  valorTotalCompras?: number;
+  dataUltimaCompra?: Date;
+  frequenciaCompra?: "Regular" | "Ocasional" | "Raro";
 }

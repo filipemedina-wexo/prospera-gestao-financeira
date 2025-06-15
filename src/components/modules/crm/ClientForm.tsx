@@ -30,6 +30,7 @@ export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormP
       status: "Ativo",
       origem: "",
       observacoes: "",
+      dataAniversario: undefined,
     }
   });
 
@@ -51,6 +52,7 @@ export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormP
         status: "Ativo",
         origem: "",
         observacoes: "",
+        dataAniversario: undefined,
       });
     }
   }, [initialValues, open, form]);
@@ -61,7 +63,11 @@ export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormP
       ...values,
       id: initialValues?.id ?? Math.random().toString(36).slice(2, 10),
       status: values.status || "Ativo",
-      dataCadastro: initialValues?.dataCadastro ?? new Date()
+      dataCadastro: initialValues?.dataCadastro ?? new Date(),
+      historicoCompras: initialValues?.historicoCompras ?? [],
+      valorTotalCompras: initialValues?.valorTotalCompras ?? 0,
+      dataUltimaCompra: initialValues?.dataUltimaCompra,
+      frequenciaCompra: initialValues?.frequenciaCompra,
     };
     onSave(data);
     onClose();

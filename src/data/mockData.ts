@@ -1,7 +1,7 @@
 import { Proposta, Vendedor } from "@/components/modules/comercial/types";
 import { ContaPagar } from "@/components/modules/contas-pagar/types";
 import { ContaReceber } from "@/components/modules/contas-receber/types";
-import { Client } from "@/components/modules/crm/types";
+import { Client, Compra } from "@/components/modules/crm/types";
 import { ProdutoServico } from "@/components/modules/produtos-servicos/types";
 
 export const initialPropostas: Proposta[] = [
@@ -203,6 +203,14 @@ export const initialClients: Client[] = [
     dataCadastro: new Date(2023, 10, 15),
     origem: "Website",
     observacoes: "Cliente antigo, bom pagador.",
+    dataAniversario: new Date(1980, 4, 20),
+    historicoCompras: [
+      { id: 'c1', data: new Date(2024, 4, 1), valor: 1200, produtos: ['Consultoria'] },
+      { id: 'c2', data: new Date(2024, 5, 5), valor: 3800, produtos: ['Desenvolvimento Website'] },
+    ],
+    valorTotalCompras: 5000,
+    dataUltimaCompra: new Date(2024, 5, 5),
+    frequenciaCompra: "Regular",
   },
   {
     id: "2",
@@ -220,6 +228,13 @@ export const initialClients: Client[] = [
     dataCadastro: new Date(2024, 2, 20),
     origem: "Indicação",
     observacoes: "",
+    dataAniversario: new Date(1992, 8, 10),
+    historicoCompras: [
+      { id: 'c3', data: new Date(2024, 2, 25), valor: 8500, produtos: ['Auditoria Completa Marketing Digital', 'Implementação Estratégia SEO'] },
+    ],
+    valorTotalCompras: 8500,
+    dataUltimaCompra: new Date(2024, 2, 25),
+    frequenciaCompra: "Ocasional",
   },
   {
     id: "3",
@@ -237,6 +252,11 @@ export const initialClients: Client[] = [
     dataCadastro: new Date(2023, 5, 1),
     origem: "Feira de negócios",
     observacoes: "Inativo por falta de compras há mais de 6 meses.",
+    dataAniversario: new Date(1985, 11, 2),
+    historicoCompras: [],
+    valorTotalCompras: 0,
+    dataUltimaCompra: undefined,
+    frequenciaCompra: "Raro",
   }
 ];
 
