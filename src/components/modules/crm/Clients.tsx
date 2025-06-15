@@ -1,16 +1,26 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import { ClientList } from "./ClientList";
+import { ClientForm } from "./ClientForm";
 
-const Clients = () => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Clientes</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p className="text-muted-foreground text-sm">Gerencie sua base de clientes de maneira eficiente. (Exemplo: lista de clientes, adicionar, editar, buscar etc.)</p>
-      {/* Aqui você pode inserir tabelas, filtros e formulários futuramente */}
-    </CardContent>
-  </Card>
-);
+const Clients = () => {
+  const [openForm, setOpenForm] = useState(false);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Clientes</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground text-sm mb-4">
+          Gerencie sua base de clientes de maneira eficiente. Use busca, adicione e visualize clientes.
+        </p>
+        <ClientList onAddClient={() => setOpenForm(true)} />
+        <ClientForm open={openForm} onClose={() => setOpenForm(false)} />
+      </CardContent>
+    </Card>
+  );
+};
 
 export default Clients;
