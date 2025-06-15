@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Proposta, Vendedor } from "@/components/modules/comercial/types";
@@ -16,7 +17,7 @@ import {
   initialFuncionarios,
   initialDepartamentos,
   initialCargos,
-} from "@/data/mockData";
+} from "@/data/mocks";
 
 export const useAppData = () => {
   const { toast } = useToast();
