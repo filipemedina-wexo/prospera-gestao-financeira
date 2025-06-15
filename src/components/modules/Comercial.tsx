@@ -31,6 +31,7 @@ import { Proposta, Vendedor } from "./comercial/types";
 import { useToast } from "@/hooks/use-toast";
 import { Client } from "./crm/types";
 import { ClientForm } from "./crm/ClientForm";
+import { ProdutoServico } from "./produtos-servicos/types";
 
 interface ComercialProps {
   propostas: Proposta[];
@@ -39,9 +40,10 @@ interface ComercialProps {
   onPropostaAceita: (proposta: Proposta) => void;
   clients: Client[];
   setClients: React.Dispatch<React.SetStateAction<Client[]>>;
+  produtosServicos: ProdutoServico[];
 }
 
-export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceita, clients, setClients }: ComercialProps) {
+export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceita, clients, setClients, produtosServicos }: ComercialProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [showClientDialog, setShowClientDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("propostas");
@@ -54,7 +56,7 @@ export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceit
     vendedor: "",
     dataValidade: "",
     observacoes: "",
-    itens: [{ descricao: "", quantidade: 1, valorUnitario: 0 }]
+    itens: [{ produtoId: "", descricao: "", quantidade: 1, valorUnitario: 0 }]
   });
 
   const handleClientSave = (client: Client) => {
@@ -117,7 +119,7 @@ export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceit
   const adicionarItem = () => {
     setFormData({
       ...formData,
-      itens: [...formData.itens, { descricao: "", quantidade: 1, valorUnitario: 0 }]
+      itens: [...formData.itens, { produtoId: "", descricao: "", quantidade: 1, valorUnitario: 0 }]
     });
   };
 
@@ -130,6 +132,20 @@ export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceit
     const novosItens = [...formData.itens];
     novosItens[index] = { ...novosItens[index], [campo]: valor };
     setFormData({ ...formData, itens: novosItens });
+  };
+
+  const handleProductSelect = (index: number, produtoId: string) => {
+    const produto = produtosServicos.find(p => p.id === produtoId);
+    if (produto) {
+      const novosItens = [...formData.itens];
+      novosItens[index] = { 
+        ...novosItens[index], 
+        produtoId: produto.id,
+        descricao: produto.nome, 
+        valorUnitario: produto.preco 
+      };
+      setFormData({ ...formData, itens: novosItens });
+    }
   };
 
   const calcularValorTotal = () => {
@@ -256,11 +272,21 @@ export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceit
                   <div key={index} className="grid grid-cols-12 gap-2 items-end p-4 border rounded-lg">
                     <div className="col-span-5">
                       <Label>Descrição</Label>
-                      <Input
-                        value={item.descricao}
-                        onChange={(e) => atualizarItem(index, 'descricao', e.target.value)}
-                        placeholder="Descrição do item/serviço"
-                      />
+                       <Select
+                        value={item.produtoId}
+                        onValueChange={(value) => handleProductSelect(index, value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um produto/serviço" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {produtosServicos.filter(p => p.status === 'Ativo').map(produto => (
+                            <SelectItem key={produto.id} value={produto.id}>
+                              {produto.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="col-span-2">
                       <Label>Quantidade</Label>

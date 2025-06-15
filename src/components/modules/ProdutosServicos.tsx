@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,42 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Package, Plus, Search, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { ProdutoServico } from "./produtos-servicos/types";
 
-const mockProducts = [
-  {
-    id: 1,
-    nome: "Consultoria Financeira",
-    tipo: "Serviço",
-    categoria: "Consultoria",
-    preco: 500,
-    status: "Ativo",
-    descricao: "Consultoria especializada em planejamento financeiro"
-  },
-  {
-    id: 2,
-    nome: "Software de Gestão",
-    tipo: "Produto",
-    categoria: "Tecnologia",
-    preco: 299,
-    status: "Ativo",
-    descricao: "Sistema completo de gestão empresarial"
-  },
-  {
-    id: 3,
-    nome: "Treinamento Corporativo",
-    tipo: "Serviço",
-    categoria: "Educação",
-    preco: 800,
-    status: "Inativo",
-    descricao: "Programa de capacitação para equipes"
-  }
-];
+interface ProdutosServicosProps {
+  produtos: ProdutoServico[];
+}
 
-export const ProdutosServicos = () => {
+export const ProdutosServicos = ({ produtos }: ProdutosServicosProps) => {
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   
-  const filteredProducts = mockProducts.filter(product =>
+  const filteredProducts = produtos.filter(product =>
     product.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.categoria.toLowerCase().includes(searchTerm.toLowerCase())
   );

@@ -1,4 +1,3 @@
-
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Dashboard } from "@/components/Dashboard";
@@ -39,6 +38,8 @@ const Index = () => {
     handlePropostaAceita,
     clients,
     setClients,
+    produtosServicos,
+    setProdutosServicos,
   } = useAppData();
   const {
     clientName,
@@ -60,9 +61,9 @@ const Index = () => {
       case "contas-receber":
         return <ContasReceberModule contas={contasAReceber} setContas={setContasAReceber} />;
       case "comercial":
-        return <Comercial propostas={propostas} setPropostas={setPropostas} vendedores={vendedores} onPropostaAceita={handlePropostaAceita} clients={clients} setClients={setClients} />;
+        return <Comercial propostas={propostas} setPropostas={setPropostas} vendedores={vendedores} onPropostaAceita={handlePropostaAceita} clients={clients} setClients={setClients} produtosServicos={produtosServicos} />;
       case "produtos-servicos":
-        return <ProdutosServicos />;
+        return <ProdutosServicos produtos={produtosServicos} />;
       case "relatorios":
         return <Relatorios />;
       case "dre":
