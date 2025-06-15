@@ -10,6 +10,7 @@ import { DRE } from "@/components/modules/DRE";
 import { ProdutosServicos } from "@/components/modules/ProdutosServicos";
 import { Configuracoes } from "@/components/modules/Configuracoes";
 import { CRM } from "@/components/modules/CRM";
+import { Pessoas } from "@/components/modules/Pessoas";
 import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { useAppData } from "@/hooks/useAppData";
@@ -72,6 +73,8 @@ const Index = () => {
         return <Configuracoes />;
       case "crm":
         return <CRM clients={clients} setClients={setClients} />;
+      case "pessoas":
+        return <Pessoas />;
       case "dashboard":
         return <Dashboard onNavigate={setActiveModule} contasPagar={contasAPagar} contasReceber={contasAReceber} />;
       default:

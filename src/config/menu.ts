@@ -1,5 +1,5 @@
 
-import { Home, Wallet, CreditCard, PiggyBank, TrendingUp, Package, BarChart3, FileText, Settings, Users } from "lucide-react";
+import { Home, Wallet, CreditCard, PiggyBank, TrendingUp, Package, BarChart3, FileText, Settings, Users, Briefcase } from "lucide-react";
 
 export const menuItems = [
   { title: "Dashboard", icon: Home, id: "dashboard", permission: "dashboard.view" },
@@ -12,4 +12,5 @@ export const menuItems = [
   { title: "DRE", icon: FileText, id: "dre", permission: "dre.view" },
   { title: "Configurações", icon: Settings, id: "configuracoes", permission: "configuracoes.view" },
   { title: "CRM", icon: Users, id: "crm", permission: "crm.view" },
+  { title: "Pessoas", icon: Briefcase, id: "pessoas", permission: "pessoas.view" },
 ];
