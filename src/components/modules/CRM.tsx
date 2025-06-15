@@ -1,7 +1,6 @@
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ClientList } from "./crm/ClientList";
-import Suppliers from "./crm/Suppliers";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Client } from "./crm/types";
 import { ClientDashboard } from "./crm/ClientDashboard";
@@ -29,12 +28,10 @@ const CRM = ({ clients, setClients }: CRMProps) => (
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="clients">Clientes</TabsTrigger>
         <TabsTrigger value="segmentation">Segmentação</TabsTrigger>
-        <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
       </TabsList>
       <TabsContent value="dashboard"><ClientDashboard clients={clients} /></TabsContent>
       <TabsContent value="clients"><ClientList clients={clients} setClients={setClients} /></TabsContent>
       <TabsContent value="segmentation"><Segmentation clients={clients} /></TabsContent>
-      <TabsContent value="suppliers"><Suppliers /></TabsContent>
     </Tabs>
   </div>
 );

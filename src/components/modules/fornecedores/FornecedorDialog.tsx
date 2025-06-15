@@ -83,9 +83,22 @@ export const FornecedorDialog = ({ open, onOpenChange, onSave, fornecedor }: For
 
   const onSubmit = (data: FornecedorFormData) => {
     onSave({
-      ...data,
       id: fornecedor?.id || Date.now().toString(),
       dataCadastro: fornecedor?.dataCadastro || new Date(),
+      razaoSocial: data.razaoSocial,
+      nomeFantasia: data.nomeFantasia,
+      cnpj: data.cnpj,
+      email: data.email,
+      telefone: data.telefone,
+      status: data.status,
+      tipo: data.tipo,
+      chavePix: data.chavePix,
+      endereco: data.endereco,
+      cidade: data.cidade,
+      estado: data.estado,
+      cep: data.cep,
+      nomeContato: data.nomeContato,
+      observacoes: data.observacoes,
     });
     onOpenChange(false);
   };
