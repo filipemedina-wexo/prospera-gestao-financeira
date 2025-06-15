@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -58,12 +57,12 @@ export function UsersManagement() {
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
-      // Type the profiles data properly
+      // Type the profiles data properly and handle null case
       const typedProfiles = profiles as ProfileData[] | null;
       const typedUserRoles = userRoles as UserRoleData[] | null;
 
-      // Combine the data
-      const combinedUsers: User[] = typedProfiles?.map(profile => {
+      // Combine the data - handle null case properly
+      const combinedUsers: User[] = typedProfiles ? typedProfiles.map(profile => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
         const userRole = typedUserRoles?.find(r => r.user_id === profile.id);
         const role = (userRole?.role as ExtendedRole) || 'contador';
@@ -77,7 +76,7 @@ export function UsersManagement() {
           createdAt: authUser?.created_at || new Date().toISOString(),
           lastLogin: authUser?.last_sign_in_at || undefined,
         };
-      }) || [];
+      }) : [];
 
       setUsers(combinedUsers);
     } catch (error) {
