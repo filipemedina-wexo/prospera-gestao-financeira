@@ -54,16 +54,9 @@ export function useUsersManagement() {
         return;
       }
 
-      // Create typed arrays with explicit type annotations
-      const typedProfiles: ProfileData[] = profiles.map(profile => ({
-        id: profile.id,
-        full_name: profile.full_name
-      }));
-
-      const typedUserRoles: UserRoleData[] = (userRoles || []).map(role => ({
-        user_id: role.user_id,
-        role: role.role
-      }));
+      // Explicitly cast the Supabase results to our interfaces
+      const typedProfiles = profiles as ProfileData[];
+      const typedUserRoles = (userRoles || []) as UserRoleData[];
 
       // Combine the data with explicit typing
       const combinedUsers: User[] = typedProfiles.map((profile: ProfileData) => {
