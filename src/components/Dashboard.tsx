@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import {
   PiggyBank,
   Wallet
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ContasPagar } from "./modules/ContasPagar";
 import { ContasReceber } from "./modules/ContasReceber";
 import { Comercial } from "./modules/Comercial";
@@ -87,6 +86,9 @@ const initialAlerts: Alert[] = [
   }
 ];
 
+// New (for persisting layout)
+const DASHBOARD_LAYOUT_KEY = "dashboardBlocksLayout";
+
 export function Dashboard() {
   const [activeModule, setActiveModule] = useState("dashboard");
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
@@ -103,7 +105,7 @@ export function Dashboard() {
     despesasMes: 34567.80
   };
 
-  // New: Manage blocks order and sizes
+  // Default/initial blocks config
   const initialBlocks: DashboardBlock[] = [
     {
       id: "receber",
@@ -123,7 +125,42 @@ export function Dashboard() {
     },
     // Add other blocks after initial testing!
   ];
-  const [blocks, setBlocks] = useState<DashboardBlock[]>(initialBlocks);
+
+  // Load saved layout (or default)
+  const [blocks, setBlocks] = useState<DashboardBlock[]>(() => {
+    try {
+      const saved = localStorage.getItem(DASHBOARD_LAYOUT_KEY);
+      if (saved) {
+        // Parse and map to initialBlocks structure for type safety
+        const parsed = JSON.parse(saved);
+        // Only allow ids present in the current initialBlocks
+        const allowedIds = initialBlocks.map(b => b.id);
+        return parsed
+          .filter((b: any) => allowedIds.includes(b.id))
+          .map((b: any) => {
+            // Find the matching initial block
+            const orig = initialBlocks.find(ib => ib.id === b.id);
+            if (!orig) return null;
+            return {
+              ...orig,
+              cols: typeof b.cols === 'number' ? Math.max(1, Math.min(4, b.cols)) : orig.cols,
+            };
+          })
+          .filter(Boolean) as DashboardBlock[];
+      }
+    } catch {
+      // Ignore and use initial
+    }
+    return initialBlocks;
+  });
+
+  // Save blocks to localStorage whenever they change
+  useEffect(() => {
+    // Save only id, cols, and type to persist order and size
+    const layout = blocks.map(({ id, cols, type }) => ({ id, cols, type }));
+    localStorage.setItem(DASHBOARD_LAYOUT_KEY, JSON.stringify(layout));
+  }, [blocks]);
+
   const [isEditMode, setIsEditMode] = useState(false);
 
   const handleResolveAlert = (id: string) => {
@@ -135,6 +172,9 @@ export function Dashboard() {
     else if (alert.category === "contas-receber") setActiveModule("contas-receber");
     setAlertsOpen(false);
   };
+
+  // Restore to default layout
+  const handleRestoreDefault = () => setBlocks(initialBlocks);
 
   const renderActiveModule = () => {
     switch (activeModule) {
@@ -155,7 +195,7 @@ export function Dashboard() {
     }
   };
 
-  // Updated renderDashboard: just render DashboardBlocks for now (we'll add save/cancel/edit later)
+  // Updated renderDashboard: has restore button in edit mode
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -167,12 +207,24 @@ export function Dashboard() {
             Visão geral das suas finanças - {new Date().toLocaleDateString('pt-BR')}
           </p>
         </div>
-        <button
-          className="border px-3 py-1 rounded text-sm hover:bg-accent transition"
-          onClick={() => setIsEditMode(e => !e)}
-        >
-          {isEditMode ? "Concluir edição" : "Editar layout"}
-        </button>
+        <div className="flex gap-2 items-center">
+          {isEditMode && (
+            <button
+              className="border px-3 py-1 rounded text-sm hover:bg-accent transition"
+              onClick={handleRestoreDefault}
+              type="button"
+            >
+              Restaurar layout padrão
+            </button>
+          )}
+          <button
+            className="border px-3 py-1 rounded text-sm hover:bg-accent transition"
+            onClick={() => setIsEditMode(e => !e)}
+            type="button"
+          >
+            {isEditMode ? "Concluir edição" : "Editar layout"}
+          </button>
+        </div>
       </div>
       <DashboardBlocks blocks={blocks} setBlocks={setBlocks} isEditMode={isEditMode} />
     </div>
