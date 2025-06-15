@@ -7,20 +7,20 @@ import { menuItems } from "@/config/menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClientSelector } from "@/components/ClientSelector";
 
-// Import all module components
-import CRM from "@/components/modules/CRM";
-import Caixa from "@/components/modules/Caixa";
-import ContasPagar from "@/components/modules/ContasPagar";
-import ContasReceber from "@/components/modules/ContasReceber";
-import DRE from "@/components/modules/DRE";
-import Relatorios from "@/components/modules/Relatorios";
-import Fornecedores from "@/components/modules/Fornecedores";
-import Configuracoes from "@/components/modules/Configuracoes";
-import ProdutosServicos from "@/components/modules/ProdutosServicos";
-import Comercial from "@/components/modules/Comercial";
-import Pessoas from "@/components/modules/Pessoas";
+// Import all module components with correct named exports
+import { CRM } from "@/components/modules/CRM";
+import { Caixa } from "@/components/modules/Caixa";
+import { ContasPagar } from "@/components/modules/ContasPagar";
+import { ContasReceber } from "@/components/modules/ContasReceber";
+import { DRE } from "@/components/modules/DRE";
+import { Relatorios } from "@/components/modules/Relatorios";
+import { Fornecedores } from "@/components/modules/Fornecedores";
+import { Configuracoes } from "@/components/modules/Configuracoes";
+import { ProdutosServicos } from "@/components/modules/ProdutosServicos";
+import { Comercial } from "@/components/modules/Comercial";
+import { Pessoas } from "@/components/modules/Pessoas";
 import { UsersManagement } from "@/components/modules/gestao-usuarios";
-import { SuperAdminDashboard } from "@/components/modules/gestao-saas";
+import SuperAdminDashboard from "@/components/modules/gestao-saas";
 
 const Dashboard = () => {
   const { hasPermission } = useAuth();

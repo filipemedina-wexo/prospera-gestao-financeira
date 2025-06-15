@@ -1,7 +1,7 @@
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Dashboard } from "@/components/Dashboard";
+import Dashboard from "@/components/Dashboard";
 import { ContasPagar as ContasPagarModule } from "@/components/modules/ContasPagar";
 import { ContasReceber as ContasReceberModule } from "@/components/modules/ContasReceber";
 import { Caixa } from "@/components/modules/Caixa";
@@ -12,7 +12,7 @@ import { DRE } from "@/components/modules/DRE";
 import { ProdutosServicos } from "@/components/modules/ProdutosServicos";
 import { Configuracoes } from "@/components/modules/Configuracoes";
 import { CRM } from "@/components/modules/CRM";
-import { GestaoUsuarios } from "@/components/modules/gestao-usuarios";
+import { UsersManagement } from "@/components/modules/gestao-usuarios";
 import GestaoSaaS from "@/components/modules/gestao-saas";
 import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";

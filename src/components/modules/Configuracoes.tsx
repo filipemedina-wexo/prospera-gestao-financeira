@@ -6,7 +6,7 @@ import { ConfigComissoes } from "./configuracoes/ConfigComissoes";
 import { ConfigCategorias } from "./configuracoes/ConfigCategorias";
 import { ConfigBancos } from "./configuracoes/ConfigBancos";
 import { ConfigClientes } from "./configuracoes/ConfigClientes";
-import { GestaoUsuarios } from "@/components/modules/gestao-usuarios";
+import { UsersManagement } from "@/components/modules/gestao-usuarios";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +53,7 @@ export const Configuracoes = () => {
         
         {canViewUsers && (
           <TabsContent value="usuarios">
-            <GestaoUsuarios />
+            <UsersManagement />
           </TabsContent>
         )}
       </Tabs>

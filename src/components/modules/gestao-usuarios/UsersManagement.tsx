@@ -48,7 +48,9 @@ export function UsersManagement() {
       // Combine the data
       const combinedUsers: User[] = profiles?.map(profile => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
-        const userRole = profile.user_roles?.[0]?.role as ExtendedRole || 'contador';
+        // Fix the type access issue
+        const userRoles = profile.user_roles as Array<{ role: string }> | null;
+        const userRole = (userRoles?.[0]?.role as ExtendedRole) || 'contador';
         
         return {
           id: profile.id,
