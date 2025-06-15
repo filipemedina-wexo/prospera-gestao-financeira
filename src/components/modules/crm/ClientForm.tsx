@@ -1,18 +1,19 @@
-
 import { useForm } from "react-hook-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
-import { useState } from "react";
+import { useEffect } from "react";
+import type { Client } from "./ClientList";
 
 interface ClientFormProps {
   open: boolean;
   onClose: () => void;
-  // Futuramente: onSubmit: (data) => void;
+  initialValues?: Partial<Client>;
+  onSave?: (client: Client) => void;
 }
 
-export function ClientForm({ open, onClose }: ClientFormProps) {
+export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormProps) {
   const form = useForm({
     defaultValues: {
       razaoSocial: "",
@@ -25,14 +26,30 @@ export function ClientForm({ open, onClose }: ClientFormProps) {
       email: "",
       telefone: "",
       whatsapp: "",
-      // Para manter retrocompatibilidade de outros componentes
+      status: "Ativo",
+      id: undefined,
       name: "",
       phone: "",
     }
   });
 
+  // Preenche valores caso edição
+  useEffect(() => {
+    if (initialValues) {
+      form.reset({ ...form.getValues(), ...initialValues });
+    }
+    // eslint-disable-next-line
+  }, [initialValues]);
+  
   function onSubmit(values: any) {
-    // Futuramente adicionar cliente em uma lista
+    // Gera ID se novo
+    const data: Client = {
+      ...initialValues,
+      ...values,
+      id: initialValues?.id ?? Math.random().toString(36).slice(2, 10),
+      status: values.status || "Ativo"
+    };
+    if (onSave) onSave(data);
     onClose();
   }
 
@@ -40,7 +57,8 @@ export function ClientForm({ open, onClose }: ClientFormProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Novo Cliente</DialogTitle>
+          <DialogTitle>{initialValues ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
+          <DialogDescription>Preencha e salve as informações deste cliente.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -95,7 +113,6 @@ export function ClientForm({ open, onClose }: ClientFormProps) {
               />
             </div>
             {/* END ROW 1 */}
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -134,7 +151,6 @@ export function ClientForm({ open, onClose }: ClientFormProps) {
                 )}
               />
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
@@ -173,7 +189,6 @@ export function ClientForm({ open, onClose }: ClientFormProps) {
                 )}
               />
             </div>
-
             <DialogFooter>
               <Button type="submit" variant="default">Salvar</Button>
               <Button type="button" variant="outline" onClick={onClose}>
