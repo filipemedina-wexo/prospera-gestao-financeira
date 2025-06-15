@@ -19,9 +19,10 @@ import { Relatorios } from "./modules/Relatorios";
 import { DRE } from "./modules/DRE";
 import { Caixa } from "./modules/Caixa";
 import { AlertsPopup } from "./AlertsPopup";
+import { QuickChartsSection } from "./QuickChartsSection";
 
 // Mocked alert data
-const initialAlerts = [
+const initialAlerts: Alert[] = [
   {
     id: "at01",
     title: "Aluguel do Escritório",
@@ -71,7 +72,7 @@ const initialAlerts = [
 
 export function Dashboard() {
   const [activeModule, setActiveModule] = useState("dashboard");
-  const [alerts, setAlerts] = useState(initialAlerts);
+  const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
   const [alertsOpen, setAlertsOpen] = useState(false);
 
   // Dados mockados para demonstração
@@ -89,7 +90,7 @@ export function Dashboard() {
     setAlerts(prev => prev.map(a => a.id === id ? { ...a, resolved: true } : a));
   };
 
-  const handleViewDetails = (alert: (typeof initialAlerts)[0]) => {
+  const handleViewDetails = (alert: Alert) => {
     if (alert.category === "contas-pagar") setActiveModule("contas-pagar");
     else if (alert.category === "contas-receber") setActiveModule("contas-receber");
     setAlertsOpen(false);
@@ -217,6 +218,9 @@ export function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Nova Seção: Gráficos Rápidos */}
+      <QuickChartsSection />
 
       {/* Ações Rápidas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
