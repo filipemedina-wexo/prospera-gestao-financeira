@@ -20,7 +20,7 @@ export type Database = {
           id: string
           paid_date: string | null
           saas_client_id: string
-          status: string
+          status: Database["public"]["Enums"]["account_payable_status"]
           updated_at: string
         }
         Insert: {
@@ -33,7 +33,7 @@ export type Database = {
           id?: string
           paid_date?: string | null
           saas_client_id: string
-          status?: string
+          status?: Database["public"]["Enums"]["account_payable_status"]
           updated_at?: string
         }
         Update: {
@@ -46,7 +46,7 @@ export type Database = {
           id?: string
           paid_date?: string | null
           saas_client_id?: string
-          status?: string
+          status?: Database["public"]["Enums"]["account_payable_status"]
           updated_at?: string
         }
         Relationships: [
@@ -77,7 +77,7 @@ export type Database = {
           id: string
           received_date: string | null
           saas_client_id: string
-          status: string
+          status: Database["public"]["Enums"]["account_receivable_status"]
           updated_at: string
         }
         Insert: {
@@ -90,7 +90,7 @@ export type Database = {
           id?: string
           received_date?: string | null
           saas_client_id: string
-          status?: string
+          status?: Database["public"]["Enums"]["account_receivable_status"]
           updated_at?: string
         }
         Update: {
@@ -103,7 +103,7 @@ export type Database = {
           id?: string
           received_date?: string | null
           saas_client_id?: string
-          status?: string
+          status?: Database["public"]["Enums"]["account_receivable_status"]
           updated_at?: string
         }
         Relationships: [
@@ -598,6 +598,8 @@ export type Database = {
       }
     }
     Enums: {
+      account_payable_status: "pending" | "paid" | "overdue" | "partial"
+      account_receivable_status: "pending" | "received" | "overdue" | "partial"
       app_role:
         | "admin"
         | "financeiro"
@@ -727,6 +729,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_payable_status: ["pending", "paid", "overdue", "partial"],
+      account_receivable_status: ["pending", "received", "overdue", "partial"],
       app_role: ["admin", "financeiro", "comercial", "contador", "super_admin"],
       saas_client_status: ["active", "blocked", "trial", "suspended"],
       saas_plan_type: ["basic", "premium", "enterprise"],
