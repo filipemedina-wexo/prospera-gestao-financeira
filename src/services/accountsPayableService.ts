@@ -27,7 +27,7 @@ export const accountsPayableService = {
       throw new Error(`Erro ao buscar contas a pagar: ${error.message}`);
     }
 
-    return data || [];
+    return (data || []) as AccountPayable[];
   },
 
   async create(account: Omit<AccountPayable, 'id' | 'created_at' | 'updated_at'>): Promise<AccountPayable> {
@@ -41,7 +41,7 @@ export const accountsPayableService = {
       throw new Error(`Erro ao criar conta a pagar: ${error.message}`);
     }
 
-    return data;
+    return data as AccountPayable;
   },
 
   async update(id: string, updates: Partial<Omit<AccountPayable, 'id' | 'created_at' | 'updated_at'>>): Promise<AccountPayable> {
@@ -56,7 +56,7 @@ export const accountsPayableService = {
       throw new Error(`Erro ao atualizar conta a pagar: ${error.message}`);
     }
 
-    return data;
+    return data as AccountPayable;
   },
 
   async delete(id: string): Promise<void> {

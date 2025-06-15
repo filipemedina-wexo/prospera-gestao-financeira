@@ -27,7 +27,7 @@ export const accountsReceivableService = {
       throw new Error(`Erro ao buscar contas a receber: ${error.message}`);
     }
 
-    return data || [];
+    return (data || []) as AccountReceivable[];
   },
 
   async create(account: Omit<AccountReceivable, 'id' | 'created_at' | 'updated_at'>): Promise<AccountReceivable> {
@@ -41,7 +41,7 @@ export const accountsReceivableService = {
       throw new Error(`Erro ao criar conta a receber: ${error.message}`);
     }
 
-    return data;
+    return data as AccountReceivable;
   },
 
   async update(id: string, updates: Partial<Omit<AccountReceivable, 'id' | 'created_at' | 'updated_at'>>): Promise<AccountReceivable> {
@@ -56,7 +56,7 @@ export const accountsReceivableService = {
       throw new Error(`Erro ao atualizar conta a receber: ${error.message}`);
     }
 
-    return data;
+    return data as AccountReceivable;
   },
 
   async delete(id: string): Promise<void> {
