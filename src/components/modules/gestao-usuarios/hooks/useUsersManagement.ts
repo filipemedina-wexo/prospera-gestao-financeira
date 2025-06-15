@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,14 +55,14 @@ export function useUsersManagement() {
         return;
       }
 
-      // Explicitly cast the Supabase results to our interfaces
-      const typedProfiles = profiles as ProfileData[];
-      const typedUserRoles = (userRoles || []) as UserRoleData[];
+      // Type the profiles and userRoles arrays properly
+      const profilesData: ProfileData[] = profiles;
+      const userRolesData: UserRoleData[] = userRoles || [];
 
       // Combine the data with explicit typing
-      const combinedUsers: User[] = typedProfiles.map((profile: ProfileData) => {
+      const combinedUsers: User[] = profilesData.map((profile) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
-        const userRole = typedUserRoles.find((roleData: UserRoleData) => roleData.user_id === profile.id);
+        const userRole = userRolesData.find((roleData) => roleData.user_id === profile.id);
         const role = (userRole?.role as ExtendedRole) || 'contador';
         
         return {
