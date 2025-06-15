@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,18 +16,6 @@ interface UserRoleData {
   user_id: string;
   role: ExtendedRole;
 }
-
-// Type for raw Supabase profile response
-type SupabaseProfile = {
-  id: unknown;
-  full_name: unknown;
-} | null;
-
-// Type for raw Supabase user role response  
-type SupabaseUserRole = {
-  user_id: unknown;
-  role: unknown;
-} | null;
 
 export function useUsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
@@ -76,7 +65,7 @@ export function useUsersManagement() {
             profile.id.length > 0) {
           validProfiles.push({
             id: profile.id,
-            full_name: profile.full_name || null
+            full_name: typeof profile.full_name === 'string' ? profile.full_name : null
           });
         }
       }
@@ -99,10 +88,10 @@ export function useUsersManagement() {
         }
       }
 
-      // Now create users array
-      const combinedUsers: User[] = validProfiles.map((profile) => {
+      // Create users array with explicit typing for the callback parameter
+      const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
-        const userRole = validUserRoles.find((roleData) => roleData.user_id === profile.id);
+        const userRole = validUserRoles.find((roleData: UserRoleData) => roleData.user_id === profile.id);
         const role = userRole?.role || 'contador';
         
         return {
