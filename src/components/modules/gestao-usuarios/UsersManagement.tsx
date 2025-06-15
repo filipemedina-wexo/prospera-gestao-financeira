@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -65,13 +66,13 @@ export function UsersManagement() {
 
       // Type assertion after null check to help TypeScript
       const validProfiles = profiles as ProfileData[];
-      const validUserRoles = userRoles as UserRoleData[] | null;
+      const validUserRoles = (userRoles || []) as UserRoleData[];
 
       // Combine the data with proper typing
       const combinedUsers: User[] = validProfiles.map((profile) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
-        // Fix the TypeScript error by being more explicit with the type
-        const userRole = validUserRoles ? validUserRoles.find((r: UserRoleData) => r.user_id === profile.id) : undefined;
+        // Fix the TypeScript error by using explicit array methods
+        const userRole = validUserRoles.find((roleData: UserRoleData) => roleData.user_id === profile.id);
         const role = (userRole?.role as ExtendedRole) || 'contador';
         
         return {
