@@ -166,7 +166,13 @@ export function Dashboard() {
             <CreditCard className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div
+              className="text-2xl font-bold text-red-600 cursor-pointer hover:underline"
+              onClick={() => setActiveModule("contas-pagar")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveModule("contas-pagar")}
+            >
               R$ {dashboardData.totalPagar.toLocaleString('pt-BR', { 
                 minimumFractionDigits: 2, 
                 maximumFractionDigits: 2 
