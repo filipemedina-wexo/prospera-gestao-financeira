@@ -16,6 +16,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useAppData } from "@/hooks/useAppData";
 import { useAuth } from "@/contexts/AuthContext";
 import { menuItems } from "@/config/menu";
+import { TrendingUp } from "lucide-react";
 
 const Index = () => {
   const { hasPermission } = useAuth();
@@ -36,6 +37,14 @@ const Index = () => {
     setContasAPagar,
     handlePropostaAceita,
   } = useAppData();
+
+  const getModuleTitle = () => {
+    if (!activeModule) {
+      return "Acesso Restrito";
+    }
+    const module = menuItems.find((item) => item.id === activeModule);
+    return module ? module.title : "Dashboard";
+  };
 
   const renderContent = () => {
     switch (activeModule) {
@@ -79,9 +88,21 @@ const Index = () => {
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
         <AppSidebar onMenuChange={setActiveModule} />
         <main className="flex-1 p-6 overflow-auto">
-          <div className="mb-6">
-            <SidebarTrigger />
-          </div>
+          <header className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              <h1 className="text-2xl font-bold text-slate-800">{getModuleTitle()}</h1>
+            </div>
+            <div className="hidden md:flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="font-bold text-lg text-slate-800">Prospera</h1>
+                <p className="text-sm text-muted-foreground">Gestão Financeira</p>
+              </div>
+            </div>
+          </header>
           {renderContent()}
         </main>
         <Toaster />
