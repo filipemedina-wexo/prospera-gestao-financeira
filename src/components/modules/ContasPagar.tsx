@@ -38,6 +38,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ContaPagar {
   id: string;
@@ -121,6 +122,11 @@ const opcoesFrequencia = [
     { value: 'semestral' as const, label: 'Semestral' },
     { value: 'anual' as const, label: 'Anual' },
 ];
+
+const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+});
 
 export function ContasPagar() {
   const { toast } = useToast();
@@ -343,7 +349,22 @@ export function ContasPagar() {
                 <FormField control={form.control} name="valor" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Valor *</FormLabel>
-                        <FormControl><Input type="number" step="0.01" placeholder="0,00" {...field} onChange={e => field.onChange(e.target.value)} /></FormControl>
+                        <FormControl>
+                            <Input 
+                                type="text"
+                                placeholder="R$ 0,00"
+                                value={field.value !== undefined ? currencyFormatter.format(field.value) : ''}
+                                onChange={(e) => {
+                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                    if (!rawValue) {
+                                        field.onChange(undefined);
+                                        return;
+                                    }
+                                    const numberValue = parseInt(rawValue, 10) / 100;
+                                    field.onChange(numberValue);
+                                }}
+                            />
+                        </FormControl>
                         <FormMessage />
                     </FormItem>
                 )} />
@@ -372,7 +393,20 @@ export function ContasPagar() {
                  <FormField control={form.control} name="competencia" render={({ field }) => (
                     <FormItem className="pt-2">
                         <FormLabel>Competência (Opcional)</FormLabel>
-                        <FormControl><Input placeholder="MM/AAAA" {...field} /></FormControl>
+                        <FormControl>
+                          <Input 
+                            placeholder="MM/AAAA"
+                            maxLength={7}
+                            {...field}
+                            onChange={(e) => {
+                                let value = e.target.value.replace(/\D/g, '');
+                                if (value.length > 2) {
+                                    value = `${value.slice(0, 2)}/${value.slice(2, 6)}`;
+                                }
+                                field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
                         <FormMessage />
                     </FormItem>
                 )} />
@@ -537,7 +571,14 @@ export function ContasPagar() {
             <Input
                 placeholder="Competência (MM/AAAA)"
                 value={filtroCompetencia}
-                onChange={(e) => setFiltroCompetencia(e.target.value)}
+                onChange={(e) => {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 2) {
+                        value = `${value.slice(0, 2)}/${value.slice(2, 6)}`;
+                    }
+                    setFiltroCompetencia(value);
+                }}
+                maxLength={7}
                 className="w-40"
             />
             <Select value={filtroStatus} onValueChange={setFiltroStatus}>
@@ -577,51 +618,61 @@ export function ContasPagar() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Fornecedor</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Competência</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead>Vencimento</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {contasFiltradas.map((conta) => (
-                <TableRow key={conta.id}>
-                  <TableCell className="font-medium">{conta.descricao}</TableCell>
-                  <TableCell>{conta.fornecedor}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{conta.categoria}</Badge>
-                  </TableCell>
-                  <TableCell>{conta.competencia || '-'}</TableCell>
-                  <TableCell className="text-right font-semibold">
-                    R$ {conta.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </TableCell>
-                  <TableCell>
-                    {format(conta.dataVencimento, "dd/MM/yyyy")}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(conta.status)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex space-x-2 justify-end">
-                      <Button size="sm" variant="outline">
-                        Editar
-                      </Button>
-                      {(conta.status === 'pendente' || conta.status === 'atrasado') && (
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleAbrirDialogPagamento(conta.id)}>
-                          Pagar
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
+          <ScrollArea className="h-[450px] w-full rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Fornecedor</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>Competência</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead>Vencimento</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {contasFiltradas.length === 0 ? (
+                    <TableRow>
+                        <TableCell colSpan={8} className="h-24 text-center">
+                            Nenhuma conta encontrada.
+                        </TableCell>
+                    </TableRow>
+                ) : (
+                    contasFiltradas.map((conta) => (
+                    <TableRow key={conta.id}>
+                      <TableCell className="font-medium">{conta.descricao}</TableCell>
+                      <TableCell>{conta.fornecedor}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{conta.categoria}</Badge>
+                      </TableCell>
+                      <TableCell>{conta.competencia || '-'}</TableCell>
+                      <TableCell className="text-right font-semibold">
+                        {currencyFormatter.format(conta.valor)}
+                      </TableCell>
+                      <TableCell>
+                        {format(conta.dataVencimento, "dd/MM/yyyy")}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(conta.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex space-x-2 justify-end">
+                          <Button size="sm" variant="outline">
+                            Editar
+                          </Button>
+                          {(conta.status === 'pendente' || conta.status === 'atrasado') && (
+                            <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleAbrirDialogPagamento(conta.id)}>
+                              Pagar
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
         </CardContent>
       </Card>
 
