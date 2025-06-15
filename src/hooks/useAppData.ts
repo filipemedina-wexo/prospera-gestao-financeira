@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Proposta, Vendedor } from "@/components/modules/comercial/types";
@@ -23,7 +22,9 @@ export const useAppData = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normalize to start of day
 
-    const checkAndUpdateStatus = (contas: (ContaPagar | ContaReceber)[]) => {
+    const checkAndUpdateStatus = <T extends { status: string; dataVencimento: Date }>(
+      contas: T[]
+    ): { updatedContas: T[]; changed: boolean } => {
       let changed = false;
       const updatedContas = contas.map(conta => {
         if (conta.status === 'pendente' && new Date(conta.dataVencimento) < today) {
