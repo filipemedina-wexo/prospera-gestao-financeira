@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext, ReactNode } from 'react';
 import { User, users } from '@/data/users';
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +29,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (email: string, password: string): boolean => {
     const foundUser = users.find(u => u.email === email && u.password === password);
     if (foundUser) {
+      if (foundUser.status !== 'active') {
+        toast({ title: 'Acesso Negado', description: `Sua conta está ${foundUser.status === 'inactive' ? 'inativa' : 'suspensa'}. Contate o administrador.`, variant: 'destructive' });
+        return false;
+      }
       const { password, ...userToStore } = foundUser;
       setUser(userToStore as User);
       localStorage.setItem('user', JSON.stringify(userToStore));

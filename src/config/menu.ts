@@ -1,5 +1,5 @@
 
-import { Home, Wallet, CreditCard, PiggyBank, TrendingUp, Package, BarChart3, FileText, Settings, Users, Briefcase } from "lucide-react";
+import { Home, Wallet, CreditCard, PiggyBank, TrendingUp, Package, BarChart3, FileText, Settings, Users, Briefcase, UserCog } from "lucide-react";
 
 export const menuItems = [
   { title: "Dashboard", icon: Home, id: "dashboard", permission: "dashboard.view" },
@@ -11,6 +11,7 @@ export const menuItems = [
   { title: "Produtos/Serviços", icon: Package, id: "produtos-servicos", permission: "produtos-servicos.view" },
   { title: "Relatórios", icon: BarChart3, id: "relatorios", permission: "relatorios.view" },
   { title: "DRE", icon: FileText, id: "dre", permission: "dre.view" },
-  { title: "Configurações", icon: Settings, id: "configuracoes", permission: "configuracoes.view" },
   { title: "CRM", icon: Users, id: "crm", permission: "crm.view" },
+  { title: "Gestão de Usuários", icon: UserCog, id: "gestao-usuarios", permission: "admin.users.view" },
+  { title: "Configurações", icon: Settings, id: "configuracoes", permission: "configuracoes.view" },
 ];

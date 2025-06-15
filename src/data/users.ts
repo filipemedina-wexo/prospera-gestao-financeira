@@ -1,5 +1,6 @@
 
 export type Role = 'admin' | 'financeiro' | 'comercial' | 'contador';
+export type UserStatus = 'active' | 'inactive' | 'suspended';
 
 export interface User {
   id: string;
@@ -8,6 +9,9 @@ export interface User {
   password?: string; // Em uma aplicação real, isso seria um hash
   role: Role;
   permissions: string[];
+  status: UserStatus;
+  createdAt: string; // ISO date string
+  lastLogin?: string; // ISO date string
 }
 
 export const users: User[] = [
@@ -18,6 +22,9 @@ export const users: User[] = [
     password: 'password',
     role: 'admin',
     permissions: ['*'], // Admin tem todas as permissões
+    status: 'active',
+    createdAt: '2025-01-10T10:00:00Z',
+    lastLogin: '2025-06-14T15:30:00Z',
   },
   {
     id: '2',
@@ -33,6 +40,9 @@ export const users: User[] = [
       'dre.view',
       'relatorios.view',
     ],
+    status: 'active',
+    createdAt: '2025-02-15T11:00:00Z',
+    lastLogin: '2025-06-15T09:00:00Z',
   },
   {
     id: '3',
@@ -45,6 +55,8 @@ export const users: User[] = [
         'comercial.view',
         'crm.view',
     ],
+    status: 'inactive',
+    createdAt: '2025-03-20T12:00:00Z',
   },
   {
     id: '4',
@@ -56,5 +68,8 @@ export const users: User[] = [
         'relatorios.view',
         'dre.view'
     ],
+    status: 'active',
+    createdAt: '2025-04-05T14:00:00Z',
+    lastLogin: '2025-06-13T18:00:00Z',
   },
 ];
