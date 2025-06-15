@@ -70,7 +70,8 @@ export function UsersManagement() {
       // Combine the data with proper typing
       const combinedUsers: User[] = validProfiles.map((profile) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
-        const userRole = validUserRoles?.find((r) => r.user_id === profile.id);
+        // Fix the TypeScript error by being more explicit with the type
+        const userRole = validUserRoles ? validUserRoles.find((r: UserRoleData) => r.user_id === profile.id) : undefined;
         const role = (userRole?.role as ExtendedRole) || 'contador';
         
         return {
