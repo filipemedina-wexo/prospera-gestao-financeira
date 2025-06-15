@@ -56,6 +56,17 @@ const receitaPorDiaMock = [
   { day: "07", Receita: 4350, Débito: 230 },
 ];
 
+// Novo array acumulado para receita e débito dos últimos 7 dias
+const receitaPorDiaAcumuladoMock = receitaPorDiaMock.map((item, idx, arr) => {
+  const receitaAcumulada = arr.slice(0, idx + 1).reduce((sum, cur) => sum + cur.Receita, 0);
+  const debitoAcumulado = arr.slice(0, idx + 1).reduce((sum, cur) => sum + cur.Débito, 0);
+  return {
+    ...item,
+    Receita: receitaAcumulada,
+    Débito: debitoAcumulado,
+  };
+});
+
 export function QuickChartsSection() {
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
@@ -178,7 +189,7 @@ export function QuickChartsSection() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={230}>
-            <LineChart data={receitaPorDiaMock}>
+            <LineChart data={receitaPorDiaAcumuladoMock}>
               <XAxis dataKey="day" tickFormatter={d => d + "/06"} />
               <YAxis />
               <CartesianGrid strokeDasharray="3 3" />
