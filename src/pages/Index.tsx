@@ -88,7 +88,7 @@ const Index = () => {
             <div className="hidden md:flex items-center gap-2">
               
               <div>
-                <h1 className="font-bold text-lg text-slate-800">{clientName}</h1>
+                <h1 className="text-xl text-sky-950 text-right font-extrabold">{clientName}</h1>
                 
               </div>
             </div>
