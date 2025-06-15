@@ -14,9 +14,18 @@ import { CRM } from "@/components/modules/CRM";
 import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { useAppData } from "@/hooks/useAppData";
+import { useAuth } from "@/contexts/AuthContext";
+import { menuItems } from "@/config/menu";
 
 const Index = () => {
-  const [activeModule, setActiveModule] = useState("dashboard");
+  const { hasPermission } = useAuth();
+  
+  const getInitialModule = () => {
+    const visibleItems = menuItems.filter((item) => hasPermission(item.permission));
+    return visibleItems.length > 0 ? visibleItems[0].id : "";
+  };
+
+  const [activeModule, setActiveModule] = useState(getInitialModule);
   const {
     propostas,
     setPropostas,
@@ -53,8 +62,15 @@ const Index = () => {
         return <Configuracoes />;
       case "crm":
         return <CRM />;
-      default:
+      case "dashboard":
         return <Dashboard onNavigate={setActiveModule} />;
+      default:
+        return (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
+            <p className="text-muted-foreground">Você não tem permissão para visualizar nenhum módulo. <br/>Por favor, entre em contato com o administrador.</p>
+          </div>
+        );
     }
   };
 
@@ -62,7 +78,7 @@ const Index = () => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
         <AppSidebar onMenuChange={setActiveModule} />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 overflow-auto">
           <div className="mb-6">
             <SidebarTrigger />
           </div>

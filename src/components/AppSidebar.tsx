@@ -1,17 +1,5 @@
 
-import {
-  Calendar,
-  FileText,
-  TrendingUp,
-  CreditCard,
-  PiggyBank,
-  BarChart3,
-  Settings,
-  Home,
-  Wallet,
-  Package,
-  Users
-} from "lucide-react";
+import { LogOut, TrendingUp } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -24,70 +12,33 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useState } from "react";
-
-const menuItems = [
-  {
-    title: "Dashboard",
-    icon: Home,
-    id: "dashboard",
-  },
-  {
-    title: "Caixa",
-    icon: Wallet,
-    id: "caixa",
-  },
-  {
-    title: "Contas a Pagar",
-    icon: CreditCard,
-    id: "contas-pagar",
-  },
-  {
-    title: "Contas a Receber",
-    icon: PiggyBank,
-    id: "contas-receber",
-  },
-  {
-    title: "Comercial",
-    icon: TrendingUp,
-    id: "comercial",
-  },
-  {
-    title: "Produtos/Serviços",
-    icon: Package,
-    id: "produtos-servicos",
-  },
-  {
-    title: "Relatórios",
-    icon: BarChart3,
-    id: "relatorios",
-  },
-  {
-    title: "DRE",
-    icon: FileText,
-    id: "dre",
-  },
-  {
-    title: "Configurações",
-    icon: Settings,
-    id: "configuracoes",
-  },
-  {
-    title: "CRM",
-    icon: Users,
-    id: "crm",
-  },
-];
+import { menuItems } from "@/config/menu";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AppSidebarProps {
   onMenuChange?: (menuId: string) => void;
 }
 
 export function AppSidebar({ onMenuChange }: AppSidebarProps) {
-  const [activeMenu, setActiveMenu] = useState("dashboard");
+  const { hasPermission, user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const visibleMenuItems = menuItems.filter((item) => hasPermission(item.permission));
+
+  const [activeMenu, setActiveMenu] = useState(
+    visibleMenuItems.length > 0 ? visibleMenuItems[0].id : ""
+  );
 
   const handleMenuClick = (menuId: string) => {
     setActiveMenu(menuId);
     onMenuChange?.(menuId);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   return (
@@ -103,12 +54,12 @@ export function AppSidebar({ onMenuChange }: AppSidebarProps) {
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="flex flex-col justify-between h-full">
         <SidebarGroup>
           <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {visibleMenuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => handleMenuClick(item.id)}
@@ -123,6 +74,34 @@ export function AppSidebar({ onMenuChange }: AppSidebarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <div className="mt-auto p-2 border-t">
+          <div className="flex items-center gap-3 p-2 mb-2">
+            <Avatar className="w-9 h-9">
+              <AvatarImage
+                src={`https://avatar.vercel.sh/${user?.email}.png`}
+                alt={user?.name}
+              />
+              <AvatarFallback>
+                {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+              <span className="text-sm font-semibold">{user?.name}</span>
+              <span className="text-xs text-muted-foreground capitalize">
+                {user?.role}
+              </span>
+            </div>
+          </div>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={handleLogout} tooltip="Sair">
+                <LogOut className="h-4 w-4" />
+                <span>Sair</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </div>
       </SidebarContent>
     </Sidebar>
   );
