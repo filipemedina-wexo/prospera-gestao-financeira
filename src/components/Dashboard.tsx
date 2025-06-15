@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,9 +18,61 @@ import { Comercial } from "./modules/Comercial";
 import { Relatorios } from "./modules/Relatorios";
 import { DRE } from "./modules/DRE";
 import { Caixa } from "./modules/Caixa";
+import { AlertsPopup } from "./AlertsPopup";
+
+// Mocked alert data
+const initialAlerts = [
+  {
+    id: "at01",
+    title: "Aluguel do Escritório",
+    description: "Vencido há 2 dias",
+    type: "Atrasado",
+    amount: 2500,
+    category: "contas-pagar",
+    resolved: false
+  },
+  {
+    id: "at02",
+    title: "Internet/Telefonia",
+    description: "Vencido ontem",
+    type: "Atrasado",
+    amount: 390.75,
+    category: "contas-pagar",
+    resolved: false
+  },
+  {
+    id: "vh01",
+    title: "Fornecedor ABC",
+    description: "Vence hoje",
+    type: "Vencendo hoje",
+    amount: 1200.00,
+    category: "contas-pagar",
+    resolved: false
+  },
+  {
+    id: "vh02",
+    title: "Contador",
+    description: "Vence hoje",
+    type: "Vencendo hoje",
+    amount: 800.00,
+    category: "contas-pagar",
+    resolved: false
+  },
+  {
+    id: "rec01",
+    title: "Cliente XYZ - Projeto",
+    description: "Pagamento esperado em 3 dias",
+    type: "A Receber",
+    amount: 5800,
+    category: "contas-receber",
+    resolved: false
+  }
+];
 
 export function Dashboard() {
   const [activeModule, setActiveModule] = useState("dashboard");
+  const [alerts, setAlerts] = useState(initialAlerts);
+  const [alertsOpen, setAlertsOpen] = useState(false);
 
   // Dados mockados para demonstração
   const dashboardData = {
@@ -32,6 +83,16 @@ export function Dashboard() {
     contasAtrasadas: 2,
     faturamentoMes: 89340.25,
     despesasMes: 34567.80
+  };
+
+  const handleResolveAlert = (id: string) => {
+    setAlerts(prev => prev.map(a => a.id === id ? { ...a, resolved: true } : a));
+  };
+
+  const handleViewDetails = (alert: (typeof initialAlerts)[0]) => {
+    if (alert.category === "contas-pagar") setActiveModule("contas-pagar");
+    else if (alert.category === "contas-receber") setActiveModule("contas-receber");
+    setAlertsOpen(false);
   };
 
   const renderActiveModule = () => {
@@ -126,17 +187,32 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        {/* Alertas Card - Clickable to open popup */}
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-orange-200"
+          onClick={() => setAlertsOpen(true)}
+          tabIndex={0}
+          role="button"
+          aria-label="Ver alertas"
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Alertas</CardTitle>
             <AlertCircle className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {dashboardData.contasVencendoHoje + dashboardData.contasAtrasadas}
+              {
+                alerts.filter(a => !a.resolved && (a.type === "Atrasado" || a.type === "Vencendo hoje")).length
+              }
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {dashboardData.contasVencendoHoje} vencendo hoje, {dashboardData.contasAtrasadas} atrasadas
+              {
+                // Detailed text
+                (() => {
+                  const vencendoHoje = alerts.filter(a => !a.resolved && a.type === "Vencendo hoje").length;
+                  const atrasadas = alerts.filter(a => !a.resolved && a.type === "Atrasado").length;
+                  return `${vencendoHoje} vencendo hoje, ${atrasadas} atrasadas`;
+                })()
+              }
             </p>
           </CardContent>
         </Card>
@@ -228,6 +304,13 @@ export function Dashboard() {
           </CardContent>
         </Card>
       </div>
+      <AlertsPopup
+        open={alertsOpen}
+        alerts={alerts}
+        onClose={() => setAlertsOpen(false)}
+        onResolve={handleResolveAlert}
+        onViewDetails={handleViewDetails}
+      />
     </div>
   );
 
