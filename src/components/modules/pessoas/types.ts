@@ -1,4 +1,3 @@
-
 export interface Funcionario {
   id: string;
   nome: string;
@@ -20,4 +19,17 @@ export interface Cargo {
     id: string;
     nome: string;
     descricao: string;
+}
+
+export interface Holerite {
+  id: string;
+  funcionarioId: string;
+  competencia: string; // "MM/YYYY"
+  salarioBase: number;
+  totalProventos: number;
+  totalDescontos: number;
+  liquidoAPagar: number;
+  proventos: { descricao: string; valor: number }[];
+  descontos: { descricao: string; valor: number }[];
+  status: 'pendente' | 'calculado' | 'pago';
 }

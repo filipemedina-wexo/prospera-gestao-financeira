@@ -48,6 +48,8 @@ const Index = () => {
     setDepartamentos,
     cargos,
     setCargos,
+    holerites,
+    setHolerites,
   } = useAppData();
   const {
     clientName,
@@ -81,7 +83,16 @@ const Index = () => {
       case "crm":
         return <CRM clients={clients} setClients={setClients} />;
       case "pessoas":
-        return <Pessoas funcionarios={funcionarios} setFuncionarios={setFuncionarios} departamentos={departamentos} setDepartamentos={setDepartamentos} cargos={cargos} setCargos={setCargos} />;
+        return <Pessoas 
+            funcionarios={funcionarios} 
+            setFuncionarios={setFuncionarios} 
+            departamentos={departamentos} 
+            setDepartamentos={setDepartamentos} 
+            cargos={cargos} 
+            setCargos={setCargos} 
+            holerites={holerites}
+            setHolerites={setHolerites}
+        />;
       case "dashboard":
         return <Dashboard onNavigate={setActiveModule} contasPagar={contasAPagar} contasReceber={contasAReceber} />;
       default:

@@ -1,5 +1,4 @@
-
-import { Funcionario, Departamento, Cargo } from "@/components/modules/pessoas/types";
+import { Funcionario, Departamento, Cargo, Holerite } from "@/components/modules/pessoas/types";
 
 export const initialDepartamentos: Departamento[] = [
   { id: 'dep-1', nome: 'Tecnologia', responsavelId: 'func-1' },
@@ -66,4 +65,39 @@ export const initialFuncionarios: Funcionario[] = [
     salario: 7200,
     status: 'inativo',
   },
+];
+
+export const initialHolerites: Holerite[] = [
+    {
+        id: 'hol-1',
+        funcionarioId: 'func-1', // Ana Oliveira
+        competencia: '05/2025',
+        salarioBase: 8500,
+        totalProventos: 8500,
+        totalDescontos: 935, // Example INSS
+        liquidoAPagar: 7565,
+        proventos: [
+            { descricao: 'Salário', valor: 8500 },
+        ],
+        descontos: [
+            { descricao: 'INSS', valor: 935 },
+        ],
+        status: 'pago',
+    },
+    {
+        id: 'hol-2',
+        funcionarioId: 'func-2', // João Silva
+        competencia: '05/2025',
+        salarioBase: 12000,
+        totalProventos: 12000,
+        totalDescontos: 1320, // Example INSS
+        liquidoAPagar: 10680,
+        proventos: [
+            { descricao: 'Salário', valor: 12000 },
+        ],
+        descontos: [
+            { descricao: 'INSS', valor: 1320 },
+        ],
+        status: 'pago',
+    },
 ];

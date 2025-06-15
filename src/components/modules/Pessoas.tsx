@@ -1,7 +1,6 @@
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Departamento, Funcionario, Cargo } from "./pessoas/types";
+import { Departamento, Funcionario, Cargo, Holerite } from "./pessoas/types";
 import DashboardPessoas from "./pessoas/DashboardPessoas";
 import Funcionarios from "./pessoas/Funcionarios";
 import Departamentos from "./pessoas/Departamentos";
@@ -16,9 +15,11 @@ interface PessoasProps {
     setDepartamentos: React.Dispatch<React.SetStateAction<Departamento[]>>;
     cargos: Cargo[];
     setCargos: React.Dispatch<React.SetStateAction<Cargo[]>>;
+    holerites: Holerite[];
+    setHolerites: React.Dispatch<React.SetStateAction<Holerite[]>>;
 }
 
-const Pessoas = ({ funcionarios, setFuncionarios, departamentos, setDepartamentos, cargos, setCargos }: PessoasProps) => {
+const Pessoas = ({ funcionarios, setFuncionarios, departamentos, setDepartamentos, cargos, setCargos, holerites, setHolerites }: PessoasProps) => {
   return (
     <div>
       <Card className="mb-4">
@@ -62,7 +63,7 @@ const Pessoas = ({ funcionarios, setFuncionarios, departamentos, setDepartamento
           />
         </TabsContent>
         <TabsContent value="folha">
-          <FolhaPagamento />
+          <FolhaPagamento holerites={holerites} setHolerites={setHolerites} funcionarios={funcionarios} />
         </TabsContent>
         <TabsContent value="ferias">
           <GestaoFerias />

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Proposta, Vendedor } from "@/components/modules/comercial/types";
@@ -6,7 +5,7 @@ import { ContaReceber } from "@/components/modules/contas-receber/types";
 import { ContaPagar } from "@/components/modules/contas-pagar/types";
 import { Client } from "@/components/modules/crm/types";
 import { ProdutoServico } from "@/components/modules/produtos-servicos/types";
-import { Funcionario, Departamento, Cargo } from "@/components/modules/pessoas/types";
+import { Funcionario, Departamento, Cargo, Holerite } from "@/components/modules/pessoas/types";
 import {
   initialPropostas,
   initialVendedores,
@@ -17,6 +16,7 @@ import {
   initialFuncionarios,
   initialDepartamentos,
   initialCargos,
+  initialHolerites,
 } from "@/data/mocks";
 
 export const useAppData = () => {
@@ -31,6 +31,7 @@ export const useAppData = () => {
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>(initialFuncionarios);
   const [departamentos, setDepartamentos] = useState<Departamento[]>(initialDepartamentos);
   const [cargos, setCargos] = useState<Cargo[]>(initialCargos);
+  const [holerites, setHolerites] = useState<Holerite[]>(initialHolerites);
 
   useEffect(() => {
     const today = new Date();
@@ -100,5 +101,7 @@ export const useAppData = () => {
     setDepartamentos,
     cargos,
     setCargos,
+    holerites,
+    setHolerites,
   };
 };
