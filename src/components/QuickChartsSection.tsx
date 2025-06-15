@@ -1,6 +1,6 @@
 import {
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend,
-  LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, BarChart, Bar
+  LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid
 } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -46,26 +46,12 @@ const extratoHojeMock = [
   { hora: "16:10", descricao: "Pagamento Fornecedor ABC", valor: -900 },
 ];
 
-const receitaPorDiaMock = [
-  { day: "01", Receita: 0, Débito: 300 },
-  { day: "02", Receita: 1000, Débito: 0 },
-  { day: "03", Receita: 3400, Débito: 500 },
-  { day: "04", Receita: 1900, Débito: 850 },
-  { day: "05", Receita: 1200, Débito: 400 },
-  { day: "06", Receita: 2500, Débito: 1000 },
-  { day: "07", Receita: 4350, Débito: 230 },
+const extratoOntemMock = [
+  { hora: "09:15", descricao: "Pagamento Aluguel", valor: -2700 },
+  { hora: "11:45", descricao: "Recebimento Cliente YWZ", valor: 4200 },
+  { hora: "15:00", descricao: "Pagamento Fornecedor Z", valor: -1500 },
+  { hora: "17:30", descricao: "Recebimento Online", valor: 350 },
 ];
-
-// Novo array acumulado para receita e débito dos últimos 7 dias
-const receitaPorDiaAcumuladoMock = receitaPorDiaMock.map((item, idx, arr) => {
-  const receitaAcumulada = arr.slice(0, idx + 1).reduce((sum, cur) => sum + cur.Receita, 0);
-  const debitoAcumulado = arr.slice(0, idx + 1).reduce((sum, cur) => sum + cur.Débito, 0);
-  return {
-    ...item,
-    Receita: receitaAcumulada,
-    Débito: debitoAcumulado,
-  };
-});
 
 export function QuickChartsSection() {
   return (
@@ -180,25 +166,40 @@ export function QuickChartsSection() {
           </div>
         </CardContent>
       </Card>
-      {/* LineChart Receita e Débitos por dia */}
-      <Card className="col-span-1 md:col-span-2 2xl:col-span-1">
+      {/* Extrato de Ontem */}
+      <Card>
         <CardHeader>
-          <CardTitle>
-            Receita e Débitos (Últimos 7 dias)
+          <CardTitle className="flex items-center gap-2">
+            Extrato de Ontem
+            <Info className="w-4 h-4 text-muted-foreground" />
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={230}>
-            <LineChart data={receitaPorDiaAcumuladoMock}>
-              <XAxis dataKey="day" tickFormatter={d => d + "/06"} />
-              <YAxis />
-              <CartesianGrid strokeDasharray="3 3" />
-              <Line type="monotone" dataKey="Receita" stroke="#22c55e" strokeWidth={2} dot />
-              <Line type="monotone" dataKey="Débito" stroke="#f43f5e" strokeWidth={2} dot />
-              <Legend />
-              <RechartsTooltip formatter={(value: number, name: string) => [`R$ ${value.toLocaleString('pt-BR')}`, name]} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="max-h-56 overflow-auto">
+            <table className="min-w-full text-xs">
+              <thead>
+                <tr>
+                  <th className="text-left text-muted-foreground pb-1">Hora</th>
+                  <th className="text-left text-muted-foreground pb-1">Descrição</th>
+                  <th className="text-right text-muted-foreground pb-1">Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {extratoOntemMock.map((l, idx) => (
+                  <tr key={idx}>
+                    <td className="pr-2">{l.hora}</td>
+                    <td className="pr-2">{l.descricao}</td>
+                    <td className={`text-right font-semibold ${l.valor >= 0 ? "text-green-600" : "text-red-600"}`}>
+                      {l.valor >= 0 ? "+" : "-"} R$ {Math.abs(l.valor).toLocaleString("pt-BR")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {!extratoOntemMock.length && (
+              <div className="text-center text-muted-foreground mt-4">Nenhuma movimentação ontem.</div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </section>
