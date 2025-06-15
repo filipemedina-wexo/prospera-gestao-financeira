@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -23,6 +32,7 @@ import {
 import { useState } from "react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface ContaPagar {
   id: string;
@@ -57,6 +67,7 @@ const formasPagamento = [
 ];
 
 export function ContasPagar() {
+  const { toast } = useToast();
   const [contas, setContas] = useState<ContaPagar[]>([
     {
       id: "1",
@@ -96,6 +107,8 @@ export function ContasPagar() {
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
   const [busca, setBusca] = useState("");
   const [showDialog, setShowDialog] = useState(false);
+  const [pagamentoDialogState, setPagamentoDialogState] = useState<{ open: boolean; contaId: string | null }>({ open: false, contaId: null });
+  const [dataPagamentoSelecionada, setDataPagamentoSelecionada] = useState<Date | undefined>();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -168,6 +181,29 @@ export function ContasPagar() {
       numeroDocumento: "",
       observacoes: ""
     });
+  };
+
+  const handleRegistrarPagamento = () => {
+    if (!pagamentoDialogState.contaId || !dataPagamentoSelecionada) return;
+
+    setContas(contas.map(c =>
+      c.id === pagamentoDialogState.contaId
+        ? { ...c, status: 'pago', dataPagamento: dataPagamentoSelecionada }
+        : c
+    ));
+
+    setPagamentoDialogState({ open: false, contaId: null });
+    setDataPagamentoSelecionada(undefined);
+
+    toast({
+      title: "Pagamento Registrado!",
+      description: "A conta foi marcada como paga com sucesso.",
+    });
+  };
+
+  const handleAbrirDialogPagamento = (contaId: string) => {
+    setPagamentoDialogState({ open: true, contaId });
+    setDataPagamentoSelecionada(new Date());
   };
 
   return (
@@ -451,8 +487,8 @@ export function ContasPagar() {
                       <Button size="sm" variant="outline">
                         Editar
                       </Button>
-                      {conta.status === 'pendente' && (
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                      {(conta.status === 'pendente' || conta.status === 'atrasado') && (
+                        <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleAbrirDialogPagamento(conta.id)}>
                           Pagar
                         </Button>
                       )}
@@ -464,6 +500,50 @@ export function ContasPagar() {
           </Table>
         </CardContent>
       </Card>
+
+      <AlertDialog open={pagamentoDialogState.open} onOpenChange={(open) => setPagamentoDialogState({ ...pagamentoDialogState, open })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Registrar Pagamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Selecione a data de pagamento para registrar a quitação desta conta.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Label htmlFor="dataPagamento">Data de Pagamento *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal w-full mt-2",
+                    !dataPagamentoSelecionada && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dataPagamentoSelecionada ? (
+                    format(dataPagamentoSelecionada, "dd/MM/yyyy")
+                  ) : (
+                    "Selecione a data"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={dataPagamentoSelecionada}
+                  onSelect={setDataPagamentoSelecionada}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPagamentoDialogState({ open: false, contaId: null })}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRegistrarPagamento} disabled={!dataPagamentoSelecionada}>Confirmar Pagamento</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
