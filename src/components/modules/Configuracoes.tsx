@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 // Import UI components individually from their actual locations
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +37,16 @@ interface CategoriaDespesa {
   editando?: boolean;
 }
 
+interface Fornecedor {
+  id: string;
+  razaoSocial: string;
+  cnpj: string;
+  email: string;
+  telefone: string;
+  status: 'Ativo' | 'Inativo';
+  editando?: boolean;
+}
+
 export const Configuracoes = () => {
   // Estado Regras de Comissão
   const [regrasComissao, setRegrasComissao] = useState<RegraComissao[]>([
@@ -66,6 +77,15 @@ export const Configuracoes = () => {
   const [novaCategoria, setNovaCategoria] = useState({ nome: '', descricao: '' });
   const [edicaoCategoria, setEdicaoCategoria] = useState<Omit<CategoriaDespesa, 'id' | 'editando'>>({ nome: '', descricao: '' });
   const [categoriaParaRemover, setCategoriaParaRemover] = useState<CategoriaDespesa | null>(null);
+
+  // Estado Fornecedores
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([
+    { id: '1', razaoSocial: 'Tech Solutions LTDA', cnpj: '12.345.678/0001-90', email: 'contato@techsolutions.com', telefone: '(11) 1234-5678', status: 'Ativo' },
+    { id: '2', razaoSocial: 'Office Supplies Inc', cnpj: '98.765.432/0001-10', email: 'contact@officesupplies.com', telefone: '(21) 9876-5432', status: 'Ativo' },
+  ]);
+  const [novoFornecedor, setNovoFornecedor] = useState({ razaoSocial: '', cnpj: '', email: '', telefone: '' });
+  const [edicaoFornecedor, setEdicaoFornecedor] = useState<Omit<Fornecedor, 'id' | 'editando' | 'status'>>({ razaoSocial: '', cnpj: '', email: '', telefone: '' });
+  const [fornecedorParaRemover, setFornecedorParaRemover] = useState<Fornecedor | null>(null);
 
   // Handler para upload do logotipo
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,6 +177,52 @@ export const Configuracoes = () => {
       c.id === categoria.id
         ? { ...c, nome: edicaoCategoria.nome, descricao: edicaoCategoria.descricao, editando: false }
         : c
+    ));
+  };
+
+  // Funções CRUD para Fornecedores
+  const adicionarFornecedor = () => {
+    if (novoFornecedor.razaoSocial.trim() && novoFornecedor.cnpj.trim()) {
+      setFornecedores([
+        ...fornecedores,
+        {
+          id: Date.now().toString(),
+          razaoSocial: novoFornecedor.razaoSocial.trim(),
+          cnpj: novoFornecedor.cnpj.trim(),
+          email: novoFornecedor.email.trim(),
+          telefone: novoFornecedor.telefone.trim(),
+          status: 'Ativo',
+        },
+      ]);
+      setNovoFornecedor({ razaoSocial: '', cnpj: '', email: '', telefone: '' });
+    }
+  };
+
+  const removerFornecedor = () => {
+    if (fornecedorParaRemover) {
+      setFornecedores(fornecedores.filter(f => f.id !== fornecedorParaRemover.id));
+      setFornecedorParaRemover(null);
+    }
+  };
+
+  const iniciarEdicaoFornecedor = (fornecedor: Fornecedor) => {
+    setEdicaoFornecedor({ razaoSocial: fornecedor.razaoSocial, cnpj: fornecedor.cnpj, email: fornecedor.email, telefone: fornecedor.telefone });
+    setFornecedores(fornecedores.map(f =>
+      f.id === fornecedor.id ? { ...f, editando: true } : { ...f, editando: false }
+    ));
+  };
+
+  const cancelarEdicaoFornecedor = (fornecedor: Fornecedor) => {
+    setFornecedores(fornecedores.map(f =>
+      f.id === fornecedor.id ? { ...f, editando: false } : f
+    ));
+  };
+
+  const salvarEdicaoFornecedor = (fornecedor: Fornecedor) => {
+    setFornecedores(fornecedores.map(f =>
+      f.id === fornecedor.id
+        ? { ...f, ...edicaoFornecedor, editando: false }
+        : f
     ));
   };
 
@@ -514,43 +580,81 @@ export const Configuracoes = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Tech Solutions LTDA</h3>
-                    <p className="text-sm text-muted-foreground">CNPJ: 12.345.678/0001-90</p>
+                {fornecedores.map(fornecedor => (
+                  <div key={fornecedor.id} className="flex items-start justify-between p-4 border rounded-lg min-h-[72px]">
+                    {fornecedor.editando ? (
+                      <div className="flex-grow flex flex-col gap-2 w-full">
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input
+                                value={edicaoFornecedor.razaoSocial}
+                                onChange={(e) => setEdicaoFornecedor(f => ({ ...f, razaoSocial: e.target.value }))}
+                                placeholder="Razão Social"
+                            />
+                            <Input
+                                value={edicaoFornecedor.cnpj}
+                                onChange={(e) => setEdicaoFornecedor(f => ({ ...f, cnpj: e.target.value }))}
+                                placeholder="CNPJ"
+                            />
+                            <Input
+                                value={edicaoFornecedor.email}
+                                onChange={(e) => setEdicaoFornecedor(f => ({ ...f, email: e.target.value }))}
+                                placeholder="E-mail"
+                            />
+                            <Input
+                                value={edicaoFornecedor.telefone}
+                                onChange={(e) => setEdicaoFornecedor(f => ({ ...f, telefone: e.target.value }))}
+                                placeholder="Telefone"
+                            />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button size="sm" onClick={() => salvarEdicaoFornecedor(fornecedor)}>Salvar</Button>
+                            <Button size="sm" variant="outline" onClick={() => cancelarEdicaoFornecedor(fornecedor)}>Cancelar</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex-grow">
+                          <h3 className="font-medium">{fornecedor.razaoSocial}</h3>
+                          <p className="text-sm text-muted-foreground">CNPJ: {fornecedor.cnpj}</p>
+                          <p className="text-sm text-muted-foreground">Email: {fornecedor.email}</p>
+                          <p className="text-sm text-muted-foreground">Telefone: {fornecedor.telefone}</p>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Badge>{fornecedor.status}</Badge>
+                          <Button variant="ghost" size="icon" onClick={() => iniciarEdicaoFornecedor(fornecedor)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setFornecedorParaRemover(fornecedor)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <Badge>Ativo</Badge>
-                </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Office Supplies Inc</h3>
-                    <p className="text-sm text-muted-foreground">CNPJ: 98.765.432/0001-10</p>
-                  </div>
-                  <Badge>Ativo</Badge>
-                </div>
+                ))}
               </div>
               <Separator />
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Novo Fornecedor</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fornecedor-nome">Razão Social</Label>
-                    <Input id="fornecedor-nome" placeholder="Nome da empresa" />
+                    <Label htmlFor="fornecedor-razao-social">Razão Social</Label>
+                    <Input id="fornecedor-razao-social" placeholder="Nome da empresa" value={novoFornecedor.razaoSocial} onChange={e => setNovoFornecedor(f => ({...f, razaoSocial: e.target.value}))}/>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="fornecedor-cnpj">CNPJ</Label>
-                    <Input id="fornecedor-cnpj" placeholder="00.000.000/0000-00" />
+                    <Input id="fornecedor-cnpj" placeholder="00.000.000/0000-00" value={novoFornecedor.cnpj} onChange={e => setNovoFornecedor(f => ({...f, cnpj: e.target.value}))}/>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="fornecedor-email">E-mail</Label>
-                    <Input id="fornecedor-email" type="email" placeholder="contato@empresa.com" />
+                    <Input id="fornecedor-email" type="email" placeholder="contato@empresa.com" value={novoFornecedor.email} onChange={e => setNovoFornecedor(f => ({...f, email: e.target.value}))}/>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="fornecedor-telefone">Telefone</Label>
-                    <Input id="fornecedor-telefone" placeholder="(11) 99999-9999" />
+                    <Input id="fornecedor-telefone" placeholder="(11) 99999-9999" value={novoFornecedor.telefone} onChange={e => setNovoFornecedor(f => ({...f, telefone: e.target.value}))}/>
                   </div>
                 </div>
-                <Button>Adicionar Fornecedor</Button>
+                <Button onClick={adicionarFornecedor}>Adicionar Fornecedor</Button>
               </div>
             </CardContent>
           </Card>
@@ -624,6 +728,23 @@ export const Configuracoes = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={removerCategoria}>
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!fornecedorParaRemover} onOpenChange={(open) => !open && setFornecedorParaRemover(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa ação não pode ser desfeita. Isso irá remover permanentemente o fornecedor "{fornecedorParaRemover?.razaoSocial}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={removerFornecedor}>
               Remover
             </AlertDialogAction>
           </AlertDialogFooter>
