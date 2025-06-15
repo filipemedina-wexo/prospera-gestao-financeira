@@ -55,14 +55,14 @@ export function useUsersManagement() {
         return;
       }
 
-      // Type assertion after null check to help TypeScript
-      const validProfiles = profiles as ProfileData[];
-      const validUserRoles = (userRoles || []) as UserRoleData[];
+      // Properly type the arrays to avoid TypeScript inference issues
+      const validProfiles: ProfileData[] = profiles;
+      const validUserRoles: UserRoleData[] = userRoles || [];
 
       // Combine the data with proper typing
-      const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
+      const combinedUsers: User[] = validProfiles.map((profile) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
-        const userRole = validUserRoles.find((roleData: UserRoleData) => roleData.user_id === profile.id);
+        const userRole = validUserRoles.find((roleData) => roleData.user_id === profile.id);
         const role = (userRole?.role as ExtendedRole) || 'contador';
         
         return {
