@@ -23,10 +23,10 @@ import { cn } from "@/lib/utils";
 import { RelatorioExtrato } from "./relatorios/RelatorioExtrato";
 import { RelatorioFluxoCaixa } from "./relatorios/RelatorioFluxoCaixa";
 import { RelatorioVendas } from "./relatorios/RelatorioVendas";
-import { RelatorioContasPagar } from "./relatorios/relatorioContasPagar";
-import { RelatorioContasReceber } from "./relatorios/relatorioContasReceber";
-import { RelatorioDespesasCategoria } from "./relatorios/relatorioDespesasCategoria";
-import { RelatorioInadimplencia } from "./relatorios/relatorioInadimplencia";
+import { RelatorioContasPagar } from "./relatorios/RelatorioContasPagar";
+import { RelatorioContasReceber } from "./relatorios/RelatorioContasReceber";
+import { RelatorioDespesasCategoria } from "./relatorios/RelatorioDespesasCategoria";
+import { RelatorioInadimplencia } from "./relatorios/RelatorioInadimplencia";
 
 export function Relatorios() {
   const [periodoSelecionado, setPeriodoSelecionado] = useState("mes-atual");
