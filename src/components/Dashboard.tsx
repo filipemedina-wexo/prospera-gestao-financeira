@@ -1,44 +1,29 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  AlertCircle, 
+import {
+  TrendingUp,
+  TrendingDown,
+  AlertCircle,
   Calendar,
   DollarSign,
   CreditCard,
   PiggyBank,
-  Wallet
+  Wallet,
 } from "lucide-react";
-import { useState, useEffect } from "react";
 import { ContasPagar } from "./modules/ContasPagar";
 import { ContasReceber } from "./modules/ContasReceber";
 import { Comercial } from "./modules/Comercial";
 import { Relatorios } from "./modules/Relatorios";
 import { DRE } from "./modules/DRE";
 import { Caixa } from "./modules/Caixa";
-import { AlertsPopup } from "./AlertsPopup";
 import { QuickChartsSection } from "./QuickChartsSection";
-import ReceberBlock from "./dashboard-blocks/ReceberBlock";
-import PagarBlock from "./dashboard-blocks/PagarBlock";
-import { DashboardBlocks } from "./DashboardBlocks";
-import type { DashboardBlock } from "@/types/dashboardBlock";
 
-// ---- ADD ALERT TYPE HERE ----
-type Alert = {
-  id: string;
-  title: string;
-  description: string;
-  type: "Atrasado" | "Vencendo hoje" | "A Receber";
-  amount: number;
-  category: "contas-pagar" | "contas-receber";
-  resolved?: boolean;
-};
-// ---- END ALERT TYPE ----
+// ---- Mocked alert data (not shown for brevity, but kept for future use)
 
-// Mocked alert data
-const initialAlerts: Alert[] = [
+const initialAlerts = [
   {
     id: "at01",
     title: "Aluguel do Escritório",
@@ -46,7 +31,7 @@ const initialAlerts: Alert[] = [
     type: "Atrasado",
     amount: 2500,
     category: "contas-pagar",
-    resolved: false
+    resolved: false,
   },
   {
     id: "at02",
@@ -55,25 +40,25 @@ const initialAlerts: Alert[] = [
     type: "Atrasado",
     amount: 390.75,
     category: "contas-pagar",
-    resolved: false
+    resolved: false,
   },
   {
     id: "vh01",
     title: "Fornecedor ABC",
     description: "Vence hoje",
     type: "Vencendo hoje",
-    amount: 1200.00,
+    amount: 1200.0,
     category: "contas-pagar",
-    resolved: false
+    resolved: false,
   },
   {
     id: "vh02",
     title: "Contador",
     description: "Vence hoje",
     type: "Vencendo hoje",
-    amount: 800.00,
+    amount: 800.0,
     category: "contas-pagar",
-    resolved: false
+    resolved: false,
   },
   {
     id: "rec01",
@@ -82,99 +67,24 @@ const initialAlerts: Alert[] = [
     type: "A Receber",
     amount: 5800,
     category: "contas-receber",
-    resolved: false
-  }
+    resolved: false,
+  },
 ];
 
-// New (for persisting layout)
-const DASHBOARD_LAYOUT_KEY = "dashboardBlocksLayout";
+// --- Dashboard Data (mock)
+const dashboardData = {
+  totalReceber: 45680.5,
+  totalPagar: 23450.75,
+  saldoLiquido: 22229.75,
+  contasVencendoHoje: 3,
+  contasAtrasadas: 2,
+  faturamentoMes: 89340.25,
+  despesasMes: 34567.8,
+};
 
 export function Dashboard() {
   const [activeModule, setActiveModule] = useState("dashboard");
-  const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
-  const [alertsOpen, setAlertsOpen] = useState(false);
-
-  // dados mockados aqui, continuam
-  const dashboardData = {
-    totalReceber: 45680.50,
-    totalPagar: 23450.75,
-    saldoLiquido: 22229.75,
-    contasVencendoHoje: 3,
-    contasAtrasadas: 2,
-    faturamentoMes: 89340.25,
-    despesasMes: 34567.80
-  };
-
-  // Default/initial blocks config
-  const initialBlocks: DashboardBlock[] = [
-    {
-      id: "receber",
-      type: "receber",
-      title: "A Receber",
-      cols: 1,
-      component: ReceberBlock,
-      props: { value: dashboardData.totalReceber }
-    },
-    {
-      id: "pagar",
-      type: "pagar",
-      title: "A Pagar",
-      cols: 1,
-      component: PagarBlock,
-      props: { value: dashboardData.totalPagar }
-    },
-    // Add other blocks after initial testing!
-  ];
-
-  // Load saved layout (or default)
-  const [blocks, setBlocks] = useState<DashboardBlock[]>(() => {
-    try {
-      const saved = localStorage.getItem(DASHBOARD_LAYOUT_KEY);
-      if (saved) {
-        // Parse and map to initialBlocks structure for type safety
-        const parsed = JSON.parse(saved);
-        // Only allow ids present in the current initialBlocks
-        const allowedIds = initialBlocks.map(b => b.id);
-        return parsed
-          .filter((b: any) => allowedIds.includes(b.id))
-          .map((b: any) => {
-            // Find the matching initial block
-            const orig = initialBlocks.find(ib => ib.id === b.id);
-            if (!orig) return null;
-            return {
-              ...orig,
-              cols: typeof b.cols === 'number' ? Math.max(1, Math.min(4, b.cols)) : orig.cols,
-            };
-          })
-          .filter(Boolean) as DashboardBlock[];
-      }
-    } catch {
-      // Ignore and use initial
-    }
-    return initialBlocks;
-  });
-
-  // Save blocks to localStorage whenever they change
-  useEffect(() => {
-    // Save only id, cols, and type to persist order and size
-    const layout = blocks.map(({ id, cols, type }) => ({ id, cols, type }));
-    localStorage.setItem(DASHBOARD_LAYOUT_KEY, JSON.stringify(layout));
-  }, [blocks]);
-
-  const [isEditMode, setIsEditMode] = useState(false);
-
-  const handleResolveAlert = (id: string) => {
-    setAlerts(prev => prev.map(a => a.id === id ? { ...a, resolved: true } : a));
-  };
-
-  const handleViewDetails = (alert: Alert) => {
-    if (alert.category === "contas-pagar") setActiveModule("contas-pagar");
-    else if (alert.category === "contas-receber") setActiveModule("contas-receber");
-    setAlertsOpen(false);
-  };
-
-  // Restore to default layout
-  const handleRestoreDefault = () => setBlocks(initialBlocks);
+  // Previously, alert logic here
 
   const renderActiveModule = () => {
     switch (activeModule) {
@@ -195,7 +105,7 @@ export function Dashboard() {
     }
   };
 
-  // Updated renderDashboard: has restore button in edit mode
+  // --- The restored original dashboard ---
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -204,29 +114,108 @@ export function Dashboard() {
             Dashboard Financeiro
           </h1>
           <p className="text-muted-foreground mt-2">
-            Visão geral das suas finanças - {new Date().toLocaleDateString('pt-BR')}
+            Visão geral das suas finanças - {new Date().toLocaleDateString("pt-BR")}
           </p>
         </div>
-        <div className="flex gap-2 items-center">
-          {isEditMode && (
-            <button
-              className="border px-3 py-1 rounded text-sm hover:bg-accent transition"
-              onClick={handleRestoreDefault}
-              type="button"
-            >
-              Restaurar layout padrão
-            </button>
-          )}
-          <button
-            className="border px-3 py-1 rounded text-sm hover:bg-accent transition"
-            onClick={() => setIsEditMode(e => !e)}
-            type="button"
-          >
-            {isEditMode ? "Concluir edição" : "Editar layout"}
-          </button>
-        </div>
       </div>
-      <DashboardBlocks blocks={blocks} setBlocks={setBlocks} isEditMode={isEditMode} />
+
+      {/* Cards grid */}
+      <section className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
+        {/* A Receber */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">A Receber</CardTitle>
+            <PiggyBank className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              R$ {dashboardData.totalReceber.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">+5.2% em relação ao mês anterior</p>
+          </CardContent>
+        </Card>
+        {/* A Pagar */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">A Pagar</CardTitle>
+            <CreditCard className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              R$ {dashboardData.totalPagar.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">-2.1% em relação ao mês anterior</p>
+          </CardContent>
+        </Card>
+        {/* Saldo Líquido */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Saldo Líquido</CardTitle>
+            <Wallet className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              R$ {dashboardData.saldoLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Saldo real disponível</p>
+          </CardContent>
+        </Card>
+        {/* Faturamento */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Faturamento do Mês</CardTitle>
+            <TrendingUp className="h-4 w-4 text-emerald-700" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-emerald-700">
+              R$ {dashboardData.faturamentoMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">+8.4% em relação ao mês anterior</p>
+          </CardContent>
+        </Card>
+        {/* Despesas do mês */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Despesas do Mês</CardTitle>
+            <TrendingDown className="h-4 w-4 text-rose-700" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-rose-700">
+              R$ {dashboardData.despesasMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">+1.8% em relação ao mês anterior</p>
+          </CardContent>
+        </Card>
+        {/* Contas Vencendo hoje */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Contas vencendo hoje</CardTitle>
+            <Calendar className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-500">
+              {dashboardData.contasVencendoHoje}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Entre pagar e receber</p>
+          </CardContent>
+        </Card>
+        {/* Contas Atrasadas */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Contas atrasadas</CardTitle>
+            <AlertCircle className="h-4 w-4 text-rose-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-rose-600">
+              {dashboardData.contasAtrasadas}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Necessário atenção</p>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Charts and advanced blocks */}
+      <QuickChartsSection />
     </div>
   );
 
@@ -241,7 +230,7 @@ export function Dashboard() {
           { id: "contas-receber", label: "Contas a Receber", icon: PiggyBank },
           { id: "comercial", label: "Comercial", icon: TrendingUp },
           { id: "relatorios", label: "Relatórios", icon: Calendar },
-          { id: "dre", label: "DRE", icon: AlertCircle }
+          { id: "dre", label: "DRE", icon: AlertCircle },
         ].map((item) => (
           <Button
             key={item.id}
