@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -19,122 +19,27 @@ import {
   Calculator,
   Eye,
   Edit,
-  Send
+  Send,
+  MoreVertical,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
+import { Proposta, Vendedor } from "./comercial/types";
+import { useToast } from "@/hooks/use-toast";
 
-interface Proposta {
-  id: string;
-  titulo: string;
-  cliente: string;
-  valorTotal: number;
-  dataCriacao: Date;
-  dataValidade: Date;
-  status: 'rascunho' | 'enviada' | 'aceita' | 'recusada' | 'perdida' | 'negociacao';
-  vendedor: string;
-  itens: ItemProposta[];
-  observacoes?: string;
+interface ComercialProps {
+  propostas: Proposta[];
+  setPropostas: React.Dispatch<React.SetStateAction<Proposta[]>>;
+  vendedores: Vendedor[];
+  onPropostaAceita: (proposta: Proposta) => void;
 }
 
-interface ItemProposta {
-  id: string;
-  descricao: string;
-  quantidade: number;
-  valorUnitario: number;
-  valorTotal: number;
-}
-
-interface Vendedor {
-  id: string;
-  nome: string;
-  email: string;
-  percentualComissao: number;
-  metaMensal: number;
-  vendasMes: number;
-  comissaoAcumulada: number;
-}
-
-export function Comercial() {
-  const [propostas, setPropostas] = useState<Proposta[]>([
-    {
-      id: "1",
-      titulo: "Proposta Website Empresa ABC",
-      cliente: "Empresa ABC Ltda",
-      valorTotal: 15800.00,
-      dataCriacao: new Date(2024, 5, 10),
-      dataValidade: new Date(2024, 6, 10),
-      status: "enviada",
-      vendedor: "João Silva",
-      itens: [
-        {
-          id: "1",
-          descricao: "Desenvolvimento Website Responsivo",
-          quantidade: 1,
-          valorUnitario: 12000.00,
-          valorTotal: 12000.00
-        },
-        {
-          id: "2",
-          descricao: "Sistema de Gerenciamento de Conteúdo",
-          quantidade: 1,
-          valorUnitario: 3800.00,
-          valorTotal: 3800.00
-        }
-      ],
-      observacoes: "Prazo de entrega: 45 dias úteis"
-    },
-    {
-      id: "2",
-      titulo: "Consultoria Marketing Digital",
-      cliente: "StartupXYZ",
-      valorTotal: 8500.00,
-      dataCriacao: new Date(2024, 5, 12),
-      dataValidade: new Date(2024, 6, 12),
-      status: "aceita",
-      vendedor: "Maria Santos",
-      itens: [
-        {
-          id: "3",
-          descricao: "Auditoria Completa Marketing Digital",
-          quantidade: 1,
-          valorUnitario: 2500.00,
-          valorTotal: 2500.00
-        },
-        {
-          id: "4",
-          descricao: "Implementação Estratégia SEO",
-          quantidade: 1,
-          valorUnitario: 6000.00,
-          valorTotal: 6000.00
-        }
-      ]
-    }
-  ]);
-
-  const [vendedores] = useState<Vendedor[]>([
-    {
-      id: "1",
-      nome: "João Silva",
-      email: "joao@empresa.com",
-      percentualComissao: 5.0,
-      metaMensal: 50000.00,
-      vendasMes: 23800.00,
-      comissaoAcumulada: 1190.00
-    },
-    {
-      id: "2",
-      nome: "Maria Santos", 
-      email: "maria@empresa.com",
-      percentualComissao: 6.0,
-      metaMensal: 40000.00,
-      vendasMes: 45200.00,
-      comissaoAcumulada: 2712.00
-    }
-  ]);
-
+export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceita }: ComercialProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("propostas");
+  const { toast } = useToast();
 
   // Form state para nova proposta
   const [formData, setFormData] = useState({
@@ -145,6 +50,34 @@ export function Comercial() {
     observacoes: "",
     itens: [{ descricao: "", quantidade: 1, valorUnitario: 0 }]
   });
+
+  const handleStatusChange = (propostaId: string, newStatus: Proposta['status']) => {
+    const proposta = propostas.find(p => p.id === propostaId);
+    if (!proposta) return;
+
+    if (newStatus === 'aceita' && proposta.faturada) {
+        toast({
+            title: "Atenção",
+            description: "Esta proposta já foi faturada.",
+            variant: "default",
+        });
+        return;
+    }
+    
+    const updatedPropostas = propostas.map(p => 
+      p.id === propostaId 
+        ? { ...p, status: newStatus, faturada: newStatus === 'aceita' ? true : p.faturada } 
+        : p
+    );
+    setPropostas(updatedPropostas);
+
+    if (newStatus === 'aceita') {
+      const updatedProposta = updatedPropostas.find(p => p.id === propostaId);
+      if(updatedProposta) {
+        onPropostaAceita(updatedProposta);
+      }
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -456,7 +389,7 @@ export function Comercial() {
                     <TableHead>Valor Total</TableHead>
                     <TableHead>Criação</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -472,19 +405,41 @@ export function Comercial() {
                         {format(proposta.dataCriacao, "dd/MM/yyyy")}
                       </TableCell>
                       <TableCell>{getStatusBadge(proposta.status)}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                            <span className="sr-only">Ver detalhes</span>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          {proposta.status === 'rascunho' && (
-                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                              <Send className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                                <span className="sr-only">Abrir menu</span>
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem 
+                                onClick={() => handleStatusChange(proposta.id, 'aceita')}
+                                disabled={proposta.status === 'aceita' || proposta.status === 'recusada' || proposta.faturada}
+                              >
+                                <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                                <span>Aceitar</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handleStatusChange(proposta.id, 'recusada')}
+                                disabled={proposta.status === 'aceita' || proposta.status === 'recusada'}
+                              >
+                                <XCircle className="mr-2 h-4 w-4 text-red-500" />
+                                <span>Recusar</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem>
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Editar</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </TableCell>
                     </TableRow>

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,18 +24,11 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog";
+import { ContaReceber } from "./contas-receber/types";
 
-interface ContaReceber {
-  id: string;
-  descricao: string;
-  valor: number;
-  dataVencimento: Date;
-  status: 'pendente' | 'recebido' | 'atrasado' | 'parcial';
-  cliente: string;
-  categoria: string;
-  numeroFatura?: string;
-  dataRecebimento?: Date;
-  formaRecebimento?: string;
+interface ContasReceberProps {
+  contas: ContaReceber[];
+  setContas: React.Dispatch<React.SetStateAction<ContaReceber[]>>;
 }
 
 const categorias = [
@@ -57,42 +49,7 @@ const formasRecebimento = [
   "Cheque"
 ];
 
-export function ContasReceber() {
-  const [contas, setContas] = useState<ContaReceber[]>([
-    {
-      id: "1",
-      descricao: "Cliente XYZ - Projeto Website",
-      valor: 5800.00,
-      dataVencimento: new Date(2024, 5, 18),
-      status: "pendente",
-      cliente: "XYZ Ltda",
-      categoria: "Vendas de Serviços",
-      numeroFatura: "FAT-001"
-    },
-    {
-      id: "2", 
-      descricao: "Venda de Produtos - Lote 123",
-      valor: 3200.00,
-      dataVencimento: new Date(2024, 5, 20),
-      status: "recebido",
-      cliente: "Cliente ABC",
-      categoria: "Vendas de Produtos",
-      numeroFatura: "NF-456",
-      dataRecebimento: new Date(2024, 5, 19),
-      formaRecebimento: "PIX"
-    },
-    {
-      id: "3",
-      descricao: "Mensalidade Software - Maio",
-      valor: 299.90,
-      dataVencimento: new Date(2024, 5, 10),
-      status: "atrasado",
-      cliente: "Empresa DEF",
-      categoria: "Mensalidades",
-      numeroFatura: "REC-789"
-    }
-  ]);
-
+export function ContasReceber({ contas, setContas }: ContasReceberProps) {
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
   const [busca, setBusca] = useState("");
