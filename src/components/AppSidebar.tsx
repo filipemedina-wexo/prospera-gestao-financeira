@@ -16,6 +16,7 @@ import { menuItems } from "@/config/menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useClient } from "@/contexts/ClientContext";
 
 interface AppSidebarProps {
   onMenuChange?: (menuId: string) => void;
@@ -24,6 +25,7 @@ interface AppSidebarProps {
 export function AppSidebar({ onMenuChange }: AppSidebarProps) {
   const { hasPermission, user, logout } = useAuth();
   const navigate = useNavigate();
+  const { clientName, clientSubtitle } = useClient();
 
   const visibleMenuItems = menuItems.filter((item) => hasPermission(item.permission));
 
@@ -49,8 +51,8 @@ export function AppSidebar({ onMenuChange }: AppSidebarProps) {
             <TrendingUp className="h-5 w-5 text-white" />
           </div>
           <div className="group-data-[collapsible=icon]:hidden">
-            <h1 className="font-bold text-lg">Prospera</h1>
-            <p className="text-sm text-muted-foreground">Gestão Financeira</p>
+            <h1 className="font-bold text-lg">{clientName}</h1>
+            <p className="text-sm text-muted-foreground">{clientSubtitle}</p>
           </div>
         </div>
       </SidebarHeader>

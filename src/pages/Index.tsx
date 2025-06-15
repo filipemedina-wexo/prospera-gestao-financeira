@@ -17,6 +17,7 @@ import { useAppData } from "@/hooks/useAppData";
 import { useAuth } from "@/contexts/AuthContext";
 import { menuItems } from "@/config/menu";
 import { TrendingUp } from "lucide-react";
+import { useClient } from "@/contexts/ClientContext";
 
 const Index = () => {
   const { hasPermission } = useAuth();
@@ -37,6 +38,7 @@ const Index = () => {
     setContasAPagar,
     handlePropostaAceita,
   } = useAppData();
+  const { clientName, clientSubtitle } = useClient();
 
   const getModuleTitle = () => {
     if (!activeModule) {
@@ -98,8 +100,8 @@ const Index = () => {
                 <TrendingUp className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="font-bold text-lg text-slate-800">Prospera</h1>
-                <p className="text-sm text-muted-foreground">Gestão Financeira</p>
+                <h1 className="font-bold text-lg text-slate-800">{clientName}</h1>
+                <p className="text-sm text-muted-foreground">{clientSubtitle}</p>
               </div>
             </div>
           </header>
