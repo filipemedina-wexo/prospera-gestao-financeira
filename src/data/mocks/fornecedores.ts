@@ -1,4 +1,3 @@
-
 import { Fornecedor } from '@/components/modules/fornecedores/types';
 
 export const initialFornecedores: Fornecedor[] = [
@@ -18,7 +17,10 @@ export const initialFornecedores: Fornecedor[] = [
     cep: '01010-010',
     nomeContato: 'João Tech',
     dataCadastro: new Date(2022, 0, 15),
-    observacoes: 'Fornecedor de serviços de TI.'
+    observacoes: 'Fornecedor de serviços de TI.',
+    condicaoPagamento: '30 dias',
+    proximoPagamento: new Date('2025-07-15T00:00:00'),
+    valorProximoPagamento: 5000,
   },
   {
     id: '2',
@@ -35,7 +37,10 @@ export const initialFornecedores: Fornecedor[] = [
     cep: '20020-020',
     nomeContato: 'Maria Papel',
     dataCadastro: new Date(2021, 5, 10),
-    observacoes: 'Fornecedor de material de escritório.'
+    observacoes: 'Fornecedor de material de escritório.',
+    condicaoPagamento: 'Boleto 28 dias',
+    proximoPagamento: new Date('2025-07-10T00:00:00'),
+    valorProximoPagamento: 750.50,
   },
   {
     id: '3',

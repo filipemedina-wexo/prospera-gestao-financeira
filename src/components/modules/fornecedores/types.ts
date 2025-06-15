@@ -16,4 +16,7 @@ export interface Fornecedor {
   nomeContato?: string;
   observacoes?: string;
   dataCadastro: Date;
+  condicaoPagamento?: string;
+  proximoPagamento?: Date;
+  valorProximoPagamento?: number;
 }

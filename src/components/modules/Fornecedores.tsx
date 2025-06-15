@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Fornecedor } from "./fornecedores/types";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,8 @@ import { FornecedoresTable } from "./fornecedores/FornecedoresTable";
 import { FornecedorDialog } from "./fornecedores/FornecedorDialog";
 import { Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FornecedoresProps {
   fornecedores: Fornecedor[];
@@ -16,6 +17,8 @@ export const Fornecedores = ({ fornecedores, setFornecedores }: FornecedoresProp
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedFornecedor, setSelectedFornecedor] = useState<Fornecedor | null>(null);
+  const [tipoFilter, setTipoFilter] = useState('Todos');
+  const [searchFilter, setSearchFilter] = useState('');
 
   const handleSave = (fornecedor: Fornecedor) => {
     const isEditing = !!selectedFornecedor;
@@ -51,6 +54,15 @@ export const Fornecedores = ({ fornecedores, setFornecedores }: FornecedoresProp
     });
   };
 
+  const filteredFornecedores = fornecedores.filter(f => {
+    const tipoMatch = tipoFilter === 'Todos' || f.tipo === tipoFilter;
+    const searchMatch = searchFilter === '' ||
+                        f.razaoSocial.toLowerCase().includes(searchFilter.toLowerCase()) ||
+                        f.cnpj.includes(searchFilter) ||
+                        (f.nomeFantasia && f.nomeFantasia.toLowerCase().includes(searchFilter.toLowerCase()));
+    return tipoMatch && searchMatch;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -64,7 +76,27 @@ export const Fornecedores = ({ fornecedores, setFornecedores }: FornecedoresProp
         Gerencie seus fornecedores de produtos e serviços.
       </p>
 
-      <FornecedoresTable fornecedores={fornecedores} onEdit={handleEdit} onDelete={handleDelete} />
+      <div className="flex items-center gap-2">
+        <Input
+          placeholder="Buscar por Razão Social, Nome Fantasia ou CNPJ..."
+          value={searchFilter}
+          onChange={(e) => setSearchFilter(e.target.value)}
+          className="max-w-sm"
+        />
+        <Select value={tipoFilter} onValueChange={setTipoFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filtrar por tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Todos">Todos os tipos</SelectItem>
+            <SelectItem value="Produto">Produto</SelectItem>
+            <SelectItem value="Serviço">Serviço</SelectItem>
+            <SelectItem value="Ambos">Ambos</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <FornecedoresTable fornecedores={filteredFornecedores} onEdit={handleEdit} onDelete={handleDelete} />
 
       <FornecedorDialog
         open={dialogOpen}

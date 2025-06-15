@@ -20,8 +20,9 @@ export const FornecedoresTable = ({ fornecedores, onEdit, onDelete }: Fornecedor
         <TableRow>
           <TableHead>Razão Social</TableHead>
           <TableHead>CNPJ</TableHead>
-          <TableHead>Contato</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Próximo Pagamento</TableHead>
+          <TableHead className="text-right">Valor</TableHead>
           <TableHead>Data de Cadastro</TableHead>
           <TableHead><span className="sr-only">Ações</span></TableHead>
         </TableRow>
@@ -29,13 +30,25 @@ export const FornecedoresTable = ({ fornecedores, onEdit, onDelete }: Fornecedor
       <TableBody>
         {fornecedores.map((fornecedor) => (
           <TableRow key={fornecedor.id}>
-            <TableCell className="font-medium">{fornecedor.razaoSocial}</TableCell>
+            <TableCell className="font-medium">
+              <div>{fornecedor.razaoSocial}</div>
+              <div className="text-sm text-muted-foreground">{fornecedor.nomeFantasia}</div>
+            </TableCell>
             <TableCell>{fornecedor.cnpj}</TableCell>
-            <TableCell>{fornecedor.email}</TableCell>
             <TableCell>
               <Badge variant={fornecedor.status === 'Ativo' ? 'default' : 'destructive'}>{fornecedor.status}</Badge>
             </TableCell>
-            <TableCell>{format(fornecedor.dataCadastro, "dd/MM/yyyy")}</TableCell>
+            <TableCell>
+              {fornecedor.proximoPagamento
+                ? format(new Date(fornecedor.proximoPagamento), "dd/MM/yyyy")
+                : '-'}
+            </TableCell>
+            <TableCell className="text-right">
+              {fornecedor.valorProximoPagamento
+                ? fornecedor.valorProximoPagamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                : '-'}
+            </TableCell>
+            <TableCell>{format(new Date(fornecedor.dataCadastro), "dd/MM/yyyy")}</TableCell>
             <TableCell>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
