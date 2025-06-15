@@ -110,13 +110,14 @@ export function useUsersManagement() {
         }
       }
 
-      // Now map over the properly typed array
-      const combinedUsers: User[] = validProfiles.map((profile) => {
+      // Now create users array with explicit typing
+      const combinedUsers: User[] = [];
+      for (const profile of validProfiles) {
         const authUser = authUsers.users.find(u => u.id === profile.id);
         const userRole = validUserRoles.find((roleData) => roleData.user_id === profile.id);
         const role = (userRole?.role as ExtendedRole) || 'contador';
         
-        return {
+        combinedUsers.push({
           id: profile.id,
           name: profile.full_name || 'Sem nome',
           email: authUser?.email || 'email@exemplo.com',
@@ -124,8 +125,8 @@ export function useUsersManagement() {
           status: 'active' as const,
           createdAt: authUser?.created_at || new Date().toISOString(),
           lastLogin: authUser?.last_sign_in_at || undefined,
-        };
-      });
+        });
+      }
 
       setUsers(combinedUsers);
     } catch (error) {
