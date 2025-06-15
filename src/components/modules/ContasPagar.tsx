@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -12,46 +11,13 @@ import { ContasPagarTable } from "./contas-pagar/ContasPagarTable";
 import { NovaContaDialog } from "./contas-pagar/NovaContaDialog";
 import { RegistrarPagamentoDialog } from "./contas-pagar/RegistrarPagamentoDialog";
 
-export function ContasPagar() {
-  const { toast } = useToast();
-  const [contas, setContas] = useState<ContaPagar[]>([
-    {
-      id: "1",
-      descricao: "Aluguel do Escritório",
-      valor: 2500.00,
-      dataVencimento: new Date(2025, 5, 15),
-      status: "atrasado",
-      fornecedor: "Imobiliária Silva",
-      categoria: "Despesas Fixas",
-      numeroDocumento: "BOL-001",
-      competencia: "06/2025"
-    },
-    {
-      id: "2", 
-      descricao: "Fornecedor ABC - Material",
-      valor: 1200.00,
-      dataVencimento: new Date(2025, 5, 16),
-      status: "pendente",
-      fornecedor: "ABC Materiais",
-      categoria: "Custos de Mercadoria",
-      numeroDocumento: "NF-12345",
-      competencia: "06/2025"
-    },
-    {
-      id: "3",
-      descricao: "Conta de Luz",
-      valor: 450.75,
-      dataVencimento: new Date(2025, 5, 20),
-      status: "pago",
-      fornecedor: "Eletropaulo",
-      categoria: "Despesas Operacionais",
-      numeroDocumento: "FAT-789",
-      dataPagamento: new Date(2025, 5, 18),
-      formaPagamento: "PIX",
-      competencia: "05/2025"
-    }
-  ]);
+interface ContasPagarProps {
+  contas: ContaPagar[];
+  setContas: React.Dispatch<React.SetStateAction<ContaPagar[]>>;
+}
 
+export function ContasPagar({ contas, setContas }: ContasPagarProps) {
+  const { toast } = useToast();
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
   const [filtroCompetencia, setFiltroCompetencia] = useState<string>("");
