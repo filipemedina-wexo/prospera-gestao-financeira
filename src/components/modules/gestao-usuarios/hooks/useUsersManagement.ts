@@ -7,14 +7,14 @@ import { ExtendedRole } from '@/config/permissions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiTenant } from '@/contexts/MultiTenantContext';
 
-interface ProfileData {
+interface SupabaseProfile {
   id: string;
   full_name: string | null;
 }
 
-interface UserRoleData {
+interface SupabaseUserRole {
   user_id: string;
-  role: ExtendedRole;
+  role: string;
 }
 
 export function useUsersManagement() {
@@ -31,17 +31,19 @@ export function useUsersManagement() {
     
     setLoading(true);
     try {
-      // Fetch user profiles first
-      const { data: profiles, error: profilesError } = await supabase
+      // Fetch user profiles with explicit typing
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name');
+        .select('id, full_name')
+        .returns<SupabaseProfile[]>();
 
       if (profilesError) throw profilesError;
 
-      // Fetch user roles separately
-      const { data: userRoles, error: rolesError } = await supabase
+      // Fetch user roles with explicit typing
+      const { data: userRolesData, error: rolesError } = await supabase
         .from('user_roles')
-        .select('user_id, role');
+        .select('user_id, role')
+        .returns<SupabaseUserRole[]>();
 
       if (rolesError) throw rolesError;
 
@@ -49,50 +51,17 @@ export function useUsersManagement() {
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
-      // Handle the case when profiles is null or empty
-      if (!profiles || profiles.length === 0) {
+      // Handle empty profiles
+      if (!profilesData || profilesData.length === 0) {
         setUsers([]);
         return;
       }
 
-      // Process profiles with proper type handling
-      const validProfiles: ProfileData[] = [];
-      for (const profile of profiles) {
-        if (profile && 
-            typeof profile === 'object' && 
-            'id' in profile && 
-            typeof profile.id === 'string' && 
-            profile.id.length > 0) {
-          validProfiles.push({
-            id: profile.id,
-            full_name: typeof profile.full_name === 'string' ? profile.full_name : null
-          });
-        }
-      }
-
-      // Process user roles with proper type handling
-      const validUserRoles: UserRoleData[] = [];
-      if (userRoles) {
-        for (const roleData of userRoles) {
-          if (roleData &&
-              typeof roleData === 'object' && 
-              'user_id' in roleData && 
-              'role' in roleData &&
-              typeof roleData.user_id === 'string' && 
-              typeof roleData.role === 'string') {
-            validUserRoles.push({
-              user_id: roleData.user_id,
-              role: roleData.role as ExtendedRole
-            });
-          }
-        }
-      }
-
-      // Create users array with explicit typing for the callback parameter
-      const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
+      // Process the data with proper typing
+      const combinedUsers: User[] = profilesData.map((profile: SupabaseProfile) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
-        const userRole = validUserRoles.find((roleData: UserRoleData) => roleData.user_id === profile.id);
-        const role = userRole?.role || 'contador';
+        const userRole = userRolesData?.find((roleData: SupabaseUserRole) => roleData.user_id === profile.id);
+        const role = (userRole?.role as ExtendedRole) || 'contador';
         
         return {
           id: profile.id,
