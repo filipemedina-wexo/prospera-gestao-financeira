@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 // Import UI components individually from their actual locations
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +37,20 @@ export const Configuracoes = () => {
   ]);
   const [edicao, setEdicao] = useState<{[id: string]: number}>({});
   const [novaRegra, setNovaRegra] = useState({nome: "", percentual: "", tipo: ""});
+  // Novo estado para o logotipo da empresa:
+  const [logo, setLogo] = useState<string | null>(null);
+
+  // Handler para upload do logotipo
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = event => {
+        setLogo(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Funções de edição inline
   const iniciarEdicao = (regra: RegraComissao) => {
@@ -106,6 +119,32 @@ export const Configuracoes = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* CAMPO DE UPLOAD DO LOGO */}
+              <div>
+                <Label htmlFor="logo">Logotipo da Empresa</Label>
+                <div className="flex items-center gap-4 mt-2">
+                  <Input
+                    id="logo"
+                    type="file"
+                    accept="image/*"
+                    className="w-auto"
+                    onChange={handleLogoChange}
+                  />
+                  {logo && (
+                    <div className="flex flex-col items-center gap-2">
+                      <img
+                        src={logo}
+                        alt="Prévia do logo"
+                        className="w-24 h-24 object-cover border rounded shadow"
+                      />
+                      <span className="text-xs text-muted-foreground">Prévia</span>
+                    </div>
+                  )}
+                </div>
+                <span className="block text-xs text-muted-foreground mt-2">
+                  Arquivo recomendado: PNG ou JPG. Máx. 1MB.
+                </span>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="empresa">Nome da Empresa</Label>
