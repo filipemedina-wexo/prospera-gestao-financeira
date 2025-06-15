@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -32,6 +33,7 @@ import { useAppData } from "@/hooks/useAppData";
 export function Relatorios() {
   const { contasAReceber, contasAPagar } = useAppData();
   const [tipoRelatorio, setTipoRelatorio] = useState("fluxo-caixa");
+  const [periodoSelecionado, setPeriodoSelecionado] = useState("mes-atual");
   const [extratoPeriodoInicio, setExtratoPeriodoInicio] = useState<Date | undefined>(subDays(new Date(), 15));
   const [extratoPeriodoFim, setExtratoPeriodoFim] = useState<Date | undefined>(new Date());
 
