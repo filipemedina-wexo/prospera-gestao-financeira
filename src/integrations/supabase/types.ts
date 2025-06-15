@@ -9,6 +9,112 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      client_databases: {
+        Row: {
+          client_id: string
+          created_at: string
+          database_name: string
+          database_url: string
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          database_name: string
+          database_url: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          database_name?: string
+          database_url?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_databases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_onboarding: {
+        Row: {
+          admin_user_created: boolean
+          client_id: string
+          created_at: string
+          id: string
+          initial_data_created: boolean
+          onboarding_completed_at: string | null
+          setup_completed: boolean
+          updated_at: string
+          welcome_email_sent: boolean
+        }
+        Insert: {
+          admin_user_created?: boolean
+          client_id: string
+          created_at?: string
+          id?: string
+          initial_data_created?: boolean
+          onboarding_completed_at?: string | null
+          setup_completed?: boolean
+          updated_at?: string
+          welcome_email_sent?: boolean
+        }
+        Update: {
+          admin_user_created?: boolean
+          client_id?: string
+          created_at?: string
+          id?: string
+          initial_data_created?: boolean
+          onboarding_completed_at?: string | null
+          setup_completed?: boolean
+          updated_at?: string
+          welcome_email_sent?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_onboarding_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       saas_analytics: {
         Row: {
           client_id: string
