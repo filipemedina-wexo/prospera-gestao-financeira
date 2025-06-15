@@ -13,12 +13,6 @@ import {
   Wallet
 } from "lucide-react";
 import { useState } from "react";
-import { ContasPagar } from "./modules/ContasPagar";
-import { ContasReceber } from "./modules/ContasReceber";
-import { Comercial } from "./modules/Comercial";
-import { Relatorios } from "./modules/Relatorios";
-import { DRE } from "./modules/DRE";
-import { Caixa } from "./modules/Caixa";
 import { AlertsPopup } from "./AlertsPopup";
 import { QuickChartsSection } from "./QuickChartsSection";
 
@@ -71,8 +65,7 @@ const initialAlerts: Alert[] = [
   }
 ];
 
-export function Dashboard() {
-  const [activeModule, setActiveModule] = useState("dashboard");
+export function Dashboard({ onNavigate }: { onNavigate: (module: string) => void }) {
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
   const [alertsOpen, setAlertsOpen] = useState(false);
 
@@ -92,31 +85,12 @@ export function Dashboard() {
   };
 
   const handleViewDetails = (alert: Alert) => {
-    if (alert.category === "contas-pagar") setActiveModule("contas-pagar");
-    else if (alert.category === "contas-receber") setActiveModule("contas-receber");
+    if (alert.category === "contas-pagar") onNavigate("contas-pagar");
+    else if (alert.category === "contas-receber") onNavigate("contas-receber");
     setAlertsOpen(false);
   };
 
-  const renderActiveModule = () => {
-    switch (activeModule) {
-      case "caixa":
-        return <Caixa />;
-      case "contas-pagar":
-        return <ContasPagar />;
-      case "contas-receber":
-        return <ContasReceber />;
-      case "comercial":
-        return <Comercial />;
-      case "relatorios":
-        return <Relatorios />;
-      case "dre":
-        return <DRE />;
-      default:
-        return renderDashboard();
-    }
-  };
-
-  const renderDashboard = () => (
+  return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -144,10 +118,10 @@ export function Dashboard() {
           <CardContent>
             <div
               className="text-2xl font-bold text-green-600 cursor-pointer hover:underline"
-              onClick={() => setActiveModule("contas-receber")}
+              onClick={() => onNavigate("contas-receber")}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveModule("contas-receber")}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onNavigate("contas-receber")}
             >
               R$ {dashboardData.totalReceber.toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
@@ -168,10 +142,10 @@ export function Dashboard() {
           <CardContent>
             <div
               className="text-2xl font-bold text-red-600 cursor-pointer hover:underline"
-              onClick={() => setActiveModule("contas-pagar")}
+              onClick={() => onNavigate("contas-pagar")}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveModule("contas-pagar")}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onNavigate("contas-pagar")}
             >
               R$ {dashboardData.totalPagar.toLocaleString('pt-BR', { 
                 minimumFractionDigits: 2, 
@@ -248,7 +222,7 @@ export function Dashboard() {
               <Button 
                 variant="outline" 
                 className="h-20 flex flex-col items-center justify-center space-y-2"
-                onClick={() => setActiveModule("caixa")}
+                onClick={() => onNavigate("caixa")}
               >
                 <Wallet className="h-6 w-6" />
                 <span className="text-sm">Controle de Caixa</span>
@@ -256,7 +230,7 @@ export function Dashboard() {
               <Button 
                 variant="outline" 
                 className="h-20 flex flex-col items-center justify-center space-y-2"
-                onClick={() => setActiveModule("contas-pagar")}
+                onClick={() => onNavigate("contas-pagar")}
               >
                 <CreditCard className="h-6 w-6" />
                 <span className="text-sm">Nova Conta a Pagar</span>
@@ -264,7 +238,7 @@ export function Dashboard() {
               <Button 
                 variant="outline" 
                 className="h-20 flex flex-col items-center justify-center space-y-2"
-                onClick={() => setActiveModule("contas-receber")}
+                onClick={() => onNavigate("contas-receber")}
               >
                 <PiggyBank className="h-6 w-6" />
                 <span className="text-sm">Nova Conta a Receber</span>
@@ -272,7 +246,7 @@ export function Dashboard() {
               <Button 
                 variant="outline" 
                 className="h-20 flex flex-col items-center justify-center space-y-2"
-                onClick={() => setActiveModule("dre")}
+                onClick={() => onNavigate("dre")}
               >
                 <Calendar className="h-6 w-6" />
                 <span className="text-sm">Ver DRE</span>
@@ -329,37 +303,6 @@ export function Dashboard() {
         onResolve={handleResolveAlert}
         onViewDetails={handleViewDetails}
       />
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
-      {/* Navigation Pills */}
-      <div className="flex flex-wrap gap-2 p-4 bg-white rounded-lg shadow-sm border">
-        {[
-          { id: "dashboard", label: "Dashboard", icon: DollarSign },
-          { id: "caixa", label: "Caixa", icon: Wallet },
-          { id: "contas-pagar", label: "Contas a Pagar", icon: CreditCard },
-          { id: "contas-receber", label: "Contas a Receber", icon: PiggyBank },
-          { id: "comercial", label: "Comercial", icon: TrendingUp },
-          { id: "relatorios", label: "Relatórios", icon: Calendar },
-          { id: "dre", label: "DRE", icon: AlertCircle }
-        ].map((item) => (
-          <Button
-            key={item.id}
-            variant={activeModule === item.id ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setActiveModule(item.id)}
-            className="flex items-center gap-2"
-          >
-            <item.icon className="h-4 w-4" />
-            {item.label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Active Module Content */}
-      {renderActiveModule()}
     </div>
   );
 }

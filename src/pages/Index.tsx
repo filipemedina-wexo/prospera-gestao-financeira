@@ -36,7 +36,7 @@ const Index = () => {
       case "crm":
         return <CRM />;
       default:
-        return <Dashboard />;
+        return <Dashboard onNavigate={setActiveModule} />;
     }
   };
 
