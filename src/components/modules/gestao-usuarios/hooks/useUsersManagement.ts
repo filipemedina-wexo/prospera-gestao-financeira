@@ -66,58 +66,44 @@ export function useUsersManagement() {
         return;
       }
 
-      // Type guard for profiles
-      const isValidProfile = (profile: SupabaseProfile): profile is ProfileData => {
-        return profile !== null && 
-               profile !== undefined &&
-               typeof profile === 'object' && 
-               'id' in profile && 
-               typeof profile.id === 'string' && 
-               profile.id.length > 0;
-      };
+      // Convert and validate profiles with explicit typing
+      const validProfiles: ProfileData[] = profiles
+        .filter((profile): profile is NonNullable<typeof profile> => {
+          return profile !== null && 
+                 profile !== undefined &&
+                 typeof profile === 'object' && 
+                 'id' in profile && 
+                 typeof profile.id === 'string' && 
+                 profile.id.length > 0;
+        })
+        .map(profile => ({
+          id: profile.id as string,
+          full_name: (profile.full_name as string) || null
+        }));
 
-      // Type guard for user roles
-      const isValidUserRole = (roleData: SupabaseUserRole): roleData is UserRoleData => {
-        return roleData !== null &&
-               roleData !== undefined &&
-               typeof roleData === 'object' && 
-               'user_id' in roleData && 
-               'role' in roleData &&
-               typeof roleData.user_id === 'string' && 
-               typeof roleData.role === 'string';
-      };
-
-      // Create properly typed arrays
-      const validProfiles: ProfileData[] = [];
-      for (const profile of profiles as SupabaseProfile[]) {
-        if (isValidProfile(profile)) {
-          validProfiles.push({
-            id: profile.id,
-            full_name: profile.full_name || null
-          });
-        }
-      }
-
-      const validUserRoles: UserRoleData[] = [];
-      if (userRoles) {
-        for (const roleData of userRoles as SupabaseUserRole[]) {
-          if (isValidUserRole(roleData)) {
-            validUserRoles.push({
-              user_id: roleData.user_id,
-              role: roleData.role as ExtendedRole
-            });
-          }
-        }
-      }
+      // Convert and validate user roles with explicit typing
+      const validUserRoles: UserRoleData[] = (userRoles || [])
+        .filter((roleData): roleData is NonNullable<typeof roleData> => {
+          return roleData !== null &&
+                 roleData !== undefined &&
+                 typeof roleData === 'object' && 
+                 'user_id' in roleData && 
+                 'role' in roleData &&
+                 typeof roleData.user_id === 'string' && 
+                 typeof roleData.role === 'string';
+        })
+        .map(roleData => ({
+          user_id: roleData.user_id as string,
+          role: roleData.role as ExtendedRole
+        }));
 
       // Now create users array with explicit typing
-      const combinedUsers: User[] = [];
-      for (const profile of validProfiles) {
+      const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
-        const userRole = validUserRoles.find((roleData) => roleData.user_id === profile.id);
-        const role = (userRole?.role as ExtendedRole) || 'contador';
+        const userRole = validUserRoles.find((roleData: UserRoleData) => roleData.user_id === profile.id);
+        const role = userRole?.role || 'contador';
         
-        combinedUsers.push({
+        return {
           id: profile.id,
           name: profile.full_name || 'Sem nome',
           email: authUser?.email || 'email@exemplo.com',
@@ -125,8 +111,8 @@ export function useUsersManagement() {
           status: 'active' as const,
           createdAt: authUser?.created_at || new Date().toISOString(),
           lastLogin: authUser?.last_sign_in_at || undefined,
-        });
-      }
+        };
+      });
 
       setUsers(combinedUsers);
     } catch (error) {
