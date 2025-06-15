@@ -142,22 +142,21 @@ export function Dashboard() {
             <PiggyBank className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              R$ {dashboardData.totalReceber.toLocaleString('pt-BR', { 
-                minimumFractionDigits: 2, 
-                maximumFractionDigits: 2 
+            <div
+              className="text-2xl font-bold text-green-600 cursor-pointer hover:underline"
+              onClick={() => setActiveModule("contas-receber")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setActiveModule("contas-receber")}
+            >
+              R$ {dashboardData.totalReceber.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
               })}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               +5.2% em relação ao mês anterior
             </p>
-            <Button
-              variant="link"
-              className="mt-2 px-0 text-green-700 hover:text-green-900"
-              onClick={() => setActiveModule("contas-receber")}
-            >
-              Ver Contas a Receber
-            </Button>
           </CardContent>
         </Card>
 
