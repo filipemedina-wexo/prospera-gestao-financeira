@@ -30,16 +30,19 @@ export function UsersManagement() {
     
     setLoading(true);
     try {
-      // Fetch user profiles with their roles
+      // Fetch user profiles first
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          full_name,
-          user_roles (role)
-        `);
+        .select('id, full_name');
 
       if (profilesError) throw profilesError;
+
+      // Fetch user roles separately
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
 
       // Fetch auth users to get email
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
@@ -48,15 +51,14 @@ export function UsersManagement() {
       // Combine the data
       const combinedUsers: User[] = profiles?.map(profile => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
-        // Fix the type access issue
-        const userRoles = profile.user_roles as Array<{ role: string }> | null;
-        const userRole = (userRoles?.[0]?.role as ExtendedRole) || 'contador';
+        const userRole = userRoles?.find(r => r.user_id === profile.id);
+        const role = (userRole?.role as ExtendedRole) || 'contador';
         
         return {
           id: profile.id,
           name: profile.full_name || 'Sem nome',
           email: authUser?.email || 'email@exemplo.com',
-          role: userRole,
+          role: role,
           status: 'active' as const,
           createdAt: authUser?.created_at || new Date().toISOString(),
           lastLogin: authUser?.last_sign_in_at || undefined,

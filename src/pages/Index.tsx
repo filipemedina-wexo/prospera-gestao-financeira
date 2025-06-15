@@ -1,7 +1,6 @@
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import Dashboard from "@/components/Dashboard";
 import { ContasPagar as ContasPagarModule } from "@/components/modules/ContasPagar";
 import { ContasReceber as ContasReceberModule } from "@/components/modules/ContasReceber";
 import { Caixa } from "@/components/modules/Caixa";
@@ -14,6 +13,7 @@ import { Configuracoes } from "@/components/modules/Configuracoes";
 import { CRM } from "@/components/modules/CRM";
 import { UsersManagement } from "@/components/modules/gestao-usuarios";
 import GestaoSaaS from "@/components/modules/gestao-saas";
+import { Pessoas } from "@/components/modules/Pessoas";
 import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { useAppData } from "@/hooks/useAppData";
@@ -44,6 +44,7 @@ const Index = () => {
     clients,
     setClients,
     produtosServicos,
+    setProdutosServicos,
     fornecedores,
     setFornecedores,
   } = useAppData();
@@ -53,6 +54,12 @@ const Index = () => {
   } = useClient();
   const { companyName } = useConfig();
   
+  // Mock data for Pessoas module
+  const [funcionarios, setFuncionarios] = useState([]);
+  const [departamentos, setDepartamentos] = useState([]);
+  const [cargos, setCargos] = useState([]);
+  const [holerites, setHolerites] = useState([]);
+  
   const getModuleTitle = () => {
     if (!activeModule) {
       return "Acesso Restrito";
@@ -60,6 +67,7 @@ const Index = () => {
     const module = menuItems.find(item => item.id === activeModule);
     return module ? module.title : "Dashboard";
   };
+  
   const renderContent = () => {
     switch (activeModule) {
       case "caixa":
@@ -82,10 +90,21 @@ const Index = () => {
         return <Configuracoes />;
       case "crm":
         return <CRM clients={clients} setClients={setClients} />;
+      case "pessoas":
+        return <Pessoas 
+          funcionarios={funcionarios} 
+          setFuncionarios={setFuncionarios}
+          departamentos={departamentos}
+          setDepartamentos={setDepartamentos}
+          cargos={cargos}
+          setCargos={setCargos}
+          holerites={holerites}
+          setHolerites={setHolerites}
+        />;
+      case "gestao-usuarios":
+        return <UsersManagement />;
       case "gestao-saas":
         return <GestaoSaaS />;
-      case "dashboard":
-        return <Dashboard onNavigate={setActiveModule} contasPagar={contasAPagar} contasReceber={contasAReceber} />;
       default:
         return <div className="flex flex-col items-center justify-center h-full text-center">
             <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
