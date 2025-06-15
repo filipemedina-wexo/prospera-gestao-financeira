@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,18 @@ import ReceberBlock from "./dashboard-blocks/ReceberBlock";
 import PagarBlock from "./dashboard-blocks/PagarBlock";
 import { DashboardBlocks } from "./DashboardBlocks";
 import type { DashboardBlock } from "@/types/dashboardBlock";
+
+// ---- ADD ALERT TYPE HERE ----
+type Alert = {
+  id: string;
+  title: string;
+  description: string;
+  type: "Atrasado" | "Vencendo hoje" | "A Receber";
+  amount: number;
+  category: "contas-pagar" | "contas-receber";
+  resolved?: boolean;
+};
+// ---- END ALERT TYPE ----
 
 // Mocked alert data
 const initialAlerts: Alert[] = [

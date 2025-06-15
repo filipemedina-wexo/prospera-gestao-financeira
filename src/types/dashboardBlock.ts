@@ -1,4 +1,6 @@
 
+import type React from "react";
+
 export type DashboardBlockType =
   | "receber"
   | "pagar"
@@ -14,4 +16,5 @@ export interface DashboardBlock {
   title: string;
   cols: number; // 1-4 (number of columns)
   component: React.ComponentType<any>;
+  props?: any;
 }

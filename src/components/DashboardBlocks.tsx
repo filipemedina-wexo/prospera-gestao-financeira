@@ -80,7 +80,7 @@ export function DashboardBlocks({
   isEditMode,
 }: {
   blocks: DashboardBlock[];
-  setBlocks: (blocks: DashboardBlock[]) => void;
+  setBlocks: ((blocks: DashboardBlock[]) => void) | ((updater: (blocks: DashboardBlock[]) => DashboardBlock[]) => void);
   isEditMode: boolean;
 }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
@@ -90,17 +90,22 @@ export function DashboardBlocks({
     if (active.id !== over?.id) {
       const oldIdx = blocks.findIndex(b => b.id === active.id);
       const newIdx = blocks.findIndex(b => b.id === over?.id);
-      setBlocks(arrayMove(blocks, oldIdx, newIdx));
+      // Use updater function form when calling setBlocks
+      (setBlocks as (updater: (blocks: DashboardBlock[]) => DashboardBlock[]) => void)(
+        (currentBlocks) => arrayMove(currentBlocks, oldIdx, newIdx)
+      );
     }
   };
 
   const resizeBlock = (id: string, dir: "inc" | "dec") => {
-    setBlocks(blocks =>
-      blocks.map(b =>
-        b.id === id
-          ? { ...b, cols: dir === "inc" ? Math.min(4, b.cols + 1) : Math.max(1, b.cols - 1) }
-          : b
-      )
+    // Use updater function form when calling setBlocks
+    (setBlocks as (updater: (blocks: DashboardBlock[]) => DashboardBlock[]) => void)(
+      blocks =>
+        blocks.map(b =>
+          b.id === id
+            ? { ...b, cols: dir === "inc" ? Math.min(4, b.cols + 1) : Math.max(1, b.cols - 1) }
+            : b
+        )
     );
   };
 
@@ -116,7 +121,7 @@ export function DashboardBlocks({
               resizeBlock={resizeBlock}
               isEditMode={isEditMode}
             >
-              <block.component {...block.props} />
+              <block.component {...(block.props || {})} />
             </SortableBlock>
           ))}
         </section>
