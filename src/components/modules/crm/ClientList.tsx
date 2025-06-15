@@ -5,18 +5,64 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
 
-interface Client {
+export interface Client {
   id: string;
-  name: string;
-  email: string;
-  phone: string;
+  razaoSocial: string;
+  nomeFantasia?: string;
+  cnpj?: string;
+  endereco?: string;
+  cidade?: string;
+  estado?: string;
+  nomeContato?: string;
+  email?: string;
+  telefone?: string;
+  whatsapp?: string;
   status: "Ativo" | "Inativo";
 }
 
 const initialClients: Client[] = [
-  { id: "1", name: "Maria Silva", email: "maria.silva@email.com", phone: "(11) 99999-9999", status: "Ativo" },
-  { id: "2", name: "João Souza", email: "joao.souza@email.com", phone: "(21) 98888-8888", status: "Ativo" },
-  { id: "3", name: "Empresa Exemplo Ltda", email: "contato@exemplo.com", phone: "(31) 97777-7777", status: "Inativo" },
+  {
+    id: "1",
+    razaoSocial: "Maria Silva ME",
+    nomeFantasia: "Maria Silva Doces",
+    cnpj: "12.345.678/0001-99",
+    endereco: "Rua das Flores, 123",
+    cidade: "São Paulo",
+    estado: "SP",
+    nomeContato: "Maria Silva",
+    email: "maria@email.com",
+    telefone: "(11) 99999-9999",
+    whatsapp: "(11) 98888-8888",
+    status: "Ativo",
+  },
+  {
+    id: "2",
+    razaoSocial: "João Souza Comércio Ltda",
+    nomeFantasia: "Açougue Souza",
+    cnpj: "98.765.432/0001-00",
+    endereco: "Av. Central, 500",
+    cidade: "Rio de Janeiro",
+    estado: "RJ",
+    nomeContato: "João Souza",
+    email: "joao@email.com",
+    telefone: "(21) 98888-8888",
+    whatsapp: "",
+    status: "Ativo",
+  },
+  {
+    id: "3",
+    razaoSocial: "Empresa Exemplo Ltda",
+    nomeFantasia: "",
+    cnpj: "11.222.333/0001-44",
+    endereco: "Praça Sete, 77",
+    cidade: "Belo Horizonte",
+    estado: "MG",
+    nomeContato: "Cláudia Alves",
+    email: "contato@exemplo.com",
+    telefone: "(31) 97777-7777",
+    whatsapp: "",
+    status: "Inativo",
+  },
 ];
 
 interface ClientListProps {
@@ -28,16 +74,17 @@ export function ClientList({ onAddClient }: ClientListProps) {
   const [clients, setClients] = useState<Client[]>(initialClients);
 
   const filtered = clients.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.email.toLowerCase().includes(search.toLowerCase()) ||
-    c.phone.toLowerCase().includes(search.toLowerCase())
+    [c.razaoSocial, c.nomeFantasia, c.cnpj, c.endereco, c.cidade, c.estado, c.nomeContato, c.email, c.telefone, c.whatsapp]
+      .join(" ")
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
 
   return (
     <div>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <Input
-          placeholder="Buscar por nome, e-mail ou telefone..."
+          placeholder="Buscar por qualquer campo..."
           value={search}
           className="w-full md:max-w-xs"
           onChange={e => setSearch(e.target.value)}
@@ -46,29 +93,39 @@ export function ClientList({ onAddClient }: ClientListProps) {
           <UserPlus className="w-4 h-4" /> Novo Cliente
         </Button>
       </div>
-      <div className="rounded-lg border bg-background">
+      <div className="rounded-lg border bg-background overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead className="hidden md:table-cell">E-mail</TableHead>
+              <TableHead>Razão Social</TableHead>
+              <TableHead className="hidden md:table-cell">Apelido/Fantasia</TableHead>
+              <TableHead className="hidden md:table-cell">CNPJ</TableHead>
+              <TableHead>Contato</TableHead>
               <TableHead className="hidden md:table-cell">Telefone</TableHead>
+              <TableHead className="hidden md:table-cell">WhatsApp</TableHead>
+              <TableHead className="hidden md:table-cell">Cidade</TableHead>
+              <TableHead className="hidden md:table-cell">Estado</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell colSpan={9} className="text-center text-muted-foreground">
                   Nenhum cliente encontrado.
                 </TableCell>
               </TableRow>
             )}
             {filtered.map(client => (
               <TableRow key={client.id}>
-                <TableCell>{client.name}</TableCell>
-                <TableCell className="hidden md:table-cell">{client.email}</TableCell>
-                <TableCell className="hidden md:table-cell">{client.phone}</TableCell>
+                <TableCell>{client.razaoSocial}</TableCell>
+                <TableCell className="hidden md:table-cell">{client.nomeFantasia}</TableCell>
+                <TableCell className="hidden md:table-cell">{client.cnpj}</TableCell>
+                <TableCell>{client.nomeContato}</TableCell>
+                <TableCell className="hidden md:table-cell">{client.telefone}</TableCell>
+                <TableCell className="hidden md:table-cell">{client.whatsapp}</TableCell>
+                <TableCell className="hidden md:table-cell">{client.cidade}</TableCell>
+                <TableCell className="hidden md:table-cell">{client.estado}</TableCell>
                 <TableCell>
                   <span
                     className={

@@ -2,8 +2,6 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Clients from "./crm/Clients";
 import Suppliers from "./crm/Suppliers";
-import Opportunities from "./crm/Opportunities";
-import Campaigns from "./crm/Campaigns";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 const CRM = () => (
@@ -22,13 +20,9 @@ const CRM = () => (
       <TabsList>
         <TabsTrigger value="clients">Clientes</TabsTrigger>
         <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
-        <TabsTrigger value="opportunities">Oportunidades</TabsTrigger>
-        <TabsTrigger value="campaigns">Campanhas</TabsTrigger>
       </TabsList>
       <TabsContent value="clients"><Clients /></TabsContent>
       <TabsContent value="suppliers"><Suppliers /></TabsContent>
-      <TabsContent value="opportunities"><Opportunities /></TabsContent>
-      <TabsContent value="campaigns"><Campaigns /></TabsContent>
     </Tabs>
   </div>
 );
