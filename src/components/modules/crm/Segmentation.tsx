@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format, parseISO, getMonth } from 'date-fns';
+import { format, getMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 
@@ -26,10 +26,10 @@ export const Segmentation = ({ clients }: SegmentationProps) => {
   const filteredClients = useMemo(() => clients.filter(client => {
     const statusMatch = statusFilter === 'todos' || client.status.toLowerCase() === statusFilter;
     
-    const birthdayMatch = birthdayMonthFilter === 'todos' || (client.birthday && getMonth(parseISO(client.birthday)) === parseInt(birthdayMonthFilter));
+    const birthdayMatch = birthdayMonthFilter === 'todos' || (client.dataAniversario && getMonth(client.dataAniversario) === parseInt(birthdayMonthFilter));
 
     const searchMatch = searchTerm === '' || 
-      client.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      client.nomeFantasia.toLowerCase().includes(searchTerm.toLowerCase()) || 
       (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return statusMatch && birthdayMatch && searchMatch;
@@ -94,11 +94,11 @@ export const Segmentation = ({ clients }: SegmentationProps) => {
                 {filteredClients.length > 0 ? (
                   filteredClients.map(client => (
                     <TableRow key={client.id}>
-                      <TableCell className="font-medium">{client.name}</TableCell>
+                      <TableCell className="font-medium">{client.nomeFantasia}</TableCell>
                       <TableCell className="hidden md:table-cell">{client.email || 'N/A'}</TableCell>
                       <TableCell><Badge variant={client.status === 'Ativo' ? 'default' : 'secondary'}>{client.status}</Badge></TableCell>
                       <TableCell>
-                        {client.birthday ? format(parseISO(client.birthday), 'dd/MM/yyyy') : 'N/A'}
+                        {client.dataAniversario ? format(client.dataAniversario, 'dd/MM/yyyy') : 'N/A'}
                       </TableCell>
                     </TableRow>
                   ))

@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Client } from "./types";
 import { Users, Cake, DollarSign } from "lucide-react";
-import { format, getMonth, parseISO } from "date-fns";
+import { format, getMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface ClientDashboardProps {
@@ -27,10 +27,10 @@ export const ClientDashboard = ({ clients }: ClientDashboardProps) => {
   const activeClients = clients.filter(c => c.status === 'Ativo').length;
   
   const currentMonth = getMonth(new Date());
-  const birthdayClients = clients.filter(c => c.birthday && getMonth(parseISO(c.birthday)) === currentMonth).length;
+  const birthdayClients = clients.filter(c => c.dataAniversario && getMonth(c.dataAniversario) === currentMonth).length;
 
-  const allPurchases = clients.flatMap(c => c.purchaseHistory || []);
-  const totalRevenue = allPurchases.reduce((sum, p) => sum + p.amount, 0);
+  const allPurchases = clients.flatMap(c => c.historicoCompras || []);
+  const totalRevenue = allPurchases.reduce((sum, p) => sum + p.valor, 0);
   const averageTicket = allPurchases.length > 0 ? totalRevenue / allPurchases.length : 0;
 
   return (
