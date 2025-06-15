@@ -1,4 +1,3 @@
-
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Dashboard } from "@/components/Dashboard";
@@ -18,15 +17,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { menuItems } from "@/config/menu";
 import { TrendingUp } from "lucide-react";
 import { useClient } from "@/contexts/ClientContext";
-
 const Index = () => {
-  const { hasPermission } = useAuth();
-  
+  const {
+    hasPermission
+  } = useAuth();
   const getInitialModule = () => {
-    const visibleItems = menuItems.filter((item) => hasPermission(item.permission));
+    const visibleItems = menuItems.filter(item => hasPermission(item.permission));
     return visibleItems.length > 0 ? visibleItems[0].id : "";
   };
-
   const [activeModule, setActiveModule] = useState(getInitialModule);
   const {
     propostas,
@@ -36,18 +34,19 @@ const Index = () => {
     setContasAReceber,
     contasAPagar,
     setContasAPagar,
-    handlePropostaAceita,
+    handlePropostaAceita
   } = useAppData();
-  const { clientName, clientSubtitle } = useClient();
-
+  const {
+    clientName,
+    clientSubtitle
+  } = useClient();
   const getModuleTitle = () => {
     if (!activeModule) {
       return "Acesso Restrito";
     }
-    const module = menuItems.find((item) => item.id === activeModule);
+    const module = menuItems.find(item => item.id === activeModule);
     return module ? module.title : "Dashboard";
   };
-
   const renderContent = () => {
     switch (activeModule) {
       case "caixa":
@@ -57,12 +56,7 @@ const Index = () => {
       case "contas-receber":
         return <ContasReceberModule contas={contasAReceber} setContas={setContasAReceber} />;
       case "comercial":
-        return <Comercial 
-          propostas={propostas}
-          setPropostas={setPropostas}
-          vendedores={vendedores}
-          onPropostaAceita={handlePropostaAceita}
-        />;
+        return <Comercial propostas={propostas} setPropostas={setPropostas} vendedores={vendedores} onPropostaAceita={handlePropostaAceita} />;
       case "produtos-servicos":
         return <ProdutosServicos />;
       case "relatorios":
@@ -76,32 +70,26 @@ const Index = () => {
       case "dashboard":
         return <Dashboard onNavigate={setActiveModule} />;
       default:
-        return (
-          <div className="flex flex-col items-center justify-center h-full text-center">
+        return <div className="flex flex-col items-center justify-center h-full text-center">
             <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
-            <p className="text-muted-foreground">Você não tem permissão para visualizar nenhum módulo. <br/>Por favor, entre em contato com o administrador.</p>
-          </div>
-        );
+            <p className="text-muted-foreground">Você não tem permissão para visualizar nenhum módulo. <br />Por favor, entre em contato com o administrador.</p>
+          </div>;
     }
   };
-
-  return (
-    <SidebarProvider>
+  return <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
         <AppSidebar onMenuChange={setActiveModule} />
         <main className="flex-1 p-6 overflow-auto">
           <header className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
-              <h1 className="text-2xl font-bold text-slate-800">{getModuleTitle()}</h1>
+              
             </div>
             <div className="hidden md:flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-white" />
-              </div>
+              
               <div>
                 <h1 className="font-bold text-lg text-slate-800">{clientName}</h1>
-                <p className="text-sm text-muted-foreground">{clientSubtitle}</p>
+                
               </div>
             </div>
           </header>
@@ -109,8 +97,6 @@ const Index = () => {
         </main>
         <Toaster />
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 };
-
 export default Index;
