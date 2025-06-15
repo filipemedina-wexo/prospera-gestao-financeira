@@ -7,33 +7,28 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { TrendingUp } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { users } from "@/data/users";
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const [fullName, setFullName] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const { login, signUp, loading } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(email, password)) {
-      navigate('/');
-    }
-  };
-
-  const handleUserSelect = (selectedEmail: string) => {
-    const selectedUser = users.find(u => u.email === selectedEmail);
-    if (selectedUser) {
-      setEmail(selectedUser.email);
-      setPassword(selectedUser.password || '');
+    if (isSignUp) {
+      const { error } = await signUp({ email, password, fullName });
+      if (!error) {
+        setIsSignUp(false);
+        setPassword('');
+      }
+    } else {
+      const { error } = await login(email, password);
+      if (!error) {
+        navigate('/');
+      }
     }
   };
 
@@ -46,26 +41,24 @@ const Login = () => {
             </div>
           <CardTitle className="text-2xl">Prospera</CardTitle>
           <CardDescription>
-            Entre com seu email e senha para acessar.
+            {isSignUp ? 'Crie sua conta para começar.' : 'Entre com seu email e senha para acessar.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="user-select">Selecionar Usuário (para teste)</Label>
-              <Select onValueChange={handleUserSelect}>
-                <SelectTrigger id="user-select">
-                  <SelectValue placeholder="Escolha um perfil de usuário" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.email}>
-                      {user.name} ({user.role})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Nome Completo</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="Seu nome completo"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -84,14 +77,21 @@ const Login = () => {
                 type="password"
                 placeholder="********"
                 required
+                minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <Button type="submit" className="w-full">
-              Entrar
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Aguarde...' : (isSignUp ? 'Cadastrar' : 'Entrar')}
             </Button>
           </form>
+          <div className="mt-4 text-center text-sm">
+            {isSignUp ? 'Já tem uma conta?' : 'Não tem uma conta?'}
+            <Button variant="link" onClick={() => setIsSignUp(!isSignUp)} className="pl-1">
+              {isSignUp ? 'Entrar' : 'Cadastre-se'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
