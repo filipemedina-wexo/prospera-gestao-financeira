@@ -20,58 +20,11 @@ import { Relatorios } from "./modules/Relatorios";
 import { DRE } from "./modules/DRE";
 import { Caixa } from "./modules/Caixa";
 import { QuickChartsSection } from "./QuickChartsSection";
+import { DashboardBlocks } from "./DashboardBlocks";
+import ReceberBlock from "./dashboard-blocks/ReceberBlock";
+import PagarBlock from "./dashboard-blocks/PagarBlock";
 
-// ---- Mocked alert data (not shown for brevity, but kept for future use)
-
-const initialAlerts = [
-  {
-    id: "at01",
-    title: "Aluguel do Escritório",
-    description: "Vencido há 2 dias",
-    type: "Atrasado",
-    amount: 2500,
-    category: "contas-pagar",
-    resolved: false,
-  },
-  {
-    id: "at02",
-    title: "Internet/Telefonia",
-    description: "Vencido ontem",
-    type: "Atrasado",
-    amount: 390.75,
-    category: "contas-pagar",
-    resolved: false,
-  },
-  {
-    id: "vh01",
-    title: "Fornecedor ABC",
-    description: "Vence hoje",
-    type: "Vencendo hoje",
-    amount: 1200.0,
-    category: "contas-pagar",
-    resolved: false,
-  },
-  {
-    id: "vh02",
-    title: "Contador",
-    description: "Vence hoje",
-    type: "Vencendo hoje",
-    amount: 800.0,
-    category: "contas-pagar",
-    resolved: false,
-  },
-  {
-    id: "rec01",
-    title: "Cliente XYZ - Projeto",
-    description: "Pagamento esperado em 3 dias",
-    type: "A Receber",
-    amount: 5800,
-    category: "contas-receber",
-    resolved: false,
-  },
-];
-
-// --- Dashboard Data (mock)
+// --- Mocked dashboard data ---
 const dashboardData = {
   totalReceber: 45680.5,
   totalPagar: 23450.75,
@@ -82,9 +35,134 @@ const dashboardData = {
   despesasMes: 34567.8,
 };
 
+type Block = {
+  id: string;
+  type: string;
+  cols: number;
+  component: React.ComponentType<any>;
+  props?: any;
+};
+
+// Montando os blocos dos cards principais do dashboard para edição
+const initialBlocks: Block[] = [
+  {
+    id: "receber",
+    type: "receber",
+    cols: 1,
+    component: ReceberBlock,
+    props: { value: dashboardData.totalReceber },
+  },
+  {
+    id: "pagar",
+    type: "pagar",
+    cols: 1,
+    component: PagarBlock,
+    props: { value: dashboardData.totalPagar },
+  },
+  {
+    id: "saldo",
+    type: "saldo",
+    cols: 1,
+    // Inline: mesmo layout do card original
+    component: () => (
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Saldo Líquido</CardTitle>
+          <Wallet className="h-4 w-4 text-blue-600" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-blue-600">
+            R$ {dashboardData.saldoLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Saldo real disponível</p>
+        </CardContent>
+      </Card>
+    ),
+  },
+  {
+    id: "faturamento",
+    type: "faturamento",
+    cols: 1,
+    component: () => (
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Faturamento do Mês</CardTitle>
+          <TrendingUp className="h-4 w-4 text-emerald-700" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-emerald-700">
+            R$ {dashboardData.faturamentoMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">+8.4% em relação ao mês anterior</p>
+        </CardContent>
+      </Card>
+    ),
+  },
+  {
+    id: "despesas",
+    type: "despesas",
+    cols: 1,
+    component: () => (
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Despesas do Mês</CardTitle>
+          <TrendingDown className="h-4 w-4 text-rose-700" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-rose-700">
+            R$ {dashboardData.despesasMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">+1.8% em relação ao mês anterior</p>
+        </CardContent>
+      </Card>
+    ),
+  },
+  {
+    id: "vencendohoje",
+    type: "vencendohoje",
+    cols: 1,
+    component: () => (
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Contas vencendo hoje</CardTitle>
+          <Calendar className="h-4 w-4 text-yellow-500" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-yellow-500">
+            {dashboardData.contasVencendoHoje}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Entre pagar e receber</p>
+        </CardContent>
+      </Card>
+    ),
+  },
+  {
+    id: "atrasadas",
+    type: "atrasadas",
+    cols: 1,
+    component: () => (
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Contas atrasadas</CardTitle>
+          <AlertCircle className="h-4 w-4 text-rose-600" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-rose-600">
+            {dashboardData.contasAtrasadas}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Necessário atenção</p>
+        </CardContent>
+      </Card>
+    ),
+  },
+];
+
 export function Dashboard() {
   const [activeModule, setActiveModule] = useState("dashboard");
-  // Previously, alert logic here
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // State dos blocos para o modo de edição
+  const [blocks, setBlocks] = useState<Block[]>(initialBlocks);
 
   const renderActiveModule = () => {
     switch (activeModule) {
@@ -105,7 +183,6 @@ export function Dashboard() {
     }
   };
 
-  // --- The restored original dashboard ---
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -117,102 +194,120 @@ export function Dashboard() {
             Visão geral das suas finanças - {new Date().toLocaleDateString("pt-BR")}
           </p>
         </div>
+        <div>
+          <Button
+            variant={isEditMode ? "secondary" : "outline"}
+            size="sm"
+            onClick={() => setIsEditMode(v => !v)}
+          >
+            {isEditMode ? "Fechar edição" : "Editar dashboard"}
+          </Button>
+        </div>
       </div>
 
-      {/* Cards grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
-        {/* A Receber */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">A Receber</CardTitle>
-            <PiggyBank className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              R$ {dashboardData.totalReceber.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">+5.2% em relação ao mês anterior</p>
-          </CardContent>
-        </Card>
-        {/* A Pagar */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">A Pagar</CardTitle>
-            <CreditCard className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              R$ {dashboardData.totalPagar.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">-2.1% em relação ao mês anterior</p>
-          </CardContent>
-        </Card>
-        {/* Saldo Líquido */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saldo Líquido</CardTitle>
-            <Wallet className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              R$ {dashboardData.saldoLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Saldo real disponível</p>
-          </CardContent>
-        </Card>
-        {/* Faturamento */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Faturamento do Mês</CardTitle>
-            <TrendingUp className="h-4 w-4 text-emerald-700" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-700">
-              R$ {dashboardData.faturamentoMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">+8.4% em relação ao mês anterior</p>
-          </CardContent>
-        </Card>
-        {/* Despesas do mês */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Despesas do Mês</CardTitle>
-            <TrendingDown className="h-4 w-4 text-rose-700" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-rose-700">
-              R$ {dashboardData.despesasMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">+1.8% em relação ao mês anterior</p>
-          </CardContent>
-        </Card>
-        {/* Contas Vencendo hoje */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Contas vencendo hoje</CardTitle>
-            <Calendar className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">
-              {dashboardData.contasVencendoHoje}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Entre pagar e receber</p>
-          </CardContent>
-        </Card>
-        {/* Contas Atrasadas */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Contas atrasadas</CardTitle>
-            <AlertCircle className="h-4 w-4 text-rose-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-rose-600">
-              {dashboardData.contasAtrasadas}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Necessário atenção</p>
-          </CardContent>
-        </Card>
-      </section>
+      {/* Cards grid OU grid editável */}
+      {!isEditMode ? (
+        <section className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
+          {/* A Receber */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">A Receber</CardTitle>
+              <PiggyBank className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                R$ {dashboardData.totalReceber.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">+5.2% em relação ao mês anterior</p>
+            </CardContent>
+          </Card>
+          {/* A Pagar */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">A Pagar</CardTitle>
+              <CreditCard className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                R$ {dashboardData.totalPagar.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">-2.1% em relação ao mês anterior</p>
+            </CardContent>
+          </Card>
+          {/* Saldo Líquido */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Saldo Líquido</CardTitle>
+              <Wallet className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                R$ {dashboardData.saldoLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Saldo real disponível</p>
+            </CardContent>
+          </Card>
+          {/* Faturamento */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Faturamento do Mês</CardTitle>
+              <TrendingUp className="h-4 w-4 text-emerald-700" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-700">
+                R$ {dashboardData.faturamentoMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">+8.4% em relação ao mês anterior</p>
+            </CardContent>
+          </Card>
+          {/* Despesas do mês */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Despesas do Mês</CardTitle>
+              <TrendingDown className="h-4 w-4 text-rose-700" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-rose-700">
+                R$ {dashboardData.despesasMes.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">+1.8% em relação ao mês anterior</p>
+            </CardContent>
+          </Card>
+          {/* Contas Vencendo hoje */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Contas vencendo hoje</CardTitle>
+              <Calendar className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-500">
+                {dashboardData.contasVencendoHoje}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Entre pagar e receber</p>
+            </CardContent>
+          </Card>
+          {/* Contas Atrasadas */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Contas atrasadas</CardTitle>
+              <AlertCircle className="h-4 w-4 text-rose-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-rose-600">
+                {dashboardData.contasAtrasadas}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Necessário atenção</p>
+            </CardContent>
+          </Card>
+        </section>
+      ) : (
+        // Modo edição: dashboardBlocks com drag/resize
+        <DashboardBlocks
+          blocks={blocks}
+          setBlocks={setBlocks}
+          isEditMode={isEditMode}
+        />
+      )}
 
       {/* Charts and advanced blocks */}
       <QuickChartsSection />
@@ -250,3 +345,6 @@ export function Dashboard() {
     </div>
   );
 }
+
+// O arquivo está ficando muito extenso (mais de 250 linhas). Após conferir esta alteração, recomenda-se considerar refatorar em componentes menores se for necessário adicionar novas funcionalidades ou facilitar manutenibilidade.
+
