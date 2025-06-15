@@ -20,6 +20,10 @@ import { DRE } from "./modules/DRE";
 import { Caixa } from "./modules/Caixa";
 import { AlertsPopup } from "./AlertsPopup";
 import { QuickChartsSection } from "./QuickChartsSection";
+import ReceberBlock from "./dashboard-blocks/ReceberBlock";
+import PagarBlock from "./dashboard-blocks/PagarBlock";
+import { DashboardBlocks } from "./DashboardBlocks";
+import type { DashboardBlock } from "@/types/dashboardBlock";
 
 // Mocked alert data
 const initialAlerts: Alert[] = [
@@ -75,7 +79,7 @@ export function Dashboard() {
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
   const [alertsOpen, setAlertsOpen] = useState(false);
 
-  // Dados mockados para demonstração
+  // dados mockados aqui, continuam
   const dashboardData = {
     totalReceber: 45680.50,
     totalPagar: 23450.75,
@@ -85,6 +89,29 @@ export function Dashboard() {
     faturamentoMes: 89340.25,
     despesasMes: 34567.80
   };
+
+  // New: Manage blocks order and sizes
+  const initialBlocks: DashboardBlock[] = [
+    {
+      id: "receber",
+      type: "receber",
+      title: "A Receber",
+      cols: 1,
+      component: ReceberBlock,
+      props: { value: dashboardData.totalReceber }
+    },
+    {
+      id: "pagar",
+      type: "pagar",
+      title: "A Pagar",
+      cols: 1,
+      component: PagarBlock,
+      props: { value: dashboardData.totalPagar }
+    },
+    // Add other blocks after initial testing!
+  ];
+  const [blocks, setBlocks] = useState<DashboardBlock[]>(initialBlocks);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const handleResolveAlert = (id: string) => {
     setAlerts(prev => prev.map(a => a.id === id ? { ...a, resolved: true } : a));
@@ -115,6 +142,7 @@ export function Dashboard() {
     }
   };
 
+  // Updated renderDashboard: just render DashboardBlocks for now (we'll add save/cancel/edit later)
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -126,195 +154,14 @@ export function Dashboard() {
             Visão geral das suas finanças - {new Date().toLocaleDateString('pt-BR')}
           </p>
         </div>
-        <Badge variant="outline" className="text-green-600 border-green-200">
-          <TrendingUp className="h-4 w-4 mr-1" />
-          Crescimento +12%
-        </Badge>
-      </div>
-
-      {/* Cards de Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">A Receber</CardTitle>
-            <PiggyBank className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              R$ {dashboardData.totalReceber.toLocaleString('pt-BR', { 
-                minimumFractionDigits: 2, 
-                maximumFractionDigits: 2 
-              })}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              +5.2% em relação ao mês anterior
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">A Pagar</CardTitle>
-            <CreditCard className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              R$ {dashboardData.totalPagar.toLocaleString('pt-BR', { 
-                minimumFractionDigits: 2, 
-                maximumFractionDigits: 2 
-              })}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              -2.1% em relação ao mês anterior
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saldo Líquido</CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              R$ {dashboardData.saldoLiquido.toLocaleString('pt-BR', { 
-                minimumFractionDigits: 2, 
-                maximumFractionDigits: 2 
-              })}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Posição atual
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Alertas Card - Clickable to open popup */}
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 border-orange-200"
-          onClick={() => setAlertsOpen(true)}
-          tabIndex={0}
-          role="button"
-          aria-label="Ver alertas"
+        <button
+          className="border px-3 py-1 rounded text-sm hover:bg-accent transition"
+          onClick={() => setIsEditMode(e => !e)}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Alertas</CardTitle>
-            <AlertCircle className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {
-                alerts.filter(a => !a.resolved && (a.type === "Atrasado" || a.type === "Vencendo hoje")).length
-              }
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {
-                // Detailed text
-                (() => {
-                  const vencendoHoje = alerts.filter(a => !a.resolved && a.type === "Vencendo hoje").length;
-                  const atrasadas = alerts.filter(a => !a.resolved && a.type === "Atrasado").length;
-                  return `${vencendoHoje} vencendo hoje, ${atrasadas} atrasadas`;
-                })()
-              }
-            </p>
-          </CardContent>
-        </Card>
+          {isEditMode ? "Concluir edição" : "Editar layout"}
+        </button>
       </div>
-
-      {/* Nova Seção: Gráficos Rápidos */}
-      <QuickChartsSection />
-
-      {/* Ações Rápidas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Ações Rápidas</CardTitle>
-            <CardDescription>Acesso direto às principais funcionalidades</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center space-y-2"
-                onClick={() => setActiveModule("caixa")}
-              >
-                <Wallet className="h-6 w-6" />
-                <span className="text-sm">Controle de Caixa</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center space-y-2"
-                onClick={() => setActiveModule("contas-pagar")}
-              >
-                <CreditCard className="h-6 w-6" />
-                <span className="text-sm">Nova Conta a Pagar</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center space-y-2"
-                onClick={() => setActiveModule("contas-receber")}
-              >
-                <PiggyBank className="h-6 w-6" />
-                <span className="text-sm">Nova Conta a Receber</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center space-y-2"
-                onClick={() => setActiveModule("dre")}
-              >
-                <Calendar className="h-6 w-6" />
-                <span className="text-sm">Ver DRE</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Próximos Vencimentos</CardTitle>
-            <CardDescription>Contas que vencem nos próximos 7 dias</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Aluguel do Escritório</p>
-                  <p className="text-xs text-muted-foreground">Vence hoje</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-red-600">R$ 2.500,00</p>
-                  <Badge variant="destructive" className="text-xs">Atrasado</Badge>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Fornecedor ABC</p>
-                  <p className="text-xs text-muted-foreground">Vence amanhã</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-orange-600">R$ 1.200,00</p>
-                  <Badge variant="secondary" className="text-xs">Pendente</Badge>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Cliente XYZ - Projeto</p>
-                  <p className="text-xs text-muted-foreground">Receber em 3 dias</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-blue-600">R$ 5.800,00</p>
-                  <Badge variant="outline" className="text-xs">A Receber</Badge>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      <AlertsPopup
-        open={alertsOpen}
-        alerts={alerts}
-        onClose={() => setAlertsOpen(false)}
-        onResolve={handleResolveAlert}
-        onViewDetails={handleViewDetails}
-      />
+      <DashboardBlocks blocks={blocks} setBlocks={setBlocks} isEditMode={isEditMode} />
     </div>
   );
 
