@@ -3,8 +3,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Clients from "./crm/Clients";
 import Suppliers from "./crm/Suppliers";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Client } from "./crm/types";
 
-const CRM = () => (
+interface CRMProps {
+  clients: Client[];
+  setClients: React.Dispatch<React.SetStateAction<Client[]>>;
+}
+
+const CRM = ({ clients, setClients }: CRMProps) => (
   <div>
     <Card className="mb-4">
       <CardHeader>
@@ -21,7 +27,7 @@ const CRM = () => (
         <TabsTrigger value="clients">Clientes</TabsTrigger>
         <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
       </TabsList>
-      <TabsContent value="clients"><Clients /></TabsContent>
+      <TabsContent value="clients"><Clients clients={clients} setClients={setClients} /></TabsContent>
       <TabsContent value="suppliers"><Suppliers /></TabsContent>
     </Tabs>
   </div>

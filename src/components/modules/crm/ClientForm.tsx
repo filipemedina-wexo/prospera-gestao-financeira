@@ -1,20 +1,21 @@
+
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { useEffect } from "react";
-import type { Client } from "./ClientList";
+import type { Client } from "./types";
 
 interface ClientFormProps {
   open: boolean;
   onClose: () => void;
   initialValues?: Partial<Client>;
-  onSave?: (client: Client) => void;
+  onSave: (client: Client) => void;
 }
 
 export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormProps) {
-  const form = useForm({
+  const form = useForm<Client>({
     defaultValues: {
       razaoSocial: "",
       nomeFantasia: "",
@@ -27,35 +28,43 @@ export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormP
       telefone: "",
       whatsapp: "",
       status: "Ativo",
-      id: undefined,
-      name: "",
-      phone: "",
     }
   });
 
-  // Preenche valores caso edição
   useEffect(() => {
     if (initialValues) {
-      form.reset({ ...form.getValues(), ...initialValues });
+      form.reset({ ...initialValues });
+    } else {
+      form.reset({
+        razaoSocial: "",
+        nomeFantasia: "",
+        cnpj: "",
+        endereco: "",
+        cidade: "",
+        estado: "",
+        nomeContato: "",
+        email: "",
+        telefone: "",
+        whatsapp: "",
+        status: "Ativo",
+      });
     }
-    // eslint-disable-next-line
-  }, [initialValues]);
+  }, [initialValues, open, form]);
   
-  function onSubmit(values: any) {
-    // Gera ID se novo
+  function onSubmit(values: Client) {
     const data: Client = {
       ...initialValues,
       ...values,
       id: initialValues?.id ?? Math.random().toString(36).slice(2, 10),
       status: values.status || "Ativo"
     };
-    if (onSave) onSave(data);
+    onSave(data);
     onClose();
   }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle>{initialValues ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
           <DialogDescription>Preencha e salve as informações deste cliente.</DialogDescription>

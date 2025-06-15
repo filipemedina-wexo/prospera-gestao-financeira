@@ -22,22 +22,28 @@ import {
   Send,
   MoreVertical,
   CheckCircle,
-  XCircle
+  XCircle,
+  UserPlus
 } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
 import { Proposta, Vendedor } from "./comercial/types";
 import { useToast } from "@/hooks/use-toast";
+import { Client } from "./crm/types";
+import { ClientForm } from "./crm/ClientForm";
 
 interface ComercialProps {
   propostas: Proposta[];
   setPropostas: React.Dispatch<React.SetStateAction<Proposta[]>>;
   vendedores: Vendedor[];
   onPropostaAceita: (proposta: Proposta) => void;
+  clients: Client[];
+  setClients: React.Dispatch<React.SetStateAction<Client[]>>;
 }
 
-export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceita }: ComercialProps) {
+export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceita, clients, setClients }: ComercialProps) {
   const [showDialog, setShowDialog] = useState(false);
+  const [showClientDialog, setShowClientDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("propostas");
   const { toast } = useToast();
 
@@ -50,6 +56,16 @@ export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceit
     observacoes: "",
     itens: [{ descricao: "", quantidade: 1, valorUnitario: 0 }]
   });
+
+  const handleClientSave = (client: Client) => {
+    setClients(prevClients => [...prevClients, client]);
+    setFormData(prevFormData => ({ ...prevFormData, cliente: client.razaoSocial }));
+    toast({
+      title: "Cliente criado!",
+      description: `O cliente "${client.razaoSocial}" foi criado com sucesso.`,
+      className: "bg-green-100 text-green-800",
+    });
+  };
 
   const handleStatusChange = (propostaId: string, newStatus: Proposta['status']) => {
     const proposta = propostas.find(p => p.id === propostaId);
@@ -161,13 +177,39 @@ export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceit
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cliente">Cliente *</Label>
-                  <Input
-                    id="cliente"
-                    value={formData.cliente}
-                    onChange={(e) => setFormData({...formData, cliente: e.target.value})}
-                    placeholder="Nome da empresa"
-                    required
-                  />
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={formData.cliente}
+                      onValueChange={(value) => setFormData({ ...formData, cliente: value })}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um cliente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map(client => (
+                          <SelectItem key={client.id} value={client.razaoSocial}>
+                            {client.razaoSocial}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Dialog open={showClientDialog} onOpenChange={setShowClientDialog}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="icon" type="button">
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <ClientForm 
+                        open={showClientDialog} 
+                        onClose={() => setShowClientDialog(false)} 
+                        onSave={(client) => {
+                          handleClientSave(client);
+                          setShowClientDialog(false);
+                        }}
+                      />
+                    </Dialog>
+                  </div>
                 </div>
               </div>
 

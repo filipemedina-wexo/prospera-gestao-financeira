@@ -36,7 +36,9 @@ const Index = () => {
     setContasAReceber,
     contasAPagar,
     setContasAPagar,
-    handlePropostaAceita
+    handlePropostaAceita,
+    clients,
+    setClients,
   } = useAppData();
   const {
     clientName,
@@ -58,7 +60,7 @@ const Index = () => {
       case "contas-receber":
         return <ContasReceberModule contas={contasAReceber} setContas={setContasAReceber} />;
       case "comercial":
-        return <Comercial propostas={propostas} setPropostas={setPropostas} vendedores={vendedores} onPropostaAceita={handlePropostaAceita} />;
+        return <Comercial propostas={propostas} setPropostas={setPropostas} vendedores={vendedores} onPropostaAceita={handlePropostaAceita} clients={clients} setClients={setClients} />;
       case "produtos-servicos":
         return <ProdutosServicos />;
       case "relatorios":
@@ -68,7 +70,7 @@ const Index = () => {
       case "configuracoes":
         return <Configuracoes />;
       case "crm":
-        return <CRM />;
+        return <CRM clients={clients} setClients={setClients} />;
       case "dashboard":
         return <Dashboard onNavigate={setActiveModule} contasPagar={contasAPagar} contasReceber={contasAReceber} />;
       default:
