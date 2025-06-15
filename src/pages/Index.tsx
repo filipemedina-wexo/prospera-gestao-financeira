@@ -1,3 +1,4 @@
+
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Dashboard } from "@/components/Dashboard";
@@ -41,6 +42,10 @@ const Index = () => {
     setClients,
     produtosServicos,
     setProdutosServicos,
+    funcionarios,
+    setFuncionarios,
+    departamentos,
+    setDepartamentos,
   } = useAppData();
   const {
     clientName,
@@ -74,7 +79,7 @@ const Index = () => {
       case "crm":
         return <CRM clients={clients} setClients={setClients} />;
       case "pessoas":
-        return <Pessoas />;
+        return <Pessoas funcionarios={funcionarios} setFuncionarios={setFuncionarios} departamentos={departamentos} setDepartamentos={setDepartamentos} />;
       case "dashboard":
         return <Dashboard onNavigate={setActiveModule} contasPagar={contasAPagar} contasReceber={contasAReceber} />;
       default:

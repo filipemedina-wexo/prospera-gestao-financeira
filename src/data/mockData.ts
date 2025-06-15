@@ -3,6 +3,7 @@ import { ContaPagar } from "@/components/modules/contas-pagar/types";
 import { ContaReceber } from "@/components/modules/contas-receber/types";
 import { Client, Compra } from "@/components/modules/crm/types";
 import { ProdutoServico } from "@/components/modules/produtos-servicos/types";
+import { Funcionario, Departamento } from "@/components/modules/pessoas/types";
 
 export const initialPropostas: Proposta[] = [
   {
@@ -288,4 +289,63 @@ export const initialProdutosServicos: ProdutoServico[] = [
     status: "Inativo",
     descricao: "Programa de capacitação para equipes"
   }
+];
+
+export const initialDepartamentos: Departamento[] = [
+  { id: 'dep-1', nome: 'Tecnologia', responsavelId: 'func-1' },
+  { id: 'dep-2', nome: 'Comercial', responsavelId: 'func-2' },
+  { id: 'dep-3', nome: 'Administrativo', responsavelId: 'func-4' },
+];
+
+export const initialFuncionarios: Funcionario[] = [
+  {
+    id: 'func-1',
+    nome: 'Ana Oliveira',
+    email: 'ana.oliveira@empresa.com',
+    cargo: 'Desenvolvedora Full-Stack',
+    departamento: 'Tecnologia',
+    dataAdmissao: new Date(2022, 1, 15),
+    salario: 8500,
+    status: 'ativo',
+  },
+  {
+    id: 'func-2',
+    nome: 'João Silva',
+    email: 'joao.silva@empresa.com',
+    cargo: 'Gerente de Vendas',
+    departamento: 'Comercial',
+    dataAdmissao: new Date(2020, 5, 10),
+    salario: 12000,
+    status: 'ativo',
+  },
+  {
+    id: 'func-3',
+    nome: 'Maria Santos',
+    email: 'maria.santos@empresa.com',
+    cargo: 'Analista de Marketing',
+    departamento: 'Comercial',
+    dataAdmissao: new Date(2023, 8, 1),
+    salario: 6000,
+    status: 'ferias',
+  },
+  {
+    id: 'func-4',
+    nome: 'Carlos Pereira',
+    email: 'carlos.pereira@empresa.com',
+    cargo: 'Gerente Financeiro',
+    departamento: 'Administrativo',
+    dataAdmissao: new Date(2019, 3, 22),
+    salario: 13500,
+    status: 'ativo',
+  },
+    {
+    id: 'func-5',
+    nome: 'Sofia Costa',
+    email: 'sofia.costa@empresa.com',
+    cargo: 'Designer UX/UI',
+    departamento: 'Tecnologia',
+    dataAdmissao: new Date(2023, 11, 5),
+    salario: 7200,
+    status: 'inativo',
+  },
 ];
