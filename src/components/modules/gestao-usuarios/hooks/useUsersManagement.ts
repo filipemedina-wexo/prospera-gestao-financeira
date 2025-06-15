@@ -16,6 +16,18 @@ interface UserRoleData {
   role: ExtendedRole;
 }
 
+// Type for raw Supabase profile response
+type SupabaseProfile = {
+  id: unknown;
+  full_name: unknown;
+} | null;
+
+// Type for raw Supabase user role response  
+type SupabaseUserRole = {
+  user_id: unknown;
+  role: unknown;
+} | null;
+
 export function useUsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,14 +66,31 @@ export function useUsersManagement() {
         return;
       }
 
-      // Create properly typed arrays by processing each item individually
+      // Type guard for profiles
+      const isValidProfile = (profile: SupabaseProfile): profile is ProfileData => {
+        return profile !== null && 
+               profile !== undefined &&
+               typeof profile === 'object' && 
+               'id' in profile && 
+               typeof profile.id === 'string' && 
+               profile.id.length > 0;
+      };
+
+      // Type guard for user roles
+      const isValidUserRole = (roleData: SupabaseUserRole): roleData is UserRoleData => {
+        return roleData !== null &&
+               roleData !== undefined &&
+               typeof roleData === 'object' && 
+               'user_id' in roleData && 
+               'role' in roleData &&
+               typeof roleData.user_id === 'string' && 
+               typeof roleData.role === 'string';
+      };
+
+      // Create properly typed arrays
       const validProfiles: ProfileData[] = [];
-      for (const profile of profiles) {
-        if (profile && 
-            typeof profile === 'object' && 
-            'id' in profile && 
-            typeof profile.id === 'string' && 
-            profile.id.length > 0) {
+      for (const profile of profiles as SupabaseProfile[]) {
+        if (isValidProfile(profile)) {
           validProfiles.push({
             id: profile.id,
             full_name: profile.full_name || null
@@ -71,13 +100,8 @@ export function useUsersManagement() {
 
       const validUserRoles: UserRoleData[] = [];
       if (userRoles) {
-        for (const roleData of userRoles) {
-          if (roleData && 
-              typeof roleData === 'object' && 
-              'user_id' in roleData && 
-              'role' in roleData &&
-              typeof roleData.user_id === 'string' && 
-              typeof roleData.role === 'string') {
+        for (const roleData of userRoles as SupabaseUserRole[]) {
+          if (isValidUserRole(roleData)) {
             validUserRoles.push({
               user_id: roleData.user_id,
               role: roleData.role as ExtendedRole
