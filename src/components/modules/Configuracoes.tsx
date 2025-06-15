@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 // Import UI components individually from their actual locations
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Settings, Users, Building, CreditCard, Percent, Tags, Edit, Trash2 } from "lucide-react";
+import { Settings, Users, CreditCard, Percent, Tags, Edit, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -234,12 +233,11 @@ export const Configuracoes = () => {
       </div>
 
       <Tabs defaultValue="geral" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="geral">Geral</TabsTrigger>
           <TabsTrigger value="comissoes">Comissões</TabsTrigger>
           <TabsTrigger value="categorias">Categorias</TabsTrigger>
           <TabsTrigger value="bancos">Bancos</TabsTrigger>
-          <TabsTrigger value="fornecedores">Fornecedores</TabsTrigger>
           <TabsTrigger value="clientes">Clientes</TabsTrigger>
         </TabsList>
 
@@ -567,99 +565,6 @@ export const Configuracoes = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="fornecedores">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Fornecedores
-              </CardTitle>
-              <CardDescription>
-                Gerencie o cadastro de fornecedores
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                {fornecedores.map(fornecedor => (
-                  <div key={fornecedor.id} className="flex items-start justify-between p-4 border rounded-lg min-h-[72px]">
-                    {fornecedor.editando ? (
-                      <div className="flex-grow flex flex-col gap-2 w-full">
-                        <div className="grid grid-cols-2 gap-2">
-                            <Input
-                                value={edicaoFornecedor.razaoSocial}
-                                onChange={(e) => setEdicaoFornecedor(f => ({ ...f, razaoSocial: e.target.value }))}
-                                placeholder="Razão Social"
-                            />
-                            <Input
-                                value={edicaoFornecedor.cnpj}
-                                onChange={(e) => setEdicaoFornecedor(f => ({ ...f, cnpj: e.target.value }))}
-                                placeholder="CNPJ"
-                            />
-                            <Input
-                                value={edicaoFornecedor.email}
-                                onChange={(e) => setEdicaoFornecedor(f => ({ ...f, email: e.target.value }))}
-                                placeholder="E-mail"
-                            />
-                            <Input
-                                value={edicaoFornecedor.telefone}
-                                onChange={(e) => setEdicaoFornecedor(f => ({ ...f, telefone: e.target.value }))}
-                                placeholder="Telefone"
-                            />
-                        </div>
-                        <div className="flex justify-end gap-2">
-                            <Button size="sm" onClick={() => salvarEdicaoFornecedor(fornecedor)}>Salvar</Button>
-                            <Button size="sm" variant="outline" onClick={() => cancelarEdicaoFornecedor(fornecedor)}>Cancelar</Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex-grow">
-                          <h3 className="font-medium">{fornecedor.razaoSocial}</h3>
-                          <p className="text-sm text-muted-foreground">CNPJ: {fornecedor.cnpj}</p>
-                          <p className="text-sm text-muted-foreground">Email: {fornecedor.email}</p>
-                          <p className="text-sm text-muted-foreground">Telefone: {fornecedor.telefone}</p>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <Badge>{fornecedor.status}</Badge>
-                          <Button variant="ghost" size="icon" onClick={() => iniciarEdicaoFornecedor(fornecedor)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setFornecedorParaRemover(fornecedor)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <Separator />
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Novo Fornecedor</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fornecedor-razao-social">Razão Social</Label>
-                    <Input id="fornecedor-razao-social" placeholder="Nome da empresa" value={novoFornecedor.razaoSocial} onChange={e => setNovoFornecedor(f => ({...f, razaoSocial: e.target.value}))}/>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="fornecedor-cnpj">CNPJ</Label>
-                    <Input id="fornecedor-cnpj" placeholder="00.000.000/0000-00" value={novoFornecedor.cnpj} onChange={e => setNovoFornecedor(f => ({...f, cnpj: e.target.value}))}/>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="fornecedor-email">E-mail</Label>
-                    <Input id="fornecedor-email" type="email" placeholder="contato@empresa.com" value={novoFornecedor.email} onChange={e => setNovoFornecedor(f => ({...f, email: e.target.value}))}/>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="fornecedor-telefone">Telefone</Label>
-                    <Input id="fornecedor-telefone" placeholder="(11) 99999-9999" value={novoFornecedor.telefone} onChange={e => setNovoFornecedor(f => ({...f, telefone: e.target.value}))}/>
-                  </div>
-                </div>
-                <Button onClick={adicionarFornecedor}>Adicionar Fornecedor</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="clientes">
           <Card>
             <CardHeader>
@@ -728,23 +633,6 @@ export const Configuracoes = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={removerCategoria}>
-              Remover
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={!!fornecedorParaRemover} onOpenChange={(open) => !open && setFornecedorParaRemover(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Essa ação não pode ser desfeita. Isso irá remover permanentemente o fornecedor "{fornecedorParaRemover?.razaoSocial}".
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={removerFornecedor}>
               Remover
             </AlertDialogAction>
           </AlertDialogFooter>

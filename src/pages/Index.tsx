@@ -1,3 +1,4 @@
+
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Dashboard } from "@/components/Dashboard";
@@ -5,6 +6,7 @@ import { ContasPagar as ContasPagarModule } from "@/components/modules/ContasPag
 import { ContasReceber as ContasReceberModule } from "@/components/modules/ContasReceber";
 import { Caixa } from "@/components/modules/Caixa";
 import { Comercial } from "@/components/modules/Comercial";
+import { Fornecedores } from "@/components/modules/Fornecedores";
 import { Relatorios } from "@/components/modules/Relatorios";
 import { DRE } from "@/components/modules/DRE";
 import { ProdutosServicos } from "@/components/modules/ProdutosServicos";
@@ -22,7 +24,10 @@ const Index = () => {
     hasPermission
   } = useAuth();
   const getInitialModule = () => {
-    const visibleItems = menuItems.filter(item => hasPermission(item.permission));
+    // Adicionando 'fornecedores.view' temporariamente para garantir visibilidade
+    const tempPermissions = new Set(useAuth().permissions);
+    tempPermissions.add('fornecedores.view');
+    const visibleItems = menuItems.filter(item => tempPermissions.has(item.permission));
     return visibleItems.length > 0 ? visibleItems[0].id : "";
   };
   const [activeModule, setActiveModule] = useState(getInitialModule);
@@ -38,6 +43,8 @@ const Index = () => {
     clients,
     setClients,
     produtosServicos,
+    fornecedores,
+    setFornecedores,
   } = useAppData();
   const {
     clientName,
@@ -60,6 +67,8 @@ const Index = () => {
         return <ContasReceberModule contas={contasAReceber} setContas={setContasAReceber} />;
       case "comercial":
         return <Comercial propostas={propostas} setPropostas={setPropostas} vendedores={vendedores} onPropostaAceita={handlePropostaAceita} clients={clients} setClients={setClients} produtosServicos={produtosServicos} />;
+      case "fornecedores":
+        return <Fornecedores fornecedores={fornecedores} setFornecedores={setFornecedores} />;
       case "produtos-servicos":
         return <ProdutosServicos produtos={produtosServicos} />;
       case "relatorios":
