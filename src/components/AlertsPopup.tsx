@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -12,24 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, AlarmClock, HandCoins, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Alert } from "@/types/alert";
 
-type Alert = {
-  id: string;
-  title: string;
-  description: string;
-  type: "Atrasado" | "Vencendo hoje" | "A Receber";
-  amount: number;
-  category: "contas-pagar" | "contas-receber";
-  resolved?: boolean;
-};
-
-interface AlertsPopupProps {
+type AlertsPopupProps = {
   open: boolean;
   alerts: Alert[];
   onClose: () => void;
   onResolve: (id: string) => void;
   onViewDetails: (alert: Alert) => void;
-}
+};
 
 function getTypeBadge(type: Alert["type"]) {
   switch (type) {
