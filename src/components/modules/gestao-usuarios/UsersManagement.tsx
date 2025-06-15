@@ -13,6 +13,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMultiTenant } from '@/contexts/MultiTenantContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
+interface ProfileData {
+  id: string;
+  full_name: string | null;
+}
+
+interface UserRoleData {
+  user_id: string;
+  role: string;
+}
+
 export function UsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,10 +58,14 @@ export function UsersManagement() {
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
+      // Type the profiles data properly
+      const typedProfiles = profiles as ProfileData[] | null;
+      const typedUserRoles = userRoles as UserRoleData[] | null;
+
       // Combine the data
-      const combinedUsers: User[] = profiles?.map(profile => {
+      const combinedUsers: User[] = typedProfiles?.map(profile => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
-        const userRole = userRoles?.find(r => r.user_id === profile.id);
+        const userRole = typedUserRoles?.find(r => r.user_id === profile.id);
         const role = (userRole?.role as ExtendedRole) || 'contador';
         
         return {
