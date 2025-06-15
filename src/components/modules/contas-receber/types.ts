@@ -11,4 +11,5 @@ export interface ContaReceber {
   dataRecebimento?: Date;
   formaRecebimento?: string;
   observacoes?: string;
+  competencia?: string; // "MM/YYYY"
 }

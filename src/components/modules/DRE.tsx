@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,6 +14,15 @@ import {
   PieChart
 } from "lucide-react";
 import { useState } from "react";
+import { ContaPagar } from "./contas-pagar/types";
+import { ContaReceber } from "./contas-receber/types";
+import { subMonths, format, getYear, getMonth } from "date-fns";
+import { ptBR } from 'date-fns/locale';
+
+interface DREProps {
+  contasPagar: ContaPagar[];
+  contasReceber: ContaReceber[];
+}
 
 interface LinhasDRE {
   receita_bruta: number;
@@ -33,26 +41,114 @@ interface LinhasDRE {
   lucro_liquido: number;
 }
 
-export function DRE() {
+export function DRE({ contasPagar = [], contasReceber = [] }: DREProps) {
   const [periodoSelecionado, setPeriodoSelecionado] = useState("mes-atual");
   const [tipoVisualizacao, setTipoVisualizacao] = useState("detalhado");
 
-  // Dados mockados para demonstração - em produção viriam da API
+  const getPeriodoFiltro = (periodo: string): { startDate: Date, endDate: Date } => {
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    switch (periodo) {
+        case 'mes-atual':
+            return { startDate: startOfThisMonth, endDate: endOfThisMonth };
+        case 'mes-anterior': {
+            const startOfLastMonth = subMonths(startOfThisMonth, 1);
+            const endOfLastMonth = new Date(startOfLastMonth.getFullYear(), startOfLastMonth.getMonth() + 1, 0, 23, 59, 59);
+            return { startDate: startOfLastMonth, endDate: endOfLastMonth };
+        }
+        case '3-meses': {
+            const start = subMonths(startOfThisMonth, 2);
+            return { startDate: start, endDate: endOfThisMonth };
+        }
+        case '6-meses': {
+            const start = subMonths(startOfThisMonth, 5);
+            return { startDate: start, endDate: endOfThisMonth };
+        }
+        case 'ano-atual': {
+            const start = new Date(now.getFullYear(), 0, 1);
+            const end = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+            return { startDate: start, endDate: end };
+        }
+        case 'ano-anterior': {
+            const start = new Date(now.getFullYear() - 1, 0, 1);
+            const end = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59);
+            return { startDate: start, endDate: end };
+        }
+        default:
+            return { startDate: startOfThisMonth, endDate: endOfThisMonth };
+    }
+  };
+
+  const filterByCompetence = (item: { competencia?: string }) => {
+    if (!item.competencia) return false;
+    try {
+        const { startDate, endDate } = getPeriodoFiltro(periodoSelecionado);
+        const [mes, ano] = item.competencia.split('/');
+        const itemDate = new Date(Number(ano), Number(mes) - 1, 15); // Use mid-month to avoid timezone issues
+        return itemDate >= startDate && itemDate <= endDate;
+    } catch (e) {
+        console.error("Erro ao parsear competência:", item.competencia, e);
+        return false;
+    }
+  };
+
+  const contasPagarFiltradas = contasPagar.filter(filterByCompetence);
+  const contasReceberFiltradas = contasReceber.filter(filterByCompetence);
+
+  const receitas = contasReceberFiltradas.reduce((acc, conta) => {
+      const categoria = conta.categoria.toLowerCase();
+      if (categoria.includes('financeira')) {
+          acc.financeiras += conta.valor;
+      } else if (categoria.includes('deduç') || categoria.includes('deduc')) {
+          acc.deducoes += conta.valor;
+      } else {
+          acc.bruta += conta.valor;
+      }
+      return acc;
+  }, { bruta: 0, financeiras: 0, deducoes: 0 });
+
+  const despesas = contasPagarFiltradas.reduce((acc, conta) => {
+      const categoria = conta.categoria.toLowerCase();
+      if (categoria.includes('custo')) {
+          acc.custo_mercadorias += conta.valor;
+      } else if (categoria.includes('venda')) {
+          acc.despesas_vendas += conta.valor;
+      } else if (categoria.includes('administrativa') || categoria.includes('operaciona') || categoria.includes('fixa')) {
+          acc.despesas_administrativas += conta.valor;
+      } else if (categoria.includes('financeira')) {
+          acc.despesas_financeiras += conta.valor;
+      } else if (categoria.includes('imposto')) {
+          acc.impostos += conta.valor;
+      } else {
+          acc.outras_despesas += conta.valor;
+      }
+      return acc;
+  }, { custo_mercadorias: 0, despesas_vendas: 0, despesas_administrativas: 0, outras_despesas: 0, despesas_financeiras: 0, impostos: 0 });
+
+  const receitaLiquida = receitas.bruta - receitas.deducoes;
+  const lucroBruto = receitaLiquida - despesas.custo_mercadorias;
+  const totalDespesasOperacionais = despesas.despesas_vendas + despesas.despesas_administrativas + despesas.outras_despesas;
+  const resultadoOperacional = lucroBruto - totalDespesasOperacionais;
+  const resultadoAntesImpostos = resultadoOperacional - despesas.despesas_financeiras + receitas.financeiras;
+  const lucroLiquido = resultadoAntesImpostos - despesas.impostos;
+
   const dadosDRE: LinhasDRE = {
-    receita_bruta: 125800.00,
-    deducoes_receita: 8900.00,
-    receita_liquida: 116900.00,
-    custo_mercadorias: 45600.00,
-    lucro_bruto: 71300.00,
-    despesas_vendas: 12500.00,
-    despesas_administrativas: 18900.00,
-    outras_despesas: 3200.00,
-    resultado_operacional: 36700.00,
-    despesas_financeiras: 2100.00,
-    receitas_financeiras: 800.00,
-    resultado_antes_impostos: 35400.00,
-    impostos: 5800.00,
-    lucro_liquido: 29600.00
+      receita_bruta: receitas.bruta,
+      deducoes_receita: receitas.deducoes,
+      receita_liquida: receitaLiquida,
+      custo_mercadorias: despesas.custo_mercadorias,
+      lucro_bruto: lucroBruto,
+      despesas_vendas: despesas.despesas_vendas,
+      despesas_administrativas: despesas.despesas_administrativas,
+      outras_despesas: despesas.outras_despesas,
+      resultado_operacional: resultadoOperacional,
+      despesas_financeiras: despesas.despesas_financeiras,
+      receitas_financeiras: receitas.financeiras,
+      resultado_antes_impostos: resultadoAntesImpostos,
+      impostos: despesas.impostos,
+      lucro_liquido: lucroLiquido
   };
 
   const formatCurrency = (valor: number) => {
@@ -68,19 +164,20 @@ export function DRE() {
   };
 
   const getPeriodoLabel = (periodo: string) => {
+    const now = new Date();
     const periodos: { [key: string]: string } = {
-      "mes-atual": "Junho 2024",
-      "mes-anterior": "Maio 2024",
-      "3-meses": "Abr-Jun 2024", 
-      "6-meses": "Jan-Jun 2024",
-      "ano-atual": "2024",
-      "ano-anterior": "2023"
+      "mes-atual": format(now, "MMMM yyyy", { locale: ptBR }),
+      "mes-anterior": format(subMonths(now, 1), "MMMM yyyy", { locale: ptBR }),
+      "3-meses": `Últimos 3 Meses`,
+      "6-meses": `Últimos 6 Meses`,
+      "ano-atual": format(now, "yyyy"),
+      "ano-anterior": String(getYear(now) - 1)
     };
     return periodos[periodo] || "Período";
   };
 
-  const margemLiquida = (dadosDRE.lucro_liquido / dadosDRE.receita_liquida) * 100;
-  const margemBruta = (dadosDRE.lucro_bruto / dadosDRE.receita_liquida) * 100;
+  const margemLiquida = dadosDRE.receita_liquida ? (dadosDRE.lucro_liquido / dadosDRE.receita_liquida) * 100 : 0;
+  const margemBruta = dadosDRE.receita_liquida ? (dadosDRE.lucro_bruto / dadosDRE.receita_liquida) * 100 : 0;
 
   const linhasDREDetalhadas = [
     {
