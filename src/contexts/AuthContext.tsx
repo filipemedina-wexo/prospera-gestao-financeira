@@ -13,7 +13,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        return JSON.parse(storedUser);
+      }
+    } catch (error) {
+      console.error("Failed to parse user from localStorage", error);
+      localStorage.removeItem('user');
+    }
+    return null;
+  });
   const { toast } = useToast();
 
   const login = (email: string, password: string): boolean => {
@@ -21,6 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (foundUser) {
       const { password, ...userToStore } = foundUser;
       setUser(userToStore as User);
+      localStorage.setItem('user', JSON.stringify(userToStore));
       toast({ title: `Bem-vindo, ${foundUser.name}!` });
       return true;
     }
@@ -30,6 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('user');
     toast({ title: 'Você saiu da sua conta.' });
   };
 
