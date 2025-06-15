@@ -55,36 +55,42 @@ export function useUsersManagement() {
         return;
       }
 
-      // Process profiles with explicit typing
-      const validProfiles: ProfileData[] = profiles
-        .filter((profile): profile is NonNullable<typeof profile> => 
-          profile !== null && 
-          profile !== undefined && 
-          typeof profile === 'object' && 
-          'id' in profile && 
-          typeof profile.id === 'string' && 
-          profile.id.length > 0
-        )
-        .map(profile => ({
-          id: profile.id,
-          full_name: profile.full_name
-        }));
+      // Process profiles with explicit typing - fix the type flow
+      const validProfiles: ProfileData[] = [];
+      
+      for (const profile of profiles) {
+        if (profile !== null && 
+            profile !== undefined && 
+            typeof profile === 'object' && 
+            'id' in profile && 
+            typeof profile.id === 'string' && 
+            profile.id.length > 0) {
+          validProfiles.push({
+            id: profile.id,
+            full_name: profile.full_name
+          });
+        }
+      }
 
       // Process user roles with explicit typing
-      const validUserRoles: UserRoleData[] = (userRoles || [])
-        .filter((roleData): roleData is NonNullable<typeof roleData> => 
-          roleData !== null && 
-          roleData !== undefined && 
-          typeof roleData === 'object' && 
-          'user_id' in roleData && 
-          'role' in roleData &&
-          typeof roleData.user_id === 'string' && 
-          typeof roleData.role === 'string'
-        )
-        .map(roleData => ({
-          user_id: roleData.user_id,
-          role: roleData.role as ExtendedRole
-        }));
+      const validUserRoles: UserRoleData[] = [];
+      
+      if (userRoles) {
+        for (const roleData of userRoles) {
+          if (roleData !== null && 
+              roleData !== undefined && 
+              typeof roleData === 'object' && 
+              'user_id' in roleData && 
+              'role' in roleData &&
+              typeof roleData.user_id === 'string' && 
+              typeof roleData.role === 'string') {
+            validUserRoles.push({
+              user_id: roleData.user_id,
+              role: roleData.role as ExtendedRole
+            });
+          }
+        }
+      }
 
       // Combine the data with proper typing
       const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
