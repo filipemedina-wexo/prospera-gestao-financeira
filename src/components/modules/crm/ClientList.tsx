@@ -1,9 +1,8 @@
-
 import { useState, useMemo } from "react";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Filter } from "lucide-react";
+import { UserPlus, ArrowDownAZ, ArrowUpAZ } from "lucide-react";
 import { ClientForm } from "./ClientForm";
 import { ColumnSettingsMenu } from "./ColumnSettingsMenu";
 
@@ -83,6 +82,8 @@ const allColumns = [
   { key: "status", label: "Status" }
 ];
 
+type SortDirection = "asc" | "desc" | null;
+
 export function ClientList({ onAddClient }: ClientListProps) {
   const [search, setSearch] = useState("");
   const [clients, setClients] = useState<Client[]>(initialClients);
@@ -94,10 +95,14 @@ export function ClientList({ onAddClient }: ClientListProps) {
   // Controle de colunas (ordem + visibilidade)
   const [columns, setColumns] = useState(allColumns.map(c => ({ ...c, visible: true })));
 
-  // Filtros por coluna
-  const [filters, setFilters] = useState<{ [k: string]: string }>({});
+  // Ordenação
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
-  // Filtragem por busca livre + por coluna
+  // Filtros por coluna (será removido)
+  // const [filters, setFilters] = useState<{ [k: string]: string }>({});
+
+  // Filtragem por busca livre
   const filtered = useMemo(() => {
     let arr = [...clients];
     // Filtro por termo livre
@@ -109,14 +114,29 @@ export function ClientList({ onAddClient }: ClientListProps) {
           .includes(search.toLowerCase())
       );
     }
-    // Filtro por coluna específica
-    Object.entries(filters).forEach(([key, val]) => {
-      if (val) {
-        arr = arr.filter(c => (c[key as keyof Client] ?? "").toLowerCase().includes(val.toLowerCase()));
-      }
-    });
+    // Ordenação
+    if (sortColumn && sortDirection) {
+      arr.sort((a, b) => {
+        const aValue = String(a[sortColumn as keyof Client] ?? "").toLowerCase();
+        const bValue = String(b[sortColumn as keyof Client] ?? "").toLowerCase();
+        if (aValue === bValue) return 0;
+        if (sortDirection === "asc") return aValue > bValue ? 1 : -1;
+        return aValue < bValue ? 1 : -1;
+      });
+    }
     return arr;
-  }, [clients, search, filters]);
+  }, [clients, search, sortColumn, sortDirection]);
+
+  // Clique em coluna: alterna ordem
+  function handleSort(colKey: string) {
+    if (sortColumn !== colKey) {
+      setSortColumn(colKey);
+      setSortDirection("asc");
+    } else {
+      setSortDirection(dir => dir === "asc" ? "desc" : (dir === "desc" ? null : "asc"));
+      if (sortDirection === "desc") setSortColumn(null);
+    }
+  }
 
   // Lida com clique em linha para editar
   function handleRowClick(client: Client) {
@@ -146,8 +166,8 @@ export function ClientList({ onAddClient }: ClientListProps) {
           <ColumnSettingsMenu
             columns={columns}
             setColumns={setColumns}
-            filters={filters}
-            setFilters={setFilters}
+            filters={{}} // removido uso de filtros
+            setFilters={() => {}} // função dummy, sem efeito
           />
           <Button onClick={onAddClient} className="flex gap-2 items-center w-full md:w-auto">
             <UserPlus className="w-4 h-4" /> Novo Cliente
@@ -159,16 +179,23 @@ export function ClientList({ onAddClient }: ClientListProps) {
           <TableHeader>
             <TableRow>
               {columns.filter(c => c.visible).map(col => (
-                <TableHead key={col.key}>
-                  <div className="flex flex-col">
+                <TableHead
+                  key={col.key}
+                  onClick={() => handleSort(col.key)}
+                  className="select-none cursor-pointer group"
+                >
+                  <div className="flex items-center gap-1">
                     <span>{col.label}</span>
-                    {/* Barra de filtro por coluna */}
-                    <Input
-                      value={filters[col.key] || ""}
-                      onChange={e => setFilters(f => ({ ...f, [col.key]: e.target.value }))}
-                      placeholder="Filtrar"
-                      className="h-6 px-2 mt-1 text-xs"
-                    />
+                    {/* Ícone de ordenação */}
+                    {sortColumn === col.key ? (
+                      sortDirection === "asc" ? (
+                        <ArrowDownAZ className="w-4 h-4 text-primary group-hover:text-primary/80" />
+                      ) : sortDirection === "desc" ? (
+                        <ArrowUpAZ className="w-4 h-4 text-primary group-hover:text-primary/80" />
+                      ) : null
+                    ) : (
+                      <ArrowDownAZ className="w-4 h-4 opacity-30" />
+                    )}
                   </div>
                 </TableHead>
               ))}
