@@ -9,6 +9,120 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      accounts_payable: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          description: string
+          due_date: string
+          financial_client_id: string | null
+          id: string
+          paid_date: string | null
+          saas_client_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          description: string
+          due_date: string
+          financial_client_id?: string | null
+          id?: string
+          paid_date?: string | null
+          saas_client_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string
+          financial_client_id?: string | null
+          id?: string
+          paid_date?: string | null
+          saas_client_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_payable_financial_client_id_fkey"
+            columns: ["financial_client_id"]
+            isOneToOne: false
+            referencedRelation: "financial_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_payable_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounts_receivable: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          description: string
+          due_date: string
+          financial_client_id: string | null
+          id: string
+          received_date: string | null
+          saas_client_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          description: string
+          due_date: string
+          financial_client_id?: string | null
+          id?: string
+          received_date?: string | null
+          saas_client_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string
+          financial_client_id?: string | null
+          id?: string
+          received_date?: string | null
+          saas_client_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_receivable_financial_client_id_fkey"
+            columns: ["financial_client_id"]
+            isOneToOne: false
+            referencedRelation: "financial_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_receivable_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_databases: {
         Row: {
           client_id: string
@@ -86,6 +200,56 @@ export type Database = {
             foreignKeyName: "client_onboarding_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: true
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_clients: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          document: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          saas_client_id: string
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          document?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          saas_client_id: string
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          document?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          saas_client_id?: string
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_clients_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
             referencedRelation: "saas_clients"
             referencedColumns: ["id"]
           },
@@ -356,6 +520,44 @@ export type Database = {
           },
         ]
       }
+      saas_user_client_mapping: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_user_client_mapping_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -382,8 +584,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_current_user_client_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       is_super_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      user_belongs_to_client: {
+        Args: { client_uuid: string }
         Returns: boolean
       }
     }
