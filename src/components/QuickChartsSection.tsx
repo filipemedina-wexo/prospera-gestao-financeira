@@ -1,7 +1,7 @@
 
 import {
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend,
-  BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, CartesianGrid
+  LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, BarChart, Bar
 } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,9 +17,20 @@ const costCategoriesMock = [
   { name: "Outros", value: 900 },
 ];
 
-const faturamentoMetaMock = [
-  { name: "Faturamento Atual", valor: 89340 },
-  { name: "Meta do Ano", valor: 120000 },
+// Substituir antigo faturamentoMetaMock pelo novo modelo mensal:
+const faturamentoMensalMock = [
+  { mes: "Jan", faturamento: 7000, metaAcumulada: 10000 },
+  { mes: "Fev", faturamento: 8500, metaAcumulada: 20000 },
+  { mes: "Mar", faturamento: 9600, metaAcumulada: 30000 },
+  { mes: "Abr", faturamento: 10500, metaAcumulada: 40000 },
+  { mes: "Mai", faturamento: 11000, metaAcumulada: 50000 },
+  { mes: "Jun", faturamento: 9000, metaAcumulada: 60000 },
+  { mes: "Jul", faturamento: 10200, metaAcumulada: 70000 },
+  { mes: "Ago", faturamento: 11300, metaAcumulada: 80000 },
+  { mes: "Set", faturamento: 9900, metaAcumulada: 90000 },
+  { mes: "Out", faturamento: 12000, metaAcumulada: 100000 },
+  { mes: "Nov", faturamento: 10800, metaAcumulada: 110000 },
+  { mes: "Dez", faturamento: 11500, metaAcumulada: 120000 },
 ];
 
 const extratoHojeMock = [
@@ -74,7 +85,7 @@ export function QuickChartsSection() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      {/* BarChart Faturamento x Meta */}
+      {/* LineChart Faturamento vs Meta */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -84,12 +95,35 @@ export function QuickChartsSection() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={230}>
-            <BarChart data={faturamentoMetaMock}>
-              <XAxis dataKey="name" />
+            <LineChart data={faturamentoMensalMock}>
+              <XAxis dataKey="mes" />
               <YAxis />
-              <Bar dataKey="valor" fill="#3b82f6" radius={[12, 12, 0, 0]} />
-              <RechartsTooltip formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR')}`} />
-            </BarChart>
+              <CartesianGrid strokeDasharray="3 3" />
+              <Line
+                type="monotone"
+                dataKey="faturamento"
+                name="Faturamento Mensal"
+                stroke="#34d399"
+                strokeWidth={2}
+                dot
+                activeDot={{ r: 6 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="metaAcumulada"
+                name="Meta Acumulada"
+                stroke="#60a5fa"
+                strokeDasharray="6 3"
+                strokeWidth={2}
+                dot={false}
+              />
+              <Legend />
+              <RechartsTooltip
+                formatter={(value: number, name: string) =>
+                  [`R$ ${value.toLocaleString('pt-BR')}`, name]
+                }
+              />
+            </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
@@ -155,3 +189,4 @@ export function QuickChartsSection() {
 }
 
 export default QuickChartsSection;
+
