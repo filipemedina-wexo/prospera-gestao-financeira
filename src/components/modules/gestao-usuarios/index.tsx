@@ -21,9 +21,25 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { UserDialog } from './UserDialog';
+import { useToast } from '@/hooks/use-toast';
 
 export function GestaoUsuarios() {
   const [users, setUsers] = useState<User[]>(initialUsers);
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const { toast } = useToast();
+
+  const handleSaveUser = (user: User) => {
+    // NOTE: Esta função atualmente suporta apenas a adição de novos usuários.
+    setUsers(prevUsers => [...prevUsers, user]);
+    toast({ title: 'Usuário Adicionado!', description: 'O novo usuário foi adicionado com sucesso.'});
+  };
+  
+  const handleAddUser = () => {
+    setSelectedUser(null);
+    setIsUserDialogOpen(true);
+  }
 
   const getStatusBadgeClass = (status: User['status']) => {
     switch (status) {
@@ -45,7 +61,7 @@ export function GestaoUsuarios() {
             Gerencie os usuários do sistema, permissões e status.
           </p>
         </div>
-        <Button>
+        <Button onClick={handleAddUser}>
           <UserPlus className="mr-2 h-4 w-4" />
           Adicionar Usuário
         </Button>
@@ -108,6 +124,12 @@ export function GestaoUsuarios() {
           </Table>
         </CardContent>
       </Card>
+      <UserDialog
+        isOpen={isUserDialogOpen}
+        setIsOpen={setIsUserDialogOpen}
+        onSave={handleSaveUser}
+        userToEdit={selectedUser}
+      />
     </div>
   );
 }

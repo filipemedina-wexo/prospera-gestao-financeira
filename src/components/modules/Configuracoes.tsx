@@ -6,7 +6,7 @@ import { ConfigComissoes } from "./configuracoes/ConfigComissoes";
 import { ConfigCategorias } from "./configuracoes/ConfigCategorias";
 import { ConfigBancos } from "./configuracoes/ConfigBancos";
 import { ConfigClientes } from "./configuracoes/ConfigClientes";
-import { GestaoUsuarios } from "@/components/modules/GestaoUsuarios";
+import { GestaoUsuarios } from "@/components/modules/gestao-usuarios";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
