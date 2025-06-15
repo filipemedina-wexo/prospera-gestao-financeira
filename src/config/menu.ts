@@ -12,5 +12,5 @@ export const menuItems = [
   { title: "DRE", icon: FileText, id: "dre", permission: "dre.view" },
   { title: "Configurações", icon: Settings, id: "configuracoes", permission: "configuracoes.view" },
   { title: "CRM", icon: Users, id: "crm", permission: "crm.view" },
-  { title: "Pessoas", icon: Briefcase, id: "pessoas", permission: "pessoas.view" },
 ];
+

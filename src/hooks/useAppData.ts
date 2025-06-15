@@ -5,7 +5,6 @@ import { ContaReceber } from "@/components/modules/contas-receber/types";
 import { ContaPagar } from "@/components/modules/contas-pagar/types";
 import { Client } from "@/components/modules/crm/types";
 import { ProdutoServico } from "@/components/modules/produtos-servicos/types";
-import { Funcionario, Departamento, Cargo, Holerite } from "@/components/modules/pessoas/types";
 import {
   initialPropostas,
   initialVendedores,
@@ -13,10 +12,6 @@ import {
   initialContasAPagar,
   initialClients,
   initialProdutosServicos,
-  initialFuncionarios,
-  initialDepartamentos,
-  initialCargos,
-  initialHolerites,
 } from "@/data/mocks";
 
 export const useAppData = () => {
@@ -28,10 +23,6 @@ export const useAppData = () => {
   const [contasAPagar, setContasAPagar] = useState<ContaPagar[]>(initialContasAPagar);
   const [clients, setClients] = useState<Client[]>(initialClients);
   const [produtosServicos, setProdutosServicos] = useState<ProdutoServico[]>(initialProdutosServicos);
-  const [funcionarios, setFuncionarios] = useState<Funcionario[]>(initialFuncionarios);
-  const [departamentos, setDepartamentos] = useState<Departamento[]>(initialDepartamentos);
-  const [cargos, setCargos] = useState<Cargo[]>(initialCargos);
-  const [holerites, setHolerites] = useState<Holerite[]>(initialHolerites);
 
   useEffect(() => {
     const today = new Date();
@@ -95,13 +86,5 @@ export const useAppData = () => {
     setClients,
     produtosServicos,
     setProdutosServicos,
-    funcionarios,
-    setFuncionarios,
-    departamentos,
-    setDepartamentos,
-    cargos,
-    setCargos,
-    holerites,
-    setHolerites,
   };
 };
