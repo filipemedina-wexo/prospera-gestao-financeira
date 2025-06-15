@@ -16,6 +16,7 @@ import {
   initialProdutosServicos,
   initialFornecedores,
 } from "@/data/mocks";
+import { format } from "date-fns";
 
 export const useAppData = () => {
   const { toast } = useToast();
@@ -55,6 +56,72 @@ export const useAppData = () => {
       return changed ? updatedContas : prevContas;
     });
   }, []); // Run only once on mount
+
+  useEffect(() => {
+    setContasAPagar(currentContas => {
+        const syncedContasFromFornecedores = new Map<string, ContaPagar>();
+
+        for (const f of fornecedores) {
+            if (f.proximoPagamento && f.valorProximoPagamento) {
+                const contaId = `fornecedor-sync-${f.id}`;
+                syncedContasFromFornecedores.set(contaId, {
+                    id: contaId,
+                    descricao: `Pagamento Agendado: ${f.razaoSocial}`,
+                    valor: f.valorProximoPagamento,
+                    dataVencimento: new Date(f.proximoPagamento),
+                    status: 'pendente',
+                    fornecedor: f.razaoSocial,
+                    categoria: 'Fornecedor',
+                    competencia: format(new Date(f.proximoPagamento), 'MM/yyyy'),
+                });
+            }
+        }
+
+        const newContasAPagar: ContaPagar[] = [];
+        const manualContas = currentContas.filter(c => !c.id.startsWith('fornecedor-sync-'));
+        newContasAPagar.push(...manualContas);
+        
+        const existingSyncedContas = currentContas.filter(c => c.id.startsWith('fornecedor-sync-'));
+        for(const existing of existingSyncedContas) {
+            const updated = syncedContasFromFornecedores.get(existing.id);
+
+            if (updated) {
+                if (existing.status === 'pago') {
+                    newContasAPagar.push(existing);
+                } else {
+                    newContasAPagar.push(updated);
+                }
+                syncedContasFromFornecedores.delete(existing.id);
+            } else {
+                if (existing.status === 'pago') {
+                    newContasAPagar.push(existing);
+                }
+            }
+        }
+        
+        newContasAPagar.push(...Array.from(syncedContasFromFornecedores.values()));
+
+        // Check if there are actual changes before returning a new array
+        if (currentContas.length === newContasAPagar.length) {
+            const currentIds = new Set(currentContas.map(c => c.id));
+            let same = true;
+            for(const newConta of newContasAPagar) {
+                if(!currentIds.has(newConta.id)) {
+                    same = false;
+                    break;
+                }
+                const oldConta = currentContas.find(c => c.id === newConta.id);
+                if(JSON.stringify(oldConta) !== JSON.stringify(newConta)){
+                    same = false;
+                    break;
+                }
+            }
+            if(same) return currentContas;
+        }
+
+        return newContasAPagar;
+    });
+  }, [fornecedores, setContasAPagar]);
 
   const handlePropostaAceita = (proposta: Proposta) => {
     const competencia = `${(proposta.dataValidade.getMonth() + 1).toString().padStart(2, '0')}/${proposta.dataValidade.getFullYear()}`;
