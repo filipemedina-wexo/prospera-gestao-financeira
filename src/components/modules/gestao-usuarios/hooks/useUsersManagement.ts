@@ -54,21 +54,21 @@ export function useUsersManagement() {
         return;
       }
 
-      // Filter out any null entries and ensure we have the required fields
-      const validProfiles = profiles.filter((profile): profile is ProfileData => {
+      // Explicitly type the filtered arrays
+      const validProfiles: ProfileData[] = profiles.filter((profile): profile is ProfileData => {
         return profile !== null && 
                typeof profile.id === 'string' && 
                profile.id.length > 0;
       });
       
-      const validUserRoles = (userRoles || []).filter((roleData): roleData is UserRoleData => {
+      const validUserRoles: UserRoleData[] = (userRoles || []).filter((roleData): roleData is UserRoleData => {
         return roleData !== null && 
                typeof roleData.user_id === 'string' && 
                typeof roleData.role === 'string';
       });
 
       // Combine the data with proper typing
-      const combinedUsers: User[] = validProfiles.map((profile) => {
+      const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
         const authUser = authUsers.users.find(u => u.id === profile.id);
         const userRole = validUserRoles.find((roleData) => roleData.user_id === profile.id);
         const role = (userRole?.role as ExtendedRole) || 'contador';
