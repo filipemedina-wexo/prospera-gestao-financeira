@@ -105,7 +105,7 @@ export function useUsersManagement() {
     try {
       await logSecurityEvent('FETCH_USERS', 'users');
 
-      // Initialize arrays with proper typing
+      // Initialize arrays with explicit typing
       let userProfiles: ProfileData[] = [];
       let userRoles: UserRoleData[] = [];
       let authUsersList: AuthUser[] = [];
@@ -181,8 +181,8 @@ export function useUsersManagement() {
 
       // Combine all data with explicit typing
       const combinedUsers: User[] = userProfiles.map((profile: ProfileData): User => {
-        const authUser: AuthUser | undefined = authUsersList.find((u: AuthUser): boolean => u.id === profile.id);
-        const userRole: UserRoleData | undefined = userRoles.find((roleData: UserRoleData): boolean => roleData.user_id === profile.id);
+        const authUser = authUsersList.find(u => u.id === profile.id);
+        const userRole = userRoles.find(roleData => roleData.user_id === profile.id);
         const role: ExtendedRole = userRole?.role || 'contador';
 
         return {
