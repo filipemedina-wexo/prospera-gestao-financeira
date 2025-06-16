@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -44,13 +43,6 @@ interface AssignmentWithProfile extends UserAssignment {
     full_name: string;
     email: string;
   };
-}
-
-interface AdminUserResponse {
-  email: string;
-  name: string;
-  temporary_password: string;
-  client_id: string;
 }
 
 export function UserAssignmentDialog({ isOpen, onClose, client, onUpdate }: UserAssignmentDialogProps) {
