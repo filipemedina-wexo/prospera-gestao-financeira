@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { TrendingUp, Loader2 } from 'lucide-react';
+import { TrendingUp, Loader2, CheckCircle } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +15,7 @@ const Login = () => {
   const [fullName, setFullName] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [formSubmitting, setFormSubmitting] = useState(false);
+  const [showSignupSuccess, setShowSignupSuccess] = useState(false);
   const { login, signUp, loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,9 +38,13 @@ const Login = () => {
         console.log('Submitting signup form');
         const { error } = await signUp({ email, password, fullName });
         if (!error) {
-          setIsSignUp(false);
-          setPassword('');
-          // Mostrar mensagem sobre verificação de email
+          setShowSignupSuccess(true);
+          toast({
+            title: "Conta criada com sucesso!",
+            description: "Você será redirecionado para seu painel em instantes.",
+          });
+          // Note: Navigation will be handled by useEffect when user state updates
+          console.log('Signup successful, waiting for user state update and client creation');
         }
       } else {
         console.log('Submitting login form');
@@ -63,6 +69,29 @@ const Login = () => {
           <CardContent className="flex flex-col items-center justify-center p-8">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
             <p className="text-sm text-muted-foreground">Carregando...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show signup success state
+  if (showSignupSuccess && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+            <CardTitle className="text-xl">Bem-vindo ao Prospera!</CardTitle>
+            <CardDescription>
+              Sua conta foi criada com sucesso. Estamos preparando seu painel personalizado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center p-4">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-600 mb-2" />
+            <p className="text-sm text-muted-foreground">Redirecionando...</p>
           </CardContent>
         </Card>
       </div>

@@ -18,17 +18,16 @@ export const useClientMapping = () => {
   const [currentClientId, setCurrentClientId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const mountedRef = useRef(true);
 
-  const fetchClientMapping = useCallback(async (userId: string) => {
+  const fetchClientMapping = useCallback(async (userId: string, attempt: number = 0) => {
     if (!mountedRef.current) return;
 
     try {
+      console.log(`Fetching client mapping for user ${userId}, attempt ${attempt + 1}`);
       setLoading(true);
       setError(null);
-
-      // Para novos usuários, aguardar mais tempo para o trigger completar
-      await new Promise(resolve => setTimeout(resolve, 2000));
 
       const { data, error } = await supabase
         .from('saas_user_client_mapping')
@@ -45,16 +44,36 @@ export const useClientMapping = () => {
         return;
       }
 
-      console.log('Client mapping fetched:', data);
-      setCurrentClientId(data?.client_id || null);
+      if (data?.client_id) {
+        console.log('Client mapping found:', data);
+        setCurrentClientId(data.client_id);
+        setRetryCount(0);
+        return;
+      }
+
+      // No client mapping found, implement retry with exponential backoff
+      const maxRetries = 8; // Will retry for roughly 25 seconds total
+      if (attempt < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(1.5, attempt), 5000); // Cap at 5 seconds
+        console.log(`No client mapping found, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+        
+        setRetryCount(attempt + 1);
+        
+        setTimeout(() => {
+          if (mountedRef.current) {
+            fetchClientMapping(userId, attempt + 1);
+          }
+        }, delay);
+      } else {
+        console.error('Max retry attempts reached, no client mapping found');
+        setError('Não foi possível encontrar o cliente associado. Tente recarregar a página.');
+        setLoading(false);
+      }
     } catch (err) {
       if (!mountedRef.current) return;
       console.error('Error in fetchClientMapping:', err);
       setError('Erro ao buscar mapeamento do cliente');
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   }, []);
 
@@ -71,6 +90,7 @@ export const useClientMapping = () => {
       setCurrentClientId(null);
       setLoading(false);
       setError(null);
+      setRetryCount(0);
       return;
     }
 
@@ -122,6 +142,7 @@ export const useClientMapping = () => {
     currentClientId,
     loading,
     error,
+    retryCount,
     assignUserToClient,
     removeUserFromClient,
   };
