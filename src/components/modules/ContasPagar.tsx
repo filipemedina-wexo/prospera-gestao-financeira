@@ -34,7 +34,7 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
   // Buscar contas do banco de dados se temos um cliente ativo
   const { data: contasDatabase, isLoading } = useQuery({
     queryKey: ['accounts-payable', currentClientId],
-    queryFn: () => currentClientId ? accountsPayableService.getAll(currentClientId) : Promise.resolve([]),
+    queryFn: () => currentClientId ? accountsPayableService.getAll() : Promise.resolve([]),
     enabled: !!currentClientId && !clientLoading,
   });
 
@@ -76,8 +76,6 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
     try {
       if (values.recorrente && values.frequencia && values.numParcelas) {
         // Criar múltiplas contas recorrentes
-        const novasContas: ContaPagar[] = [];
-        const idGrupo = Date.now().toString();
         const dataVencimentoBase = new Date(values.dataVencimento);
 
         const getIncrementoMeses = (frequencia: typeof values.frequencia) => {
@@ -100,7 +98,6 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
           const parcelaNum = i + 1;
           
           await accountsPayableService.create({
-            saas_client_id: currentClientId,
             description: `${values.descricao} (${parcelaNum}/${values.numParcelas})`,
             amount: values.valor,
             due_date: format(vencimento, 'yyyy-MM-dd'),
@@ -116,7 +113,6 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
       } else {
         // Criar conta única
         await accountsPayableService.create({
-          saas_client_id: currentClientId,
           description: values.descricao,
           amount: values.valor,
           due_date: format(values.dataVencimento, 'yyyy-MM-dd'),

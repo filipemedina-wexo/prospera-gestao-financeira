@@ -46,7 +46,13 @@ export const accountsPayableService = {
     const { data, error } = await supabase
       .from('accounts_payable')
       .insert({
-        ...account,
+        description: account.description,
+        amount: account.amount,
+        due_date: account.due_date,
+        paid_date: account.paid_date,
+        status: account.status,
+        category: account.category,
+        financial_client_id: account.financial_client_id,
         saas_client_id: clientMapping.client_id
       })
       .select()

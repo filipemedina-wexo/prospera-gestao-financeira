@@ -11,75 +11,53 @@ export interface ClientAccountCategory {
   updated_at: string;
 }
 
+// For now, return mock data since the table doesn't exist yet
 export const clientCategoriesService = {
   async getAll(): Promise<ClientAccountCategory[]> {
-    // RLS will automatically filter by the user's client
-    const { data, error } = await supabase
-      .from('client_account_categories')
-      .select('*')
-      .eq('is_active', true)
-      .order('type', { ascending: true })
-      .order('name', { ascending: true });
-
-    if (error) {
-      throw new Error(`Erro ao buscar categorias: ${error.message}`);
-    }
-
-    return data || [];
+    // Mock data until the client_account_categories table is created
+    return [
+      {
+        id: '1',
+        saas_client_id: 'mock',
+        name: 'Despesas Fixas',
+        type: 'expense',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: '2',
+        saas_client_id: 'mock',
+        name: 'Custos de Mercadoria',
+        type: 'expense',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: '3',
+        saas_client_id: 'mock',
+        name: 'Receita de Vendas',
+        type: 'income',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ];
   },
 
   async create(category: Omit<ClientAccountCategory, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>): Promise<ClientAccountCategory> {
-    // Get current client ID
-    const { data: clientMapping } = await supabase
-      .from('saas_user_client_mapping')
-      .select('client_id')
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-      .eq('is_active', true)
-      .single();
-
-    if (!clientMapping) {
-      throw new Error('Cliente não encontrado');
-    }
-
-    const { data, error } = await supabase
-      .from('client_account_categories')
-      .insert({
-        ...category,
-        saas_client_id: clientMapping.client_id
-      })
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(`Erro ao criar categoria: ${error.message}`);
-    }
-
-    return data;
+    // Mock implementation until table is created
+    throw new Error('Categories creation will be implemented after database table creation');
   },
 
   async update(id: string, updates: Partial<Omit<ClientAccountCategory, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>>): Promise<ClientAccountCategory> {
-    const { data, error } = await supabase
-      .from('client_account_categories')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(`Erro ao atualizar categoria: ${error.message}`);
-    }
-
-    return data;
+    // Mock implementation until table is created
+    throw new Error('Categories update will be implemented after database table creation');
   },
 
   async delete(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('client_account_categories')
-      .update({ is_active: false })
-      .eq('id', id);
-
-    if (error) {
-      throw new Error(`Erro ao deletar categoria: ${error.message}`);
-    }
+    // Mock implementation until table is created
+    throw new Error('Categories deletion will be implemented after database table creation');
   },
 };
