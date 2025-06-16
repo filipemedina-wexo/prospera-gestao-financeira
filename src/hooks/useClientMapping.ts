@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -16,25 +16,32 @@ export interface UserClientMapping {
 export const useClientMapping = () => {
   const { user } = useAuth();
   const [currentClientId, setCurrentClientId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fetchTimeoutRef = useRef<NodeJS.Timeout>();
+  const mountedRef = useRef(true);
 
-  useEffect(() => {
-    if (!user) {
-      setCurrentClientId(null);
-      setLoading(false);
-      return;
+  // Debounced fetch function
+  const debouncedFetch = useCallback((userId: string) => {
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
     }
 
-    const fetchClientMapping = async () => {
+    fetchTimeoutRef.current = setTimeout(async () => {
+      if (!mountedRef.current) return;
+
       try {
         setLoading(true);
+        setError(null);
+
         const { data, error } = await supabase
           .from('saas_user_client_mapping')
           .select('client_id')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .eq('is_active', true)
           .maybeSingle();
+
+        if (!mountedRef.current) return;
 
         if (error) {
           console.error('Error fetching client mapping:', error);
@@ -44,15 +51,36 @@ export const useClientMapping = () => {
 
         setCurrentClientId(data?.client_id || null);
       } catch (err) {
+        if (!mountedRef.current) return;
         console.error('Error in fetchClientMapping:', err);
         setError('Erro ao buscar mapeamento do cliente');
       } finally {
-        setLoading(false);
+        if (mountedRef.current) {
+          setLoading(false);
+        }
+      }
+    }, 300); // 300ms debounce
+  }, []);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    if (!user?.id) {
+      setCurrentClientId(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    debouncedFetch(user.id);
+
+    return () => {
+      mountedRef.current = false;
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
       }
     };
-
-    fetchClientMapping();
-  }, [user]);
+  }, [user?.id, debouncedFetch]);
 
   const assignUserToClient = async (clientId: string, role: string = 'user') => {
     if (!user) throw new Error('Usuário não autenticado');

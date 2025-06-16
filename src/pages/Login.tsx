@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,15 +16,16 @@ const Login = () => {
   const [formSubmitting, setFormSubmitting] = useState(false);
   const { login, signUp, loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Redirect authenticated users to dashboard
+  // Simple redirect logic
   useEffect(() => {
-    // Only redirect if auth is not loading and user exists
     if (!authLoading && user) {
       console.log('User authenticated, redirecting to dashboard');
-      navigate('/dashboard', { replace: true });
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
     }
-  }, [user, navigate, authLoading]);
+  }, [user, navigate, authLoading, location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,10 +41,8 @@ const Login = () => {
         }
       } else {
         console.log('Submitting login form');
-        const { error } = await login(email, password);
-        if (!error) {
-          console.log('Login successful, user should be redirected via useEffect');
-        }
+        await login(email, password);
+        // Navigation will be handled by useEffect
       }
     } catch (error) {
       console.error('Form submission error:', error);

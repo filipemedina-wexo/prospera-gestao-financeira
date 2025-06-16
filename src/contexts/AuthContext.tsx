@@ -44,21 +44,6 @@ const logSecurityEvent = async (
   }
 };
 
-// Cleanup function for auth state
-const cleanupAuthState = () => {
-  console.log('Cleaning up auth state...');
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      localStorage.removeItem(key);
-    }
-  });
-  Object.keys(sessionStorage || {}).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      sessionStorage.removeItem(key);
-    }
-  });
-};
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,18 +78,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Log successful login
       await logSecurityEvent('USER_LOGIN', 'auth', true);
 
-      // If user is confirmed and welcome email hasn't been sent, send it
+      // Send welcome email if needed
       if (supabaseUser.email_confirmed_at && !profileData?.welcome_email_sent) {
         try {
-          const { error } = await supabase.functions.invoke('send-welcome-email', {
+          await supabase.functions.invoke('send-welcome-email', {
             body: { user: supabaseUser },
           });
-          
-          if (error) {
-            console.error('Error sending welcome email');
-          }
         } catch (error) {
-          console.error('Error invoking welcome email function');
+          console.error('Error sending welcome email');
         }
       }
     } catch (error) {
@@ -121,35 +102,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     console.log('Initializing auth context...');
     let mounted = true;
-    let hasSession = false;
 
-    // Set up auth state listener first
+    // Set up auth state listener
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, !!session);
       
       if (!mounted) return;
 
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log('User signed in via onAuthStateChange');
-        hasSession = true;
-        try {
-          await fetchAndSetUser(session.user);
-        } catch (error) {
-          console.error('Error handling sign in:', error);
-        }
+        console.log('User signed in');
+        await fetchAndSetUser(session.user);
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out');
         setUser(null);
         await logSecurityEvent('USER_LOGOUT', 'auth', true);
       }
       
-      // Only set loading to false if we haven't already processed a session
-      if (!hasSession) {
-        setLoading(false);
-      }
+      setLoading(false);
     });
 
-    // Then check for existing session
+    // Check for existing session
     const initializeSession = async () => {
       try {
         console.log('Getting initial session...');
@@ -161,9 +133,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (mounted) {
-          if (session?.user && !hasSession) {
-            console.log('Found existing session, fetching user data...');
-            hasSession = true;
+          if (session?.user) {
+            console.log('Found existing session');
             await fetchAndSetUser(session.user);
           }
           setLoading(false);
@@ -172,49 +143,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error('Error during auth initialization:', error);
         if (mounted) {
           setLoading(false);
-          toast({
-            title: 'Erro de Conexão',
-            description: 'Problema ao conectar com o servidor. Tente novamente.',
-            variant: 'destructive',
-          });
         }
       }
     };
-
-    // Emergency fallback - prevent infinite loading
-    const emergencyTimeout = setTimeout(() => {
-      if (mounted && loading) {
-        console.warn('Auth initialization timeout - forcing loading to false');
-        setLoading(false);
-      }
-    }, 5000); // Reduced to 5 seconds
 
     initializeSession();
 
     return () => {
       mounted = false;
-      clearTimeout(emergencyTimeout);
       authListener.subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email: string, password: string) => {
     console.log('Attempting login for:', email);
-    setLoading(true);
     
     try {
-      // Clean up any existing auth state first
-      cleanupAuthState();
-      
-      // Attempt global sign out first
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-        // Small delay to ensure cleanup
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (err) {
-        console.log('Global signout failed, continuing...');
-      }
-
       const { data, error } = await supabase.auth.signInWithPassword({ 
         email, 
         password 
@@ -232,23 +176,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } 
       
       if (data.user) {
-        console.log('Login successful, user will be set via onAuthStateChange');
+        console.log('Login successful');
         toast({ title: 'Login bem-sucedido!' });
-        // Don't manually set user here - let onAuthStateChange handle it
         return { error: null };
       }
 
       return { error: null };
     } catch (error) {
       console.error('Unexpected login error:', error);
-      toast({
-        title: 'Erro de Login',
-        description: 'Erro inesperado durante o login. Tente novamente.',
-        variant: 'destructive',
-      });
       return { error: error as AuthError };
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -256,17 +192,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log('Logging out user');
     
     try {
-      cleanupAuthState();
-      await supabase.auth.signOut({ scope: 'global' });
+      await supabase.auth.signOut();
       setUser(null);
       toast({ title: 'Você saiu da sua conta.' });
-      
-      // Force page refresh for clean state
-      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
-      // Force refresh even if logout fails
-      window.location.href = '/login';
     }
   };
 
@@ -274,9 +204,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log('Attempting signup for:', email);
     
     try {
-      // Clean up any existing auth state
-      cleanupAuthState();
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -303,11 +230,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { data, error };
     } catch (error) {
       console.error('Unexpected signup error:', error);
-      toast({
-        title: 'Erro no Cadastro',
-        description: 'Erro inesperado durante o cadastro. Tente novamente.',
-        variant: 'destructive',
-      });
       return { data: null, error: error as AuthError };
     }
   };
@@ -326,9 +248,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return true;
     }
     
-    const hasAccess = userPermissions.includes(permission);
-    
-    return hasAccess;
+    return userPermissions.includes(permission);
   };
 
   return (
