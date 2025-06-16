@@ -11,6 +11,34 @@ export interface ClientAccountCategory {
   updated_at: string;
 }
 
+// Database response type where type is a string
+interface DatabaseClientAccountCategory {
+  id: string;
+  saas_client_id: string;
+  name: string;
+  type: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Type guard to ensure the type is valid
+const isValidCategoryType = (type: string): type is 'income' | 'expense' => {
+  return type === 'income' || type === 'expense';
+};
+
+// Convert database response to typed interface
+const convertToClientAccountCategory = (dbCategory: DatabaseClientAccountCategory): ClientAccountCategory => {
+  if (!isValidCategoryType(dbCategory.type)) {
+    throw new Error(`Invalid category type: ${dbCategory.type}`);
+  }
+  
+  return {
+    ...dbCategory,
+    type: dbCategory.type
+  };
+};
+
 export const clientCategoriesService = {
   async getAll(): Promise<ClientAccountCategory[]> {
     const { data, error } = await supabase
@@ -23,7 +51,7 @@ export const clientCategoriesService = {
       throw new Error(`Erro ao buscar categorias: ${error.message}`);
     }
 
-    return data || [];
+    return (data || []).map(convertToClientAccountCategory);
   },
 
   async create(category: Omit<ClientAccountCategory, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>): Promise<ClientAccountCategory> {
@@ -52,7 +80,7 @@ export const clientCategoriesService = {
       throw new Error(`Erro ao criar categoria: ${error.message}`);
     }
 
-    return data;
+    return convertToClientAccountCategory(data);
   },
 
   async update(id: string, updates: Partial<Omit<ClientAccountCategory, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>>): Promise<ClientAccountCategory> {
@@ -67,7 +95,7 @@ export const clientCategoriesService = {
       throw new Error(`Erro ao atualizar categoria: ${error.message}`);
     }
 
-    return data;
+    return convertToClientAccountCategory(data);
   },
 
   async delete(id: string): Promise<void> {
