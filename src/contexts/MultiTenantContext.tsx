@@ -10,6 +10,7 @@ interface MultiTenantContextType {
   assignUserToClient: (clientId: string, role?: string) => Promise<void>;
   removeUserFromClient: (clientId: string) => Promise<void>;
   isSupperAdmin: boolean;
+  hasClientMapping: boolean;
 }
 
 const MultiTenantContext = createContext<MultiTenantContextType | undefined>(undefined);
@@ -22,6 +23,7 @@ export const MultiTenantProvider = ({ children }: { children: ReactNode }) => {
   const { currentClientId, loading, error, assignUserToClient, removeUserFromClient } = useClientMapping();
 
   const isSupperAdmin = user ? hasPermission('saas.manage') : false;
+  const hasClientMapping = !!currentClientId;
 
   return (
     <MultiTenantContext.Provider
@@ -32,6 +34,7 @@ export const MultiTenantProvider = ({ children }: { children: ReactNode }) => {
         assignUserToClient,
         removeUserFromClient,
         isSupperAdmin,
+        hasClientMapping,
       }}
     >
       {children}

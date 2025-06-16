@@ -18,7 +18,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Simple redirect logic
+  // Handle redirection when user becomes available
   useEffect(() => {
     if (!authLoading && user) {
       console.log('User authenticated, redirecting to dashboard');
@@ -41,8 +41,11 @@ const Login = () => {
         }
       } else {
         console.log('Submitting login form');
-        await login(email, password);
-        // Navigation will be handled by useEffect
+        const { error } = await login(email, password);
+        if (!error) {
+          // Navigation will be handled by useEffect when user state updates
+          console.log('Login successful, waiting for user state update');
+        }
       }
     } catch (error) {
       console.error('Form submission error:', error);

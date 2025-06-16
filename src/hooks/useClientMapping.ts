@@ -18,48 +18,40 @@ export const useClientMapping = () => {
   const [currentClientId, setCurrentClientId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fetchTimeoutRef = useRef<NodeJS.Timeout>();
   const mountedRef = useRef(true);
 
-  // Debounced fetch function
-  const debouncedFetch = useCallback((userId: string) => {
-    if (fetchTimeoutRef.current) {
-      clearTimeout(fetchTimeoutRef.current);
-    }
+  const fetchClientMapping = useCallback(async (userId: string) => {
+    if (!mountedRef.current) return;
 
-    fetchTimeoutRef.current = setTimeout(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from('saas_user_client_mapping')
+        .select('client_id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .maybeSingle();
+
       if (!mountedRef.current) return;
 
-      try {
-        setLoading(true);
-        setError(null);
-
-        const { data, error } = await supabase
-          .from('saas_user_client_mapping')
-          .select('client_id')
-          .eq('user_id', userId)
-          .eq('is_active', true)
-          .maybeSingle();
-
-        if (!mountedRef.current) return;
-
-        if (error) {
-          console.error('Error fetching client mapping:', error);
-          setError(error.message);
-          return;
-        }
-
-        setCurrentClientId(data?.client_id || null);
-      } catch (err) {
-        if (!mountedRef.current) return;
-        console.error('Error in fetchClientMapping:', err);
-        setError('Erro ao buscar mapeamento do cliente');
-      } finally {
-        if (mountedRef.current) {
-          setLoading(false);
-        }
+      if (error) {
+        console.error('Error fetching client mapping:', error);
+        setError(error.message);
+        return;
       }
-    }, 300); // 300ms debounce
+
+      setCurrentClientId(data?.client_id || null);
+    } catch (err) {
+      if (!mountedRef.current) return;
+      console.error('Error in fetchClientMapping:', err);
+      setError('Erro ao buscar mapeamento do cliente');
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -72,15 +64,12 @@ export const useClientMapping = () => {
       return;
     }
 
-    debouncedFetch(user.id);
+    fetchClientMapping(user.id);
 
     return () => {
       mountedRef.current = false;
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
     };
-  }, [user?.id, debouncedFetch]);
+  }, [user?.id, fetchClientMapping]);
 
   const assignUserToClient = async (clientId: string, role: string = 'user') => {
     if (!user) throw new Error('Usuário não autenticado');
