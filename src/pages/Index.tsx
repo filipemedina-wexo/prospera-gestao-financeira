@@ -11,7 +11,7 @@ import { ProdutosServicos } from "@/components/modules/ProdutosServicos";
 import { Configuracoes } from "@/components/modules/Configuracoes";
 import { CRM } from "@/components/modules/CRM";
 import { UsersManagement } from "@/components/modules/gestao-usuarios";
-import { SuperAdminDashboard } from "@/components/modules/gestao-saas";
+import SuperAdminDashboard from "@/components/modules/gestao-saas";
 import { Pessoas } from "@/components/modules/Pessoas";
 import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
