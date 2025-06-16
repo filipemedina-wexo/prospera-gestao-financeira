@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiTenant } from '@/contexts/MultiTenantContext';
 import { Navigate, useLocation } from 'react-router-dom';
@@ -8,8 +7,23 @@ import { AlertCircle } from 'lucide-react';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { user, loading: authLoading } = useAuth();
-  const { loading: tenantLoading, isSupperAdmin, hasClientMapping } = useMultiTenant();
   const location = useLocation();
+  
+  // Safely try to get multi-tenant context, with fallback if not ready
+  let tenantLoading = true;
+  let isSupperAdmin = false;
+  let hasClientMapping = false;
+  
+  try {
+    const multiTenantContext = useMultiTenant();
+    tenantLoading = multiTenantContext.loading;
+    isSupperAdmin = multiTenantContext.isSupperAdmin;
+    hasClientMapping = multiTenantContext.hasClientMapping;
+  } catch (error) {
+    // Context not ready yet, keep loading state true
+    console.log('MultiTenant context not ready yet, showing loading...');
+    tenantLoading = true;
+  }
 
   // Show loading while auth is initializing
   if (authLoading) {
