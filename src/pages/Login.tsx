@@ -19,9 +19,10 @@ const Login = () => {
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
-    if (user && !authLoading) {
+    // Only redirect if auth is not loading and user exists
+    if (!authLoading && user) {
       console.log('User authenticated, redirecting to dashboard');
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     }
   }, [user, navigate, authLoading]);
 
@@ -41,7 +42,7 @@ const Login = () => {
         console.log('Submitting login form');
         const { error } = await login(email, password);
         if (!error) {
-          console.log('Login successful, will redirect via useEffect');
+          console.log('Login successful, user should be redirected via useEffect');
         }
       }
     } catch (error) {
@@ -67,7 +68,16 @@ const Login = () => {
 
   // Don't render login form if user is already authenticated
   if (user) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+        <Card className="w-full max-w-sm">
+          <CardContent className="flex flex-col items-center justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
+            <p className="text-sm text-muted-foreground">Redirecionando...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const isFormDisabled = formSubmitting || authLoading;

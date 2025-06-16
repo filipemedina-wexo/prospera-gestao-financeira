@@ -11,11 +11,11 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     return (
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="flex flex-col items-center space-y-4 p-8 bg-white rounded-lg shadow-md">
-            <Skeleton className="h-16 w-16 rounded-full" />
-            <div className="space-y-2 text-center">
-                <Skeleton className="h-4 w-[250px] mx-auto" />
-                <Skeleton className="h-4 w-[200px] mx-auto" />
-            </div>
+          <Skeleton className="h-16 w-16 rounded-full" />
+          <div className="space-y-2 text-center">
+            <Skeleton className="h-4 w-[250px] mx-auto" />
+            <Skeleton className="h-4 w-[200px] mx-auto" />
+          </div>
         </div>
       </div>
     );

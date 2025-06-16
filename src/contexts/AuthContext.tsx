@@ -121,8 +121,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     console.log('Initializing auth context...');
     let mounted = true;
+    let hasSession = false;
 
-    const initializeAuth = async () => {
+    // Set up auth state listener first
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, !!session);
+      
+      if (!mounted) return;
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log('User signed in via onAuthStateChange');
+        hasSession = true;
+        try {
+          await fetchAndSetUser(session.user);
+        } catch (error) {
+          console.error('Error handling sign in:', error);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+        setUser(null);
+        await logSecurityEvent('USER_LOGOUT', 'auth', true);
+      }
+      
+      // Only set loading to false if we haven't already processed a session
+      if (!hasSession) {
+        setLoading(false);
+      }
+    });
+
+    // Then check for existing session
+    const initializeSession = async () => {
       try {
         console.log('Getting initial session...');
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -133,12 +161,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (mounted) {
-          if (session?.user) {
+          if (session?.user && !hasSession) {
             console.log('Found existing session, fetching user data...');
+            hasSession = true;
             await fetchAndSetUser(session.user);
-          } else {
-            console.log('No existing session found');
-            setUser(null);
           }
           setLoading(false);
         }
@@ -161,30 +187,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.warn('Auth initialization timeout - forcing loading to false');
         setLoading(false);
       }
-    }, 8000);
+    }, 5000); // Reduced to 5 seconds
 
-    initializeAuth();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id);
-      
-      if (!mounted) return;
-
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log('User signed in, fetching user data...');
-        try {
-          await fetchAndSetUser(session.user);
-        } catch (error) {
-          console.error('Error handling sign in:', error);
-        }
-      } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out');
-        setUser(null);
-        await logSecurityEvent('USER_LOGOUT', 'auth', true);
-      }
-      
-      setLoading(false);
-    });
+    initializeSession();
 
     return () => {
       mounted = false;
@@ -195,6 +200,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     console.log('Attempting login for:', email);
+    setLoading(true);
     
     try {
       // Clean up any existing auth state first
@@ -203,11 +209,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Attempt global sign out first
       try {
         await supabase.auth.signOut({ scope: 'global' });
+        // Small delay to ensure cleanup
+        await new Promise(resolve => setTimeout(resolve, 100));
       } catch (err) {
         console.log('Global signout failed, continuing...');
       }
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
       
       if (error) {
         console.error('Login error:', error);
@@ -218,11 +229,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           variant: 'destructive' 
         });
         return { error };
-      } else {
-        console.log('Login successful');
+      } 
+      
+      if (data.user) {
+        console.log('Login successful, user will be set via onAuthStateChange');
         toast({ title: 'Login bem-sucedido!' });
+        // Don't manually set user here - let onAuthStateChange handle it
         return { error: null };
       }
+
+      return { error: null };
     } catch (error) {
       console.error('Unexpected login error:', error);
       toast({
@@ -231,6 +247,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: 'destructive',
       });
       return { error: error as AuthError };
+    } finally {
+      setLoading(false);
     }
   };
 
