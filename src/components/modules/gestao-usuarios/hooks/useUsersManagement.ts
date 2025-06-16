@@ -170,19 +170,22 @@ export function useUsersManagement() {
           // Get auth users for these profiles only
           const { data: authUsersResponse, error: authError } = await supabase.auth.admin.listUsers();
           if (authError) throw authError;
-          authUsersList = authUsersResponse?.users?.filter(user => userIds.includes(user.id)).map((user): AuthUser => ({
+          const allAuthUsers = authUsersResponse?.users?.map((user): AuthUser => ({
             id: user.id,
             email: user.email || '',
             created_at: user.created_at,
             last_sign_in_at: user.last_sign_in_at || null
           })) || [];
+          
+          // Filter to only include users that belong to this client
+          authUsersList = allAuthUsers.filter(user => userIds.includes(user.id));
         }
       }
 
       // Combine all data with explicit typing
       const combinedUsers: User[] = userProfiles.map((profile: ProfileData): User => {
-        const authUser = authUsersList.find(u => u.id === profile.id);
-        const userRole = userRoles.find(roleData => roleData.user_id === profile.id);
+        const authUser: AuthUser | undefined = authUsersList.find(u => u.id === profile.id);
+        const userRole: UserRoleData | undefined = userRoles.find(roleData => roleData.user_id === profile.id);
         const role: ExtendedRole = userRole?.role || 'contador';
 
         return {
