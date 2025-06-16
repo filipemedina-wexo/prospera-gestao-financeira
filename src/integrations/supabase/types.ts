@@ -323,6 +323,88 @@ export type Database = {
           },
         ]
       }
+      saas_client_configurations: {
+        Row: {
+          client_id: string
+          configuration_key: string
+          configuration_value: Json
+          created_at: string
+          id: string
+          is_default: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          configuration_key: string
+          configuration_value: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          configuration_key?: string
+          configuration_value?: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_client_configurations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saas_client_user_assignments: {
+        Row: {
+          assigned_by: string | null
+          client_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          permissions: Json | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          permissions?: Json | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          permissions?: Json | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_client_user_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saas_client_users: {
         Row: {
           client_id: string
@@ -414,6 +496,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      saas_payment_history: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          status: string
+          subscription_id: string
+          transaction_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          payment_date: string
+          payment_method?: string | null
+          status?: string
+          subscription_id: string
+          transaction_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          status?: string
+          subscription_id?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_payment_history_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "saas_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saas_plans: {
         Row: {
@@ -626,6 +755,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_client_admin_user: {
+        Args: {
+          client_id_param: string
+          admin_email: string
+          admin_name: string
+        }
+        Returns: Json
+      }
       generate_secure_password: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -633,6 +770,10 @@ export type Database = {
       get_current_user_client_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      initialize_client_data: {
+        Args: { client_id_param: string }
+        Returns: undefined
       }
       is_super_admin: {
         Args: Record<PropertyKey, never>
