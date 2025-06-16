@@ -94,7 +94,7 @@ const Login = () => {
           </div>
           <CardTitle className="text-2xl">Prospera</CardTitle>
           <CardDescription>
-            {isSignUp ? 'Crie sua conta e configure automaticamente seu painel administrativo.' : 'Entre com seu email e senha para acessar.'}
+            {isSignUp ? 'Crie sua conta e seu painel será configurado automaticamente para você começar a usar imediatamente.' : 'Entre com seu email e senha para acessar seu painel administrativo.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -142,7 +142,7 @@ const Login = () => {
               {formSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Aguarde...
+                  {isSignUp ? 'Criando conta...' : 'Entrando...'}
                 </>
               ) : (
                 isSignUp ? 'Criar Conta' : 'Entrar'

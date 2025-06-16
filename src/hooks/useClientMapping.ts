@@ -27,8 +27,8 @@ export const useClientMapping = () => {
       setLoading(true);
       setError(null);
 
-      // Aguardar um pouco para permitir que o trigger do banco complete
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Para novos usuários, aguardar mais tempo para o trigger completar
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       const { data, error } = await supabase
         .from('saas_user_client_mapping')
