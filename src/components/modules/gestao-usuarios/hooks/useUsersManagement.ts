@@ -64,6 +64,31 @@ const generateSecurePassword = async (): Promise<string> => {
   }
 };
 
+// Send welcome email with login credentials
+const sendWelcomeEmail = async (user: any, temporaryPassword: string) => {
+  try {
+    console.log('Sending welcome email to:', user.email);
+    
+    const { data, error } = await supabase.functions.invoke('send-welcome-email', {
+      body: { 
+        user: user,
+        temporaryPassword: temporaryPassword
+      },
+    });
+
+    if (error) {
+      console.error('Error invoking welcome email function:', error);
+      throw error;
+    }
+
+    console.log('Welcome email sent successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Failed to send welcome email:', error);
+    throw error;
+  }
+};
+
 export function useUsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -249,13 +274,27 @@ export function useUsersManagement() {
             }
           }
 
+          // Send welcome email with login credentials
+          try {
+            await sendWelcomeEmail(data.user, securePassword);
+            console.log('Welcome email sent successfully');
+          } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
+            // Don't fail the user creation if email fails
+            toast({
+              title: 'Usuário criado',
+              description: `Usuário criado com sucesso, mas houve erro ao enviar email de boas-vindas. Senha temporária: ${securePassword}`,
+              variant: 'default',
+            });
+          }
+
           // Log successful user creation
           await logSecurityEvent('CREATE_USER', 'user', data.user.id, true);
         }
 
         toast({
           title: 'Usuário criado',
-          description: `Novo usuário foi criado com sucesso. Senha temporária: ${securePassword}`,
+          description: 'Novo usuário foi criado com sucesso e um email de boas-vindas foi enviado.',
         });
       }
 

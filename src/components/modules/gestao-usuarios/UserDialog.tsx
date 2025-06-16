@@ -1,3 +1,4 @@
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -36,7 +37,6 @@ const userFormSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("Email inválido"),
   role: z.enum(['admin', 'financeiro', 'comercial', 'contador', 'super_admin'] as const, { required_error: "Selecione um perfil" }),
-  password: z.string().min(6, "A nova senha deve ter no mínimo 6 caracteres").or(z.literal("")).optional(),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -56,7 +56,6 @@ export function UserDialog({ isOpen, setIsOpen, onSave, userToEdit }: UserDialog
     defaultValues: {
       name: "",
       email: "",
-      password: "",
       role: undefined,
     },
   });
@@ -68,13 +67,11 @@ export function UserDialog({ isOpen, setIsOpen, onSave, userToEdit }: UserDialog
           name: userToEdit.name,
           email: userToEdit.email,
           role: userToEdit.role,
-          password: "",
         });
       } else {
         form.reset({
           name: "",
           email: "",
-          password: "",
           role: undefined,
         });
       }
@@ -82,11 +79,6 @@ export function UserDialog({ isOpen, setIsOpen, onSave, userToEdit }: UserDialog
   }, [isOpen, userToEdit, form]);
 
   function onSubmit(data: UserFormValues) {
-    if (!isEditing && (!data.password || data.password.length < 6)) {
-      form.setError("password", { message: "A senha é obrigatória e deve ter no mínimo 6 caracteres." });
-      return;
-    }
-    
     if (isEditing && userToEdit) {
       const updatedUser: User = {
         ...userToEdit,
@@ -94,9 +86,6 @@ export function UserDialog({ isOpen, setIsOpen, onSave, userToEdit }: UserDialog
         email: data.email,
         role: data.role,
       };
-      if (data.password) {
-        updatedUser.password = data.password;
-      }
       onSave(updatedUser);
     } else {
       const newUser: User = {
@@ -104,7 +93,6 @@ export function UserDialog({ isOpen, setIsOpen, onSave, userToEdit }: UserDialog
         name: data.name,
         email: data.email,
         role: data.role,
-        password: data.password!,
         status: 'active',
         createdAt: new Date().toISOString(),
       };
@@ -120,7 +108,7 @@ export function UserDialog({ isOpen, setIsOpen, onSave, userToEdit }: UserDialog
         <DialogHeader>
           <DialogTitle>{isEditing ? "Editar Usuário" : "Adicionar Novo Usuário"}</DialogTitle>
           <DialogDescription>
-            {isEditing ? "Altere os dados do usuário." : "Preencha os dados para criar um novo usuário."}
+            {isEditing ? "Altere os dados do usuário." : "Preencha os dados para criar um novo usuário. Um email de boas-vindas será enviado automaticamente com as credenciais de acesso."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -173,22 +161,11 @@ export function UserDialog({ isOpen, setIsOpen, onSave, userToEdit }: UserDialog
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Senha</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder={isEditing ? "Deixe em branco para não alterar" : "******"} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancelar</Button>
-              <Button type="submit">Salvar</Button>
+              <Button type="submit">
+                {isEditing ? "Salvar Alterações" : "Criar Usuário"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>
