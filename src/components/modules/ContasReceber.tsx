@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,9 @@ import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ContaReceber } from "./contas-receber/types";
 import { useToast } from "@/hooks/use-toast";
+import { useMultiTenant } from "@/contexts/MultiTenantContext";
+import { accountsReceivableService } from "@/services/accountsReceivableService";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface ContasReceberProps {
   contas: ContaReceber[];
@@ -54,6 +58,8 @@ const formasRecebimento = [
 
 export function ContasReceber({ contas, setContas }: ContasReceberProps) {
   const { toast } = useToast();
+  const { currentClientId, loading: clientLoading } = useMultiTenant();
+  const queryClient = useQueryClient();
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
   const [busca, setBusca] = useState("");
@@ -79,6 +85,27 @@ export function ContasReceber({ contas, setContas }: ContasReceberProps) {
     observacoes: ""
   });
 
+  // Buscar contas do banco de dados se temos um cliente ativo
+  const { data: contasDatabase, isLoading } = useQuery({
+    queryKey: ['accounts-receivable', currentClientId],
+    queryFn: () => currentClientId ? accountsReceivableService.getAll() : Promise.resolve([]),
+    enabled: !!currentClientId && !clientLoading,
+  });
+
+  // Use only database data, no more mock data
+  const todasContas = (contasDatabase || []).map(conta => ({
+    id: conta.id,
+    descricao: conta.description,
+    valor: conta.amount,
+    dataVencimento: new Date(conta.due_date),
+    status: conta.status as 'pendente' | 'recebido' | 'atrasado' | 'parcial',
+    cliente: conta.financial_client_id || 'Não informado',
+    categoria: conta.category || 'Geral',
+    numeroFatura: '',
+    dataRecebimento: conta.received_date ? new Date(conta.received_date) : undefined,
+    observacoes: undefined,
+  }));
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pendente: { variant: "secondary" as const, label: "Pendente", icon: Clock },
@@ -98,7 +125,7 @@ export function ContasReceber({ contas, setContas }: ContasReceberProps) {
     );
   };
 
-  const contasFiltradas = contas.filter(conta => {
+  const contasFiltradas = todasContas.filter(conta => {
     const matchStatus = filtroStatus === "todos" || conta.status === filtroStatus;
     const matchCategoria = filtroCategoria === "todas" || conta.categoria === filtroCategoria;
     const matchBusca = busca === "" || 
@@ -108,11 +135,11 @@ export function ContasReceber({ contas, setContas }: ContasReceberProps) {
     return matchStatus && matchCategoria && matchBusca;
   });
 
-  const totalReceber = contas
+  const totalReceber = todasContas
     .filter(c => c.status === 'pendente' || c.status === 'atrasado')
     .reduce((sum, c) => sum + c.valor, 0);
 
-  const totalRecebido = contas
+  const totalRecebido = todasContas
     .filter(c => c.status === 'recebido')
     .reduce((sum, c) => sum + c.valor, 0);
   
@@ -148,65 +175,102 @@ export function ContasReceber({ contas, setContas }: ContasReceberProps) {
     setShowFormDialog(true);
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (contaParaEditar) {
-      const contaAtualizada: ContaReceber = {
-        ...contaParaEditar,
-        descricao: formData.descricao,
-        valor: parseFloat(formData.valor),
-        dataVencimento: formData.dataVencimento!,
-        cliente: formData.cliente,
-        categoria: formData.categoria,
-        numeroFatura: formData.numeroFatura || undefined,
-        observacoes: formData.observacoes || undefined,
-      };
-      setContas(contas.map(c => c.id === contaParaEditar.id ? contaAtualizada : c));
-      toast({ title: "Conta atualizada!", description: `A conta "${contaAtualizada.descricao}" foi atualizada.`});
-    } else {
-      const novaConta: ContaReceber = {
-        id: Date.now().toString(),
-        descricao: formData.descricao,
-        valor: parseFloat(formData.valor),
-        dataVencimento: formData.dataVencimento!,
-        status: 'pendente',
-        cliente: formData.cliente,
-        categoria: formData.categoria,
-        numeroFatura: formData.numeroFatura || undefined,
-        observacoes: formData.observacoes || undefined,
-      };
-      setContas([...contas, novaConta]);
-      toast({ title: "Conta criada!", description: `A conta "${novaConta.descricao}" foi adicionada.`});
+    if (!currentClientId) {
+      toast({
+        title: "Erro",
+        description: "Nenhum cliente ativo encontrado.",
+        variant: "destructive",
+      });
+      return;
     }
-    
-    setShowFormDialog(false);
-    resetForm();
+
+    try {
+      if (contaParaEditar) {
+        // Atualizar conta existente
+        await accountsReceivableService.update(contaParaEditar.id, {
+          description: formData.descricao,
+          amount: parseFloat(formData.valor),
+          due_date: format(formData.dataVencimento!, 'yyyy-MM-dd'),
+          category: formData.categoria,
+        });
+        toast({ title: "Conta atualizada!", description: `A conta "${formData.descricao}" foi atualizada.`});
+      } else {
+        // Criar conta nova
+        await accountsReceivableService.create({
+          description: formData.descricao,
+          amount: parseFloat(formData.valor),
+          due_date: format(formData.dataVencimento!, 'yyyy-MM-dd'),
+          status: 'pending',
+          category: formData.categoria,
+        });
+        toast({ title: "Conta criada!", description: `A conta "${formData.descricao}" foi adicionada.`});
+      }
+      
+      // Recarregar dados
+      queryClient.invalidateQueries({ queryKey: ['accounts-receivable', currentClientId] });
+      setShowFormDialog(false);
+      resetForm();
+    } catch (error) {
+      console.error('Error saving account:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar conta a receber.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleConfirmarRecebimento = () => {
-    if (!contaParaReceber || !dataRecebimento || !formaRecebimento) return;
+  const handleConfirmarRecebimento = async () => {
+    if (!contaParaReceber || !dataRecebimento || !formaRecebimento || !currentClientId) return;
 
-    setContas(contas.map(c => 
-      c.id === contaParaReceber.id
-        ? { ...c, status: 'recebido' as const, dataRecebimento: dataRecebimento, formaRecebimento: formaRecebimento }
-        : c
-    ));
-    
-    toast({ title: "Recebimento confirmado!", description: `A conta "${contaParaReceber.descricao}" foi marcada como recebida.`});
+    try {
+      await accountsReceivableService.markAsReceived(
+        contaParaReceber.id, 
+        format(dataRecebimento, 'yyyy-MM-dd')
+      );
+      queryClient.invalidateQueries({ queryKey: ['accounts-receivable', currentClientId] });
 
-    setShowReceberDialog(false);
-    setContaParaReceber(null);
-    setDataRecebimento(new Date());
-    setFormaRecebimento("");
+      toast({ title: "Recebimento confirmado!", description: `A conta "${contaParaReceber.descricao}" foi marcada como recebida.`});
+
+      setShowReceberDialog(false);
+      setContaParaReceber(null);
+      setDataRecebimento(new Date());
+      setFormaRecebimento("");
+    } catch (error) {
+      console.error('Error marking as received:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao registrar recebimento.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleConfirmarRemocao = () => {
-    if (!contaParaRemover) return;
-    setContas(contas.filter(c => c.id !== contaParaRemover.id));
-    toast({ title: "Conta removida!", description: `A conta "${contaParaRemover.descricao}" foi removida.`, variant: 'destructive' });
-    setShowDeleteDialog(false);
-    setContaParaRemover(null);
+  const handleConfirmarRemocao = async () => {
+    if (!contaParaRemover || !currentClientId) return;
+    
+    try {
+      await accountsReceivableService.delete(contaParaRemover.id);
+      queryClient.invalidateQueries({ queryKey: ['accounts-receivable', currentClientId] });
+      
+      toast({ title: "Conta removida!", description: `A conta "${contaParaRemover.descricao}" foi removida.`, variant: 'destructive' });
+      setShowDeleteDialog(false);
+      setContaParaRemover(null);
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao remover conta a receber.",
+        variant: "destructive",
+      });
+    }
+  }
+
+  if (clientLoading || isLoading) {
+    return <div>Carregando...</div>;
   }
 
   return (
@@ -396,7 +460,7 @@ export function ContasReceber({ contas, setContas }: ContasReceberProps) {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Contas Atrasadas</p>
                 <p className="text-2xl font-bold text-orange-600">
-                  {contas.filter(c => c.status === 'atrasado').length}
+                  {todasContas.filter(c => c.status === 'atrasado').length}
                 </p>
               </div>
               <div className="h-12 w-12 bg-orange-100 rounded-full flex items-center justify-center">
@@ -412,7 +476,7 @@ export function ContasReceber({ contas, setContas }: ContasReceberProps) {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Taxa Recebimento</p>
                 <p className="text-2xl font-bold text-purple-600">
-                  {contas.length > 0 ? Math.round((contas.filter(c => c.status === 'recebido').length / contas.length) * 100) : 0}%
+                  {todasContas.length > 0 ? Math.round((todasContas.filter(c => c.status === 'recebido').length / todasContas.length) * 100) : 0}%
                 </p>
               </div>
               <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
