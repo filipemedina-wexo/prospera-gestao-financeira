@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -144,13 +145,27 @@ export function UserAssignmentDialog({ isOpen, onClose, client, onUpdate }: User
 
       if (error) throw error;
 
-      // Properly cast the Json response to AdminUserResponse
-      const adminData = data as unknown as AdminUserResponse;
-
-      toast({
-        title: 'Usuário Admin Criado',
-        description: `Admin criado com sucesso. Senha temporária: ${adminData.temporary_password}`,
-      });
+      // Safely parse the Json response
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        const adminData = data as Record<string, any>;
+        
+        if (adminData.temporary_password) {
+          toast({
+            title: 'Usuário Admin Criado',
+            description: `Admin criado com sucesso. Senha temporária: ${adminData.temporary_password}`,
+          });
+        } else {
+          toast({
+            title: 'Usuário Admin Criado',
+            description: 'Admin criado com sucesso.',
+          });
+        }
+      } else {
+        toast({
+          title: 'Usuário Admin Criado',
+          description: 'Admin criado com sucesso.',
+        });
+      }
 
       setShowAddForm(false);
       setNewUserEmail('');
