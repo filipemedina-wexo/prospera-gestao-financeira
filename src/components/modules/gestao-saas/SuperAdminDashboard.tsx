@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -361,6 +362,7 @@ export function SuperAdminDashboard() {
                           )}
                         </div>
                       </div>
+                    </div>
                     
                     <div className="flex items-center space-x-4">
                       {client.onboarding && !client.onboarding.onboarding_completed_at && (
