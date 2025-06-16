@@ -123,6 +123,44 @@ export type Database = {
           },
         ]
       }
+      client_account_categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          saas_client_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          saas_client_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          saas_client_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_account_categories_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_databases: {
         Row: {
           client_id: string

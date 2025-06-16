@@ -136,32 +136,37 @@ export function useUsersManagement() {
         })) || [];
       } else if (currentClientId) {
         // Regular admin can only see users from their client
-        const { data: clientUsers, error: clientUsersError } = await supabase
+        // First get the user mappings for the current client
+        const { data: clientUserMappings, error: mappingError } = await supabase
           .from('saas_user_client_mapping')
-          .select(`
-            user_id,
-            profiles!inner(id, full_name),
-            user_roles!inner(user_id, role)
-          `)
+          .select('user_id')
           .eq('client_id', currentClientId)
           .eq('is_active', true);
 
-        if (clientUsersError) throw clientUsersError;
+        if (mappingError) throw mappingError;
 
-        // Transform the data
-        userProfiles = clientUsers?.map(cu => ({
-          id: cu.profiles.id,
-          full_name: cu.profiles.full_name
-        })) || [];
+        const userIds = clientUserMappings?.map(mapping => mapping.user_id) || [];
 
-        userRoles = clientUsers?.map(cu => ({
-          user_id: cu.user_roles.user_id,
-          role: cu.user_roles.role as ExtendedRole
-        })) || [];
-
-        // Get auth users for these profiles only
-        const userIds = userProfiles.map(p => p.id);
         if (userIds.length > 0) {
+          // Get profiles for these users
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', userIds);
+
+          if (profilesError) throw profilesError;
+          userProfiles = profiles || [];
+
+          // Get roles for these users
+          const { data: roles, error: rolesError } = await supabase
+            .from('user_roles')
+            .select('user_id, role')
+            .in('user_id', userIds);
+
+          if (rolesError) throw rolesError;
+          userRoles = roles || [];
+
+          // Get auth users for these profiles only
           const { data: authUsersResponse, error: authError } = await supabase.auth.admin.listUsers();
           if (authError) throw authError;
           authUsersList = authUsersResponse?.users?.filter(user => userIds.includes(user.id)).map(user => ({
@@ -192,7 +197,7 @@ export function useUsersManagement() {
 
       setUsers(combinedUsers);
     } catch (error) {
-      console.error('Error fetching users');
+      console.error('Error fetching users:', error);
       await logSecurityEvent('FETCH_USERS', 'users', undefined, false, 'Failed to fetch users');
       toast({
         title: 'Erro',
@@ -269,7 +274,7 @@ export function useUsersManagement() {
               });
 
             if (mappingError) {
-              console.error('Error creating client mapping');
+              console.error('Error creating client mapping:', mappingError);
               await logSecurityEvent('CREATE_USER_CLIENT_MAPPING', 'user_client_mapping', data.user.id, false, 'Failed to create client mapping');
             }
           }
@@ -300,7 +305,7 @@ export function useUsersManagement() {
 
       fetchUsers();
     } catch (error) {
-      console.error('Error saving user');
+      console.error('Error saving user:', error);
       await logSecurityEvent(
         selectedUser ? 'UPDATE_USER' : 'CREATE_USER',
         'user',
