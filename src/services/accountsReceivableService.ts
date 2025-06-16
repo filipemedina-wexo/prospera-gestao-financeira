@@ -16,11 +16,11 @@ export interface AccountReceivable {
 }
 
 export const accountsReceivableService = {
-  async getAll(saasClientId: string): Promise<AccountReceivable[]> {
+  async getAll(): Promise<AccountReceivable[]> {
+    // RLS will automatically filter by the user's client
     const { data, error } = await supabase
       .from('accounts_receivable')
       .select('*')
-      .eq('saas_client_id', saasClientId)
       .order('due_date');
 
     if (error) {
@@ -30,10 +30,25 @@ export const accountsReceivableService = {
     return (data || []) as AccountReceivable[];
   },
 
-  async create(account: Omit<AccountReceivable, 'id' | 'created_at' | 'updated_at'>): Promise<AccountReceivable> {
+  async create(account: Omit<AccountReceivable, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>): Promise<AccountReceivable> {
+    // Get current client ID
+    const { data: clientMapping } = await supabase
+      .from('saas_user_client_mapping')
+      .select('client_id')
+      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .eq('is_active', true)
+      .single();
+
+    if (!clientMapping) {
+      throw new Error('Cliente não encontrado');
+    }
+
     const { data, error } = await supabase
       .from('accounts_receivable')
-      .insert(account)
+      .insert({
+        ...account,
+        saas_client_id: clientMapping.client_id
+      })
       .select()
       .single();
 
@@ -44,7 +59,7 @@ export const accountsReceivableService = {
     return data as AccountReceivable;
   },
 
-  async update(id: string, updates: Partial<Omit<AccountReceivable, 'id' | 'created_at' | 'updated_at'>>): Promise<AccountReceivable> {
+  async update(id: string, updates: Partial<Omit<AccountReceivable, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>>): Promise<AccountReceivable> {
     const { data, error } = await supabase
       .from('accounts_receivable')
       .update(updates)

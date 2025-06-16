@@ -16,11 +16,11 @@ export interface AccountPayable {
 }
 
 export const accountsPayableService = {
-  async getAll(saasClientId: string): Promise<AccountPayable[]> {
+  async getAll(): Promise<AccountPayable[]> {
+    // RLS will automatically filter by the user's client
     const { data, error } = await supabase
       .from('accounts_payable')
       .select('*')
-      .eq('saas_client_id', saasClientId)
       .order('due_date');
 
     if (error) {
@@ -30,10 +30,25 @@ export const accountsPayableService = {
     return (data || []) as AccountPayable[];
   },
 
-  async create(account: Omit<AccountPayable, 'id' | 'created_at' | 'updated_at'>): Promise<AccountPayable> {
+  async create(account: Omit<AccountPayable, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>): Promise<AccountPayable> {
+    // Get current client ID
+    const { data: clientMapping } = await supabase
+      .from('saas_user_client_mapping')
+      .select('client_id')
+      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .eq('is_active', true)
+      .single();
+
+    if (!clientMapping) {
+      throw new Error('Cliente não encontrado');
+    }
+
     const { data, error } = await supabase
       .from('accounts_payable')
-      .insert(account)
+      .insert({
+        ...account,
+        saas_client_id: clientMapping.client_id
+      })
       .select()
       .single();
 
@@ -44,7 +59,7 @@ export const accountsPayableService = {
     return data as AccountPayable;
   },
 
-  async update(id: string, updates: Partial<Omit<AccountPayable, 'id' | 'created_at' | 'updated_at'>>): Promise<AccountPayable> {
+  async update(id: string, updates: Partial<Omit<AccountPayable, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>>): Promise<AccountPayable> {
     const { data, error } = await supabase
       .from('accounts_payable')
       .update(updates)

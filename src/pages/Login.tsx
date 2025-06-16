@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { TrendingUp, Loader2, CheckCircle } from 'lucide-react';
+import { TrendingUp, Loader2, CheckCircle, LogOut } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const Login = () => {
@@ -16,7 +16,7 @@ const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [showSignupSuccess, setShowSignupSuccess] = useState(false);
-  const { login, signUp, loading: authLoading, user } = useAuth();
+  const { login, signUp, logout, loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,6 +61,18 @@ const Login = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso.",
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   // Show loading during auth initialization
   if (authLoading) {
     return (
@@ -98,14 +110,35 @@ const Login = () => {
     );
   }
 
-  // Don't render login form if user is already authenticated
+  // Show logout option if user is already authenticated but still on login page
   if (user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
         <Card className="w-full max-w-sm">
-          <CardContent className="flex flex-col items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
-            <p className="text-sm text-muted-foreground">Redirecionando...</p>
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
+              <TrendingUp className="h-8 w-8 text-white" />
+            </div>
+            <CardTitle className="text-xl">Já logado</CardTitle>
+            <CardDescription>
+              Você já está conectado como {user.email}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              onClick={() => navigate('/dashboard')} 
+              className="w-full"
+            >
+              Ir para o Dashboard
+            </Button>
+            <Button 
+              onClick={handleLogout} 
+              variant="outline" 
+              className="w-full"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Fazer Logout
+            </Button>
           </CardContent>
         </Card>
       </div>

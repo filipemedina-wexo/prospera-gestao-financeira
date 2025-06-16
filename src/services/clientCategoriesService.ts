@@ -1,36 +1,34 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface FinancialClient {
+export interface ClientAccountCategory {
   id: string;
   saas_client_id: string;
   name: string;
-  email?: string;
-  phone?: string;
-  document?: string;
-  address?: string;
-  city?: string;
-  state?: string;
+  type: 'income' | 'expense';
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export const financialClientsService = {
-  async getAll(): Promise<FinancialClient[]> {
+export const clientCategoriesService = {
+  async getAll(): Promise<ClientAccountCategory[]> {
     // RLS will automatically filter by the user's client
     const { data, error } = await supabase
-      .from('financial_clients')
+      .from('client_account_categories')
       .select('*')
-      .order('name');
+      .eq('is_active', true)
+      .order('type', { ascending: true })
+      .order('name', { ascending: true });
 
     if (error) {
-      throw new Error(`Erro ao buscar clientes financeiros: ${error.message}`);
+      throw new Error(`Erro ao buscar categorias: ${error.message}`);
     }
 
     return data || [];
   },
 
-  async create(client: Omit<FinancialClient, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>): Promise<FinancialClient> {
+  async create(category: Omit<ClientAccountCategory, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>): Promise<ClientAccountCategory> {
     // Get current client ID
     const { data: clientMapping } = await supabase
       .from('saas_user_client_mapping')
@@ -44,31 +42,31 @@ export const financialClientsService = {
     }
 
     const { data, error } = await supabase
-      .from('financial_clients')
+      .from('client_account_categories')
       .insert({
-        ...client,
+        ...category,
         saas_client_id: clientMapping.client_id
       })
       .select()
       .single();
 
     if (error) {
-      throw new Error(`Erro ao criar cliente financeiro: ${error.message}`);
+      throw new Error(`Erro ao criar categoria: ${error.message}`);
     }
 
     return data;
   },
 
-  async update(id: string, updates: Partial<Omit<FinancialClient, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>>): Promise<FinancialClient> {
+  async update(id: string, updates: Partial<Omit<ClientAccountCategory, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>>): Promise<ClientAccountCategory> {
     const { data, error } = await supabase
-      .from('financial_clients')
+      .from('client_account_categories')
       .update(updates)
       .eq('id', id)
       .select()
       .single();
 
     if (error) {
-      throw new Error(`Erro ao atualizar cliente financeiro: ${error.message}`);
+      throw new Error(`Erro ao atualizar categoria: ${error.message}`);
     }
 
     return data;
@@ -76,12 +74,12 @@ export const financialClientsService = {
 
   async delete(id: string): Promise<void> {
     const { error } = await supabase
-      .from('financial_clients')
-      .delete()
+      .from('client_account_categories')
+      .update({ is_active: false })
       .eq('id', id);
 
     if (error) {
-      throw new Error(`Erro ao deletar cliente financeiro: ${error.message}`);
+      throw new Error(`Erro ao deletar categoria: ${error.message}`);
     }
   },
 };
