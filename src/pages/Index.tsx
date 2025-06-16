@@ -1,4 +1,3 @@
-
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ContasPagar as ContasPagarModule } from "@/components/modules/ContasPagar";
@@ -12,7 +11,7 @@ import { ProdutosServicos } from "@/components/modules/ProdutosServicos";
 import { Configuracoes } from "@/components/modules/Configuracoes";
 import { CRM } from "@/components/modules/CRM";
 import { UsersManagement } from "@/components/modules/gestao-usuarios";
-import GestaoSaaS from "@/components/modules/gestao-saas";
+import { SuperAdminDashboard } from "@/components/modules/gestao-saas";
 import { Pessoas } from "@/components/modules/Pessoas";
 import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
@@ -104,7 +103,7 @@ const Index = () => {
       case "gestao-usuarios":
         return <UsersManagement />;
       case "gestao-saas":
-        return <GestaoSaaS />;
+        return <SuperAdminDashboard />;
       default:
         return <div className="flex flex-col items-center justify-center h-full text-center">
             <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
