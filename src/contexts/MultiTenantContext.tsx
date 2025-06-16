@@ -29,7 +29,7 @@ export const MultiTenantProvider = ({ children }: { children: ReactNode }) => {
   const { currentClientId, loading: clientLoading, error, retryCount, assignUserToClient, removeUserFromClient } = useClientMapping();
 
   // Calculate loading state - we're loading if auth is loading OR if we have a user but client mapping is still loading
-  const loading = authLoading || (user && clientLoading);
+  const loading = authLoading || (!!user && clientLoading);
   
   const isSupperAdmin = user ? hasPermission('saas.manage') : false;
   const hasClientMapping = !!currentClientId;

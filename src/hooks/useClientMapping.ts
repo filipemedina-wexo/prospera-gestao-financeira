@@ -29,6 +29,15 @@ export const useClientMapping = () => {
       setLoading(true);
       setError(null);
 
+      // Get the current session to ensure we're authenticated
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        console.log('No active session found');
+        setError('Usuário não autenticado');
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('saas_user_client_mapping')
         .select('client_id')
@@ -40,7 +49,22 @@ export const useClientMapping = () => {
 
       if (error) {
         console.error('Error fetching client mapping:', error);
-        setError(error.message);
+        
+        // If it's an auth error and we have attempts left, retry
+        if (error.code === 'PGRST301' && attempt < 3) {
+          console.log(`Auth error, retrying in 1 second... (attempt ${attempt + 1}/3)`);
+          setRetryCount(attempt + 1);
+          
+          setTimeout(() => {
+            if (mountedRef.current) {
+              fetchClientMapping(userId, attempt + 1);
+            }
+          }, 1000);
+          return;
+        }
+        
+        setError(`Erro ao buscar mapeamento: ${error.message}`);
+        setLoading(false);
         return;
       }
 
@@ -48,6 +72,7 @@ export const useClientMapping = () => {
         console.log('Client mapping found:', data);
         setCurrentClientId(data.client_id);
         setRetryCount(0);
+        setLoading(false);
         return;
       }
 
@@ -94,10 +119,16 @@ export const useClientMapping = () => {
       return;
     }
 
-    fetchClientMapping(user.id);
+    // Add a small delay to ensure the auth session is fully established
+    const timeoutId = setTimeout(() => {
+      if (mountedRef.current && user?.id) {
+        fetchClientMapping(user.id);
+      }
+    }, 100);
 
     return () => {
       mountedRef.current = false;
+      clearTimeout(timeoutId);
     };
   }, [user?.id, authLoading, fetchClientMapping]);
 
