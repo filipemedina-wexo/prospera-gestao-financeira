@@ -12,6 +12,7 @@ export const menuItems = [
   { title: "Relatórios", icon: BarChart3, id: "relatorios", permission: "relatorios.view" },
   { title: "DRE", icon: FileText, id: "dre", permission: "dre.view" },
   { title: "CRM", icon: Users, id: "crm", permission: "crm.view" },
+  { title: "Gestão de Usuários", icon: UserCog, id: "gestao-usuarios", permission: "gestao-usuarios.view" },
   { title: "Gestão SaaS", icon: Building2, id: "gestao-saas", permission: "saas.manage" },
   { title: "Configurações", icon: Settings, id: "configuracoes", permission: "configuracoes.view" },
 ];

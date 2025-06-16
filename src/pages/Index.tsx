@@ -1,3 +1,4 @@
+
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ContasPagar as ContasPagarModule } from "@/components/modules/ContasPagar";
@@ -20,16 +21,23 @@ import { useAuth } from "@/contexts/AuthContext";
 import { menuItems } from "@/config/menu";
 import { useClient } from "@/contexts/ClientContext";
 import { useConfig } from "@/contexts/ConfigContext";
+import { useMultiTenant } from "@/contexts/MultiTenantContext";
 
 const Index = () => {
-  const {
-    user,
-    hasPermission
-  } = useAuth();
+  const { user, hasPermission } = useAuth();
+  const { isSupperAdmin } = useMultiTenant();
+  
   const getInitialModule = () => {
-    const visibleItems = menuItems.filter(item => hasPermission(item.permission));
+    const visibleItems = menuItems.filter(item => {
+      // Special handling for super admin only items
+      if (item.id === "gestao-saas") {
+        return isSupperAdmin;
+      }
+      return hasPermission(item.permission);
+    });
     return visibleItems.length > 0 ? visibleItems[0].id : "";
   };
+  
   const [activeModule, setActiveModule] = useState(getInitialModule);
   const {
     propostas,
@@ -103,7 +111,12 @@ const Index = () => {
       case "gestao-usuarios":
         return <UsersManagement />;
       case "gestao-saas":
-        return <SuperAdminDashboard />;
+        return isSupperAdmin ? <SuperAdminDashboard /> : (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
+            <p className="text-muted-foreground">Você não tem permissão para acessar este módulo.</p>
+          </div>
+        );
       default:
         return <div className="flex flex-col items-center justify-center h-full text-center">
             <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
@@ -111,6 +124,7 @@ const Index = () => {
           </div>;
     }
   };
+  
   return <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
         <AppSidebar onMenuChange={setActiveModule} />
@@ -118,13 +132,10 @@ const Index = () => {
           <header className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
-              
             </div>
             <div className="hidden md:flex items-center gap-2">
-              
               <div>
                 <h1 className="text-xl text-sky-950 text-right font-extrabold">{companyName}</h1>
-                
               </div>
             </div>
           </header>

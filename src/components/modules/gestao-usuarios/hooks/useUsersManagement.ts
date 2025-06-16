@@ -105,78 +105,78 @@ export function useUsersManagement() {
     try {
       await logSecurityEvent('FETCH_USERS', 'users');
 
-      // Fetch user profiles first
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name');
+      let userProfiles: ProfileData[] = [];
+      let userRoles: UserRoleData[] = [];
+      let authUsersList: AuthUser[] = [];
 
-      if (profilesError) throw profilesError;
+      if (isSupperAdmin) {
+        // Super admin can see all users
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name');
 
-      // Fetch user roles separately
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
+        if (profilesError) throw profilesError;
+        userProfiles = profiles || [];
 
-      if (rolesError) throw rolesError;
+        const { data: roles, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('user_id, role');
 
-      // Fetch auth users to get email
-      const { data: authUsersResponse, error: authError } = await supabase.auth.admin.listUsers();
-      if (authError) throw authError;
+        if (rolesError) throw rolesError;
+        userRoles = roles || [];
 
-      const authUsersList: AuthUser[] = authUsersResponse?.users?.map(user => ({
-        id: user.id,
-        email: user.email || '',
-        created_at: user.created_at,
-        last_sign_in_at: user.last_sign_in_at || null
-      })) || [];
+        // Get all auth users
+        const { data: authUsersResponse, error: authError } = await supabase.auth.admin.listUsers();
+        if (authError) throw authError;
+        authUsersList = authUsersResponse?.users?.map(user => ({
+          id: user.id,
+          email: user.email || '',
+          created_at: user.created_at,
+          last_sign_in_at: user.last_sign_in_at || null
+        })) || [];
+      } else if (currentClientId) {
+        // Regular admin can only see users from their client
+        const { data: clientUsers, error: clientUsersError } = await supabase
+          .from('saas_user_client_mapping')
+          .select(`
+            user_id,
+            profiles!inner(id, full_name),
+            user_roles!inner(user_id, role)
+          `)
+          .eq('client_id', currentClientId)
+          .eq('is_active', true);
 
-      // Handle the case when profiles is null or empty
-      if (!profiles || profiles.length === 0) {
-        setUsers([]);
-        return;
-      }
+        if (clientUsersError) throw clientUsersError;
 
-      // Process profiles with proper type handling
-      const validProfiles: ProfileData[] = [];
-      for (const profile of profiles) {
-        if (
-          profile &&
-          typeof profile === 'object' &&
-          'id' in profile &&
-          typeof profile.id === 'string' &&
-          profile.id.length > 0
-        ) {
-          validProfiles.push({
-            id: profile.id,
-            full_name: typeof profile.full_name === 'string' ? profile.full_name : null,
-          });
+        // Transform the data
+        userProfiles = clientUsers?.map(cu => ({
+          id: cu.profiles.id,
+          full_name: cu.profiles.full_name
+        })) || [];
+
+        userRoles = clientUsers?.map(cu => ({
+          user_id: cu.user_roles.user_id,
+          role: cu.user_roles.role as ExtendedRole
+        })) || [];
+
+        // Get auth users for these profiles only
+        const userIds = userProfiles.map(p => p.id);
+        if (userIds.length > 0) {
+          const { data: authUsersResponse, error: authError } = await supabase.auth.admin.listUsers();
+          if (authError) throw authError;
+          authUsersList = authUsersResponse?.users?.filter(user => userIds.includes(user.id)).map(user => ({
+            id: user.id,
+            email: user.email || '',
+            created_at: user.created_at,
+            last_sign_in_at: user.last_sign_in_at || null
+          })) || [];
         }
       }
 
-      // Process user roles with proper type handling
-      const validUserRoles: UserRoleData[] = [];
-      if (userRoles) {
-        for (const roleData of userRoles) {
-          if (
-            roleData &&
-            typeof roleData === 'object' &&
-            'user_id' in roleData &&
-            'role' in roleData &&
-            typeof roleData.user_id === 'string' &&
-            typeof roleData.role === 'string'
-          ) {
-            validUserRoles.push({
-              user_id: roleData.user_id,
-              role: roleData.role as ExtendedRole,
-            });
-          }
-        }
-      }
-
-      // Create users array with explicit typing
-      const combinedUsers: User[] = validProfiles.map((profile: ProfileData) => {
+      // Combine all data
+      const combinedUsers: User[] = userProfiles.map((profile: ProfileData) => {
         const authUser = authUsersList.find((u) => u.id === profile.id);
-        const userRole = validUserRoles.find((roleData) => roleData.user_id === profile.id);
+        const userRole = userRoles.find((roleData) => roleData.user_id === profile.id);
         const role = userRole?.role || 'contador';
 
         return {
@@ -257,8 +257,8 @@ export function useUsersManagement() {
 
           if (roleError) throw roleError;
 
-          // If we have a current client, associate the user with it
-          if (currentClientId) {
+          // Associate user with current client (if not super admin)
+          if (currentClientId && !isSupperAdmin) {
             const { error: mappingError } = await supabase
               .from('saas_user_client_mapping')
               .insert({
@@ -318,7 +318,7 @@ export function useUsersManagement() {
 
   useEffect(() => {
     fetchUsers();
-  }, [canManageUsers]);
+  }, [canManageUsers, currentClientId, isSupperAdmin]);
 
   return {
     users,

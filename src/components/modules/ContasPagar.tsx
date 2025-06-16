@@ -38,8 +38,8 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
     enabled: !!currentClientId && !clientLoading,
   });
 
-  // Combinar contas do mock com as do banco
-  const todasContas = [...contas, ...(contasDatabase || []).map(conta => ({
+  // Use only database data, no more mock data
+  const todasContas = (contasDatabase || []).map(conta => ({
     id: conta.id,
     descricao: conta.description,
     valor: conta.amount,
@@ -50,7 +50,7 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
     numeroDocumento: '',
     dataPagamento: conta.paid_date ? new Date(conta.paid_date) : undefined,
     competencia: format(new Date(conta.due_date), 'MM/yyyy'),
-  }))];
+  }));
 
   const contasFiltradas = todasContas.filter(conta => {
     const matchStatus = filtroStatus === "todos" || conta.status === filtroStatus;
@@ -140,23 +140,11 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
     if (!pagamentoDialogState.contaId || !currentClientId) return;
 
     try {
-      // Verificar se é uma conta do banco ou do mock
-      const contaDatabase = contasDatabase?.find(c => c.id === pagamentoDialogState.contaId);
-      
-      if (contaDatabase) {
-        await accountsPayableService.markAsPaid(
-          pagamentoDialogState.contaId, 
-          format(dataPagamento, 'yyyy-MM-dd')
-        );
-        queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });
-      } else {
-        // Atualizar conta do mock
-        setContas(contas.map(c =>
-          c.id === pagamentoDialogState.contaId
-            ? { ...c, status: 'pago', dataPagamento: dataPagamento }
-            : c
-        ));
-      }
+      await accountsPayableService.markAsPaid(
+        pagamentoDialogState.contaId, 
+        format(dataPagamento, 'yyyy-MM-dd')
+      );
+      queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });
 
       setPagamentoDialogState({ open: false, contaId: null });
       toast({
