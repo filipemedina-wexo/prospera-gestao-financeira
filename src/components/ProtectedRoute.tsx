@@ -1,9 +1,10 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useMultiTenant } from '@/contexts/MultiTenantContext';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { user, loading: authLoading } = useAuth();
@@ -54,6 +55,9 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
           <div className="space-y-2 text-center">
             <Skeleton className="h-4 w-[250px] mx-auto" />
             <Skeleton className="h-4 w-[200px] mx-auto" />
+            <p className="text-sm text-muted-foreground mt-4">
+              Configurando seu painel administrativo...
+            </p>
           </div>
         </div>
       </div>
@@ -65,24 +69,28 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     return children;
   }
 
-  // Show warning for regular users without client mappings
+  // Show different message for new users vs existing users without client mappings
   if (!hasClientMapping) {
     return (
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
-              <AlertCircle className="h-8 w-8 text-orange-600" />
+            <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <CardTitle className="text-xl">Acesso Pendente</CardTitle>
+            <CardTitle className="text-xl">Conta Criada com Sucesso!</CardTitle>
             <CardDescription>
-              Sua conta ainda não foi associada a nenhum cliente. Entre em contato com o administrador do sistema para obter acesso.
+              Seu painel administrativo está sendo configurado automaticamente. Isso pode levar alguns segundos.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mb-4">
               Usuário: {user.email}
             </p>
+            <div className="flex items-center justify-center space-x-2">
+              <Skeleton className="h-4 w-4 rounded-full animate-pulse" />
+              <span className="text-sm">Configurando...</span>
+            </div>
           </CardContent>
         </Card>
       </div>

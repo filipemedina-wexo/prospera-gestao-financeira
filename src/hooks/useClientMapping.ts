@@ -27,6 +27,9 @@ export const useClientMapping = () => {
       setLoading(true);
       setError(null);
 
+      // Aguardar um pouco para permitir que o trigger do banco complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       const { data, error } = await supabase
         .from('saas_user_client_mapping')
         .select('client_id')
@@ -42,6 +45,7 @@ export const useClientMapping = () => {
         return;
       }
 
+      console.log('Client mapping fetched:', data);
       setCurrentClientId(data?.client_id || null);
     } catch (err) {
       if (!mountedRef.current) return;

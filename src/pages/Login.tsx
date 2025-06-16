@@ -38,6 +38,7 @@ const Login = () => {
         if (!error) {
           setIsSignUp(false);
           setPassword('');
+          // Mostrar mensagem sobre verificação de email
         }
       } else {
         console.log('Submitting login form');
@@ -93,7 +94,7 @@ const Login = () => {
           </div>
           <CardTitle className="text-2xl">Prospera</CardTitle>
           <CardDescription>
-            {isSignUp ? 'Crie sua conta para começar.' : 'Entre com seu email e senha para acessar.'}
+            {isSignUp ? 'Crie sua conta e configure automaticamente seu painel administrativo.' : 'Entre com seu email e senha para acessar.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -144,7 +145,7 @@ const Login = () => {
                   Aguarde...
                 </>
               ) : (
-                isSignUp ? 'Cadastrar' : 'Entrar'
+                isSignUp ? 'Criar Conta' : 'Entrar'
               )}
             </Button>
           </form>

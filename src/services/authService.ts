@@ -53,7 +53,7 @@ export const signUpUser = async ({ email, password, fullName }: SignUpData) => {
         data: {
           full_name: fullName,
         },
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
       },
     });
 
@@ -61,7 +61,7 @@ export const signUpUser = async ({ email, password, fullName }: SignUpData) => {
       console.error('Signup error:', error);
       await logSecurityEvent('USER_SIGNUP_FAILED', 'auth', false, error.message);
     } else {
-      console.log('Signup successful');
+      console.log('Signup successful - new client will be created automatically');
       await logSecurityEvent('USER_SIGNUP', 'auth', true);
     }
     
