@@ -16,4 +16,4 @@ export { AnalyticsManagement as GestaoAnalytics } from './AnalyticsManagement';
 export { OnboardingManagement as GestaoOnboarding } from './OnboardingManagement';
 
 // Add default export for the main SaaS management component
-export { SuperAdminDashboard as default } from './SuperAdminDashboard';
+export { default } from './SuperAdminDashboard';

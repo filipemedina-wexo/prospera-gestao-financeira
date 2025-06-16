@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,7 @@ interface ClientWithDetails extends SaasClient {
   recentPayments?: PaymentHistory[];
 }
 
-export default function SuperAdminDashboard() {
+export function SuperAdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalClients: 0,
     activeClients: 0,
@@ -362,7 +361,6 @@ export default function SuperAdminDashboard() {
                           )}
                         </div>
                       </div>
-                    </div>
                     
                     <div className="flex items-center space-x-4">
                       {client.onboarding && !client.onboarding.onboarding_completed_at && (
@@ -487,3 +485,5 @@ export default function SuperAdminDashboard() {
     </div>
   );
 }
+
+export default SuperAdminDashboard;

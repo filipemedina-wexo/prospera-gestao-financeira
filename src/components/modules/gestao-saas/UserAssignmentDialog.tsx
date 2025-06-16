@@ -46,6 +46,13 @@ interface AssignmentWithProfile extends UserAssignment {
   };
 }
 
+interface AdminUserResponse {
+  email: string;
+  name: string;
+  temporary_password: string;
+  client_id: string;
+}
+
 export function UserAssignmentDialog({ isOpen, onClose, client, onUpdate }: UserAssignmentDialogProps) {
   const [assignments, setAssignments] = useState<AssignmentWithProfile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -64,27 +71,31 @@ export function UserAssignmentDialog({ isOpen, onClose, client, onUpdate }: User
   const fetchUserAssignments = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // First get the assignments
+      const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('saas_client_user_assignments')
-        .select(`
-          *,
-          user_profile:profiles!inner(full_name)
-        `)
+        .select('*')
         .eq('client_id', client.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      
-      // Fetch user emails from auth.users (via RPC or another method)
+      if (assignmentsError) throw assignmentsError;
+
+      // Then get profiles for each user
       const assignmentsWithProfiles = await Promise.all(
-        (data || []).map(async (assignment) => {
+        (assignmentsData || []).map(async (assignment) => {
           try {
-            // Since we can't directly query auth.users, we'll use the profile data
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('full_name')
+              .eq('id', assignment.user_id)
+              .single();
+
             return {
               ...assignment,
               user_profile: {
-                full_name: assignment.user_profile?.full_name || 'Nome não disponível',
+                full_name: profile?.full_name || 'Nome não disponível',
                 email: 'Email não disponível' // Would need to implement a way to get email
               }
             };
@@ -134,9 +145,11 @@ export function UserAssignmentDialog({ isOpen, onClose, client, onUpdate }: User
 
       if (error) throw error;
 
+      const adminData = data as AdminUserResponse;
+
       toast({
         title: 'Usuário Admin Criado',
-        description: `Admin criado com sucesso. Senha temporária: ${data.temporary_password}`,
+        description: `Admin criado com sucesso. Senha temporária: ${adminData.temporary_password}`,
       });
 
       setShowAddForm(false);
