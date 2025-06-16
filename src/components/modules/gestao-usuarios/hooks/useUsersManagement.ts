@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,46 @@ interface AuthUser {
   last_sign_in_at: string | null;
 }
 
+// Security utility functions
+const logSecurityEvent = async (
+  action: string,
+  resourceType: string,
+  resourceId?: string,
+  success: boolean = true,
+  errorMessage?: string
+) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    await supabase.rpc('log_security_event', {
+      p_user_id: user?.id || null,
+      p_action: action,
+      p_resource_type: resourceType,
+      p_resource_id: resourceId,
+      p_success: success,
+      p_error_message: errorMessage
+    });
+  } catch (error) {
+    console.error('Failed to log security event:', error);
+  }
+};
+
+const generateSecurePassword = async (): Promise<string> => {
+  try {
+    const { data, error } = await supabase.rpc('generate_secure_password');
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Failed to generate secure password, using fallback');
+    // Fallback to client-side generation if function fails
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let result = '';
+    for (let i = 0; i < 16; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+};
+
 export function useUsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +78,8 @@ export function useUsersManagement() {
 
     setLoading(true);
     try {
+      await logSecurityEvent('FETCH_USERS', 'users');
+
       // Fetch user profiles first
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
@@ -124,7 +167,8 @@ export function useUsersManagement() {
 
       setUsers(combinedUsers);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching users');
+      await logSecurityEvent('FETCH_USERS', 'users', undefined, false, 'Failed to fetch users');
       toast({
         title: 'Erro',
         description: 'Erro ao carregar usuários.',
@@ -139,6 +183,8 @@ export function useUsersManagement() {
     try {
       if (selectedUser) {
         // Update existing user
+        await logSecurityEvent('UPDATE_USER', 'user', selectedUser.id);
+
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ full_name: userData.name })
@@ -159,10 +205,14 @@ export function useUsersManagement() {
           description: 'Dados do usuário foram atualizados com sucesso.',
         });
       } else {
-        // Create new user via auth
+        // Create new user with secure password
+        const securePassword = await generateSecurePassword();
+        
+        await logSecurityEvent('CREATE_USER', 'user', undefined, true, undefined);
+
         const { data, error: signUpError } = await supabase.auth.admin.createUser({
           email: userData.email,
-          password: userData.password || 'temppassword123',
+          password: securePassword,
           email_confirm: true,
           user_metadata: {
             full_name: userData.name,
@@ -193,19 +243,32 @@ export function useUsersManagement() {
                 is_active: true,
               });
 
-            if (mappingError) console.error('Error creating client mapping:', mappingError);
+            if (mappingError) {
+              console.error('Error creating client mapping');
+              await logSecurityEvent('CREATE_USER_CLIENT_MAPPING', 'user_client_mapping', data.user.id, false, 'Failed to create client mapping');
+            }
           }
+
+          // Log successful user creation
+          await logSecurityEvent('CREATE_USER', 'user', data.user.id, true);
         }
 
         toast({
           title: 'Usuário criado',
-          description: 'Novo usuário foi criado com sucesso.',
+          description: `Novo usuário foi criado com sucesso. Senha temporária: ${securePassword}`,
         });
       }
 
       fetchUsers();
     } catch (error) {
-      console.error('Error saving user:', error);
+      console.error('Error saving user');
+      await logSecurityEvent(
+        selectedUser ? 'UPDATE_USER' : 'CREATE_USER',
+        'user',
+        selectedUser?.id,
+        false,
+        'Failed to save user'
+      );
       toast({
         title: 'Erro',
         description: 'Erro ao salvar usuário.',
