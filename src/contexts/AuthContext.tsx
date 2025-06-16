@@ -51,6 +51,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchAndSetUser = async (supabaseUser: SupabaseUser) => {
     try {
+      console.log('Fetching user data for:', supabaseUser.id);
+      
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
@@ -70,9 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         role: (roleData?.role as ExtendedRole) || null,
       };
       
-      // Remove sensitive logging - only log the action, not the data
-      console.log('User authentication successful');
-      
+      console.log('User data fetched successfully:', appUser);
       setUser(appUser);
 
       // Log successful login
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     } catch (error) {
-      console.error('Error fetching user data');
+      console.error('Error fetching user data:', error);
       await logSecurityEvent('USER_DATA_FETCH', 'auth', false, 'Failed to fetch user data');
       toast({
         title: 'Erro',
@@ -104,70 +104,145 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   useEffect(() => {
+    console.log('Initializing auth context...');
     setLoading(true);
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        await fetchAndSetUser(session.user);
-      }
+
+    // Timeout para evitar loading infinito
+    const loadingTimeout = setTimeout(() => {
+      console.warn('Auth initialization timeout - forcing loading to false');
       setLoading(false);
-    });
+    }, 10000); // 10 segundos timeout
+
+    const initializeAuth = async () => {
+      try {
+        console.log('Getting initial session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          throw error;
+        }
+
+        if (session?.user) {
+          console.log('Found existing session, fetching user data...');
+          await fetchAndSetUser(session.user);
+        } else {
+          console.log('No existing session found');
+        }
+      } catch (error) {
+        console.error('Error during auth initialization:', error);
+        toast({
+          title: 'Erro de Conexão',
+          description: 'Problema ao conectar com o servidor. Tente novamente.',
+          variant: 'destructive',
+        });
+      } finally {
+        clearTimeout(loadingTimeout);
+        setLoading(false);
+        console.log('Auth initialization completed');
+      }
+    };
+
+    initializeAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      
       if (event === 'SIGNED_IN' && session?.user) {
         setLoading(true);
-        await fetchAndSetUser(session.user);
-        setLoading(false);
+        try {
+          await fetchAndSetUser(session.user);
+        } catch (error) {
+          console.error('Error handling sign in:', error);
+        } finally {
+          setLoading(false);
+        }
       } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
         setUser(null);
         await logSecurityEvent('USER_LOGOUT', 'auth', true);
       }
     });
 
     return () => {
+      clearTimeout(loadingTimeout);
       authListener.subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      await logSecurityEvent('USER_LOGIN_FAILED', 'auth', false, error.message);
-      toast({ title: 'Erro de Login', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Login bem-sucedido!' });
+    console.log('Attempting login for:', email);
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        console.error('Login error:', error);
+        await logSecurityEvent('USER_LOGIN_FAILED', 'auth', false, error.message);
+        toast({ title: 'Erro de Login', description: error.message, variant: 'destructive' });
+      } else {
+        console.log('Login successful');
+        toast({ title: 'Login bem-sucedido!' });
+      }
+      return { error };
+    } catch (error) {
+      console.error('Unexpected login error:', error);
+      return { error: error as AuthError };
+    } finally {
+      // Não definir loading como false aqui, deixe o onAuthStateChange fazer isso
     }
-    return { error };
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    toast({ title: 'Você saiu da sua conta.' });
+    console.log('Logging out user');
+    setLoading(true);
+    
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      toast({ title: 'Você saiu da sua conta.' });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signUp = async ({ email, password, fullName }: { email: string; password: string; fullName: string; }) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
+    console.log('Attempting signup for:', email);
+    setLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/`,
         },
-        emailRedirectTo: `${window.location.origin}/`,
-      },
-    });
-
-    if (error) {
-      await logSecurityEvent('USER_SIGNUP_FAILED', 'auth', false, error.message);
-      toast({ title: 'Erro no Cadastro', description: error.message, variant: 'destructive' });
-    } else {
-      await logSecurityEvent('USER_SIGNUP', 'auth', true);
-      toast({
-        title: 'Cadastro Realizado!',
-        description: 'Enviamos um email de confirmação para você. Por favor, verifique sua caixa de entrada.',
       });
+
+      if (error) {
+        console.error('Signup error:', error);
+        await logSecurityEvent('USER_SIGNUP_FAILED', 'auth', false, error.message);
+        toast({ title: 'Erro no Cadastro', description: error.message, variant: 'destructive' });
+      } else {
+        console.log('Signup successful');
+        await logSecurityEvent('USER_SIGNUP', 'auth', true);
+        toast({
+          title: 'Cadastro Realizado!',
+          description: 'Enviamos um email de confirmação para você. Por favor, verifique sua caixa de entrada.',
+        });
+      }
+      return { data, error };
+    } catch (error) {
+      console.error('Unexpected signup error:', error);
+      return { data: null, error: error as AuthError };
+    } finally {
+      setLoading(false);
     }
-    return { data, error };
   };
 
   const hasPermission = (permission: string): boolean => {
