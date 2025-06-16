@@ -14,7 +14,7 @@ export interface UserClientMapping {
 }
 
 export const useClientMapping = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [currentClientId, setCurrentClientId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +57,12 @@ export const useClientMapping = () => {
   useEffect(() => {
     mountedRef.current = true;
 
+    // Don't start loading if auth is still loading
+    if (authLoading) {
+      setLoading(false);
+      return;
+    }
+
     if (!user?.id) {
       setCurrentClientId(null);
       setLoading(false);
@@ -69,7 +75,7 @@ export const useClientMapping = () => {
     return () => {
       mountedRef.current = false;
     };
-  }, [user?.id, fetchClientMapping]);
+  }, [user?.id, authLoading, fetchClientMapping]);
 
   const assignUserToClient = async (clientId: string, role: string = 'user') => {
     if (!user) throw new Error('Usuário não autenticado');

@@ -9,10 +9,10 @@ import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
 import LandingPage from "@/pages/LandingPage";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { MultiTenantProvider } from "@/contexts/MultiTenantContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ClientProvider } from "@/contexts/ClientContext";
 import { ConfigProvider } from "@/contexts/ConfigContext";
-import { MultiTenantProvider } from "@/contexts/MultiTenantContext";
 
 const queryClient = new QueryClient();
 
@@ -21,26 +21,26 @@ const App = () => (
     <TooltipProvider>
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <MultiTenantProvider>
+          <MultiTenantProvider>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
                     <ConfigProvider>
                       <ClientProvider>
                         <Index />
                       </ClientProvider>
                     </ConfigProvider>
-                  </MultiTenantProvider>
-                </ProtectedRoute>
-              }
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+                  </ProtectedRoute>
+                }
+              />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MultiTenantProvider>
         </AuthProvider>
       </BrowserRouter>
       <Toaster />

@@ -18,10 +18,18 @@ const MultiTenantContext = createContext<MultiTenantContextType | undefined>(und
 export const MultiTenantProvider = ({ children }: { children: ReactNode }) => {
   const authContext = useAuth();
   
-  // Provide fallback values if auth context is not available yet
-  const { user, hasPermission } = authContext || { user: null, hasPermission: () => false };
-  const { currentClientId, loading, error, assignUserToClient, removeUserFromClient } = useClientMapping();
+  // Check if auth context is available and user is loaded
+  const { user, hasPermission, loading: authLoading } = authContext || { 
+    user: null, 
+    hasPermission: () => false, 
+    loading: true 
+  };
 
+  const { currentClientId, loading: clientLoading, error, assignUserToClient, removeUserFromClient } = useClientMapping();
+
+  // Calculate loading state - we're loading if auth is loading OR if we have a user but client mapping is still loading
+  const loading = authLoading || (user && clientLoading);
+  
   const isSupperAdmin = user ? hasPermission('saas.manage') : false;
   const hasClientMapping = !!currentClientId;
 
