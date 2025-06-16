@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -145,7 +144,8 @@ export function UserAssignmentDialog({ isOpen, onClose, client, onUpdate }: User
 
       if (error) throw error;
 
-      const adminData = data as AdminUserResponse;
+      // Properly cast the Json response to AdminUserResponse
+      const adminData = data as unknown as AdminUserResponse;
 
       toast({
         title: 'Usuário Admin Criado',
