@@ -13,21 +13,21 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
-  const [formLoading, setFormLoading] = useState(false);
+  const [formSubmitting, setFormSubmitting] = useState(false);
   const { login, signUp, loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
-    if (user) {
+    if (user && !authLoading) {
       console.log('User authenticated, redirecting to dashboard');
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, navigate, authLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormLoading(true);
+    setFormSubmitting(true);
     
     try {
       if (isSignUp) {
@@ -41,18 +41,17 @@ const Login = () => {
         console.log('Submitting login form');
         const { error } = await login(email, password);
         if (!error) {
-          // O redirecionamento será feito pelo useEffect quando user mudar
-          console.log('Login successful, waiting for redirect');
+          console.log('Login successful, will redirect via useEffect');
         }
       }
     } catch (error) {
       console.error('Form submission error:', error);
     } finally {
-      setFormLoading(false);
+      setFormSubmitting(false);
     }
   };
 
-  // Mostra loading se está inicializando ou se o usuário está autenticado
+  // Show loading during auth initialization
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
@@ -66,7 +65,12 @@ const Login = () => {
     );
   }
 
-  const isLoading = formLoading || authLoading;
+  // Don't render login form if user is already authenticated
+  if (user) {
+    return null;
+  }
+
+  const isFormDisabled = formSubmitting || authLoading;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
@@ -92,7 +96,7 @@ const Login = () => {
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  disabled={isLoading}
+                  disabled={isFormDisabled}
                 />
               </div>
             )}
@@ -105,7 +109,7 @@ const Login = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
+                disabled={isFormDisabled}
               />
             </div>
             <div className="space-y-2">
@@ -118,11 +122,11 @@ const Login = () => {
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
+                disabled={isFormDisabled}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
+            <Button type="submit" className="w-full" disabled={isFormDisabled}>
+              {formSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Aguarde...
@@ -138,7 +142,7 @@ const Login = () => {
               variant="link" 
               onClick={() => setIsSignUp(!isSignUp)} 
               className="pl-1"
-              disabled={isLoading}
+              disabled={isFormDisabled}
             >
               {isSignUp ? 'Entrar' : 'Cadastre-se'}
             </Button>

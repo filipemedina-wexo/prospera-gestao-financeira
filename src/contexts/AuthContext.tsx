@@ -44,6 +44,21 @@ const logSecurityEvent = async (
   }
 };
 
+// Cleanup function for auth state
+const cleanupAuthState = () => {
+  console.log('Cleaning up auth state...');
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+  Object.keys(sessionStorage || {}).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      sessionStorage.removeItem(key);
+    }
+  });
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -105,13 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   useEffect(() => {
     console.log('Initializing auth context...');
-    setLoading(true);
-
-    // Timeout para evitar loading infinito
-    const loadingTimeout = setTimeout(() => {
-      console.warn('Auth initialization timeout - forcing loading to false');
-      setLoading(false);
-    }, 10000); // 10 segundos timeout
+    let mounted = true;
 
     const initializeAuth = async () => {
       try {
@@ -123,96 +132,133 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           throw error;
         }
 
-        if (session?.user) {
-          console.log('Found existing session, fetching user data...');
-          await fetchAndSetUser(session.user);
-        } else {
-          console.log('No existing session found');
+        if (mounted) {
+          if (session?.user) {
+            console.log('Found existing session, fetching user data...');
+            await fetchAndSetUser(session.user);
+          } else {
+            console.log('No existing session found');
+            setUser(null);
+          }
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error during auth initialization:', error);
-        toast({
-          title: 'Erro de Conexão',
-          description: 'Problema ao conectar com o servidor. Tente novamente.',
-          variant: 'destructive',
-        });
-      } finally {
-        clearTimeout(loadingTimeout);
-        setLoading(false);
-        console.log('Auth initialization completed');
+        if (mounted) {
+          setLoading(false);
+          toast({
+            title: 'Erro de Conexão',
+            description: 'Problema ao conectar com o servidor. Tente novamente.',
+            variant: 'destructive',
+          });
+        }
       }
     };
+
+    // Emergency fallback - prevent infinite loading
+    const emergencyTimeout = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth initialization timeout - forcing loading to false');
+        setLoading(false);
+      }
+    }, 8000);
 
     initializeAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.id);
       
+      if (!mounted) return;
+
       if (event === 'SIGNED_IN' && session?.user) {
-        setLoading(true);
+        console.log('User signed in, fetching user data...');
         try {
           await fetchAndSetUser(session.user);
         } catch (error) {
           console.error('Error handling sign in:', error);
-        } finally {
-          setLoading(false);
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out');
         setUser(null);
         await logSecurityEvent('USER_LOGOUT', 'auth', true);
       }
+      
+      setLoading(false);
     });
 
     return () => {
-      clearTimeout(loadingTimeout);
+      mounted = false;
+      clearTimeout(emergencyTimeout);
       authListener.subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email: string, password: string) => {
     console.log('Attempting login for:', email);
-    setLoading(true);
     
     try {
+      // Clean up any existing auth state first
+      cleanupAuthState();
+      
+      // Attempt global sign out first
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        console.log('Global signout failed, continuing...');
+      }
+
       const { error } = await supabase.auth.signInWithPassword({ email, password });
+      
       if (error) {
         console.error('Login error:', error);
         await logSecurityEvent('USER_LOGIN_FAILED', 'auth', false, error.message);
-        toast({ title: 'Erro de Login', description: error.message, variant: 'destructive' });
+        toast({ 
+          title: 'Erro de Login', 
+          description: error.message, 
+          variant: 'destructive' 
+        });
+        return { error };
       } else {
         console.log('Login successful');
         toast({ title: 'Login bem-sucedido!' });
+        return { error: null };
       }
-      return { error };
     } catch (error) {
       console.error('Unexpected login error:', error);
+      toast({
+        title: 'Erro de Login',
+        description: 'Erro inesperado durante o login. Tente novamente.',
+        variant: 'destructive',
+      });
       return { error: error as AuthError };
-    } finally {
-      // Não definir loading como false aqui, deixe o onAuthStateChange fazer isso
     }
   };
 
   const logout = async () => {
     console.log('Logging out user');
-    setLoading(true);
     
     try {
-      await supabase.auth.signOut();
+      cleanupAuthState();
+      await supabase.auth.signOut({ scope: 'global' });
       setUser(null);
       toast({ title: 'Você saiu da sua conta.' });
+      
+      // Force page refresh for clean state
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
-      setLoading(false);
+      // Force refresh even if logout fails
+      window.location.href = '/login';
     }
   };
 
   const signUp = async ({ email, password, fullName }: { email: string; password: string; fullName: string; }) => {
     console.log('Attempting signup for:', email);
-    setLoading(true);
     
     try {
+      // Clean up any existing auth state
+      cleanupAuthState();
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -239,9 +285,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { data, error };
     } catch (error) {
       console.error('Unexpected signup error:', error);
+      toast({
+        title: 'Erro no Cadastro',
+        description: 'Erro inesperado durante o cadastro. Tente novamente.',
+        variant: 'destructive',
+      });
       return { data: null, error: error as AuthError };
-    } finally {
-      setLoading(false);
     }
   };
 
