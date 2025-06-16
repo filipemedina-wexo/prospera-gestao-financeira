@@ -129,7 +129,7 @@ export function useUsersManagement() {
         // Get all auth users
         const { data: authUsersResponse, error: authError } = await supabase.auth.admin.listUsers();
         if (authError) throw authError;
-        authUsersList = authUsersResponse?.users?.map(user => ({
+        authUsersList = authUsersResponse?.users?.map((user): AuthUser => ({
           id: user.id,
           email: user.email || '',
           created_at: user.created_at,
@@ -170,7 +170,7 @@ export function useUsersManagement() {
           // Get auth users for these profiles only
           const { data: authUsersResponse, error: authError } = await supabase.auth.admin.listUsers();
           if (authError) throw authError;
-          authUsersList = authUsersResponse?.users?.filter(user => userIds.includes(user.id)).map(user => ({
+          authUsersList = authUsersResponse?.users?.filter(user => userIds.includes(user.id)).map((user): AuthUser => ({
             id: user.id,
             email: user.email || '',
             created_at: user.created_at,
@@ -180,9 +180,9 @@ export function useUsersManagement() {
       }
 
       // Combine all data with explicit typing
-      const combinedUsers: User[] = userProfiles.map((profile: ProfileData) => {
-        const authUser: AuthUser | undefined = authUsersList.find((u: AuthUser) => u.id === profile.id);
-        const userRole: UserRoleData | undefined = userRoles.find((roleData: UserRoleData) => roleData.user_id === profile.id);
+      const combinedUsers: User[] = userProfiles.map((profile: ProfileData): User => {
+        const authUser: AuthUser | undefined = authUsersList.find((u: AuthUser): boolean => u.id === profile.id);
+        const userRole: UserRoleData | undefined = userRoles.find((roleData: UserRoleData): boolean => roleData.user_id === profile.id);
         const role: ExtendedRole = userRole?.role || 'contador';
 
         return {
