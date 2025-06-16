@@ -178,11 +178,11 @@ export function useUsersManagement() {
         }
       }
 
-      // Combine all data
+      // Combine all data with proper typing
       const combinedUsers: User[] = userProfiles.map((profile: ProfileData) => {
-        const authUser = authUsersList.find((u) => u.id === profile.id);
-        const userRole = userRoles.find((roleData) => roleData.user_id === profile.id);
-        const role = userRole?.role || 'contador';
+        const authUser = authUsersList.find((u: AuthUser) => u.id === profile.id);
+        const userRole = userRoles.find((roleData: UserRoleData) => roleData.user_id === profile.id);
+        const role: ExtendedRole = userRole?.role || 'contador';
 
         return {
           id: profile.id,
