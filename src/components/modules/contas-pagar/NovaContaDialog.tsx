@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,19 +13,22 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { formSchema, opcoesFrequencia } from "./config";
 import { useClientCategories } from "@/hooks/useClientCategories";
 import { useQuery } from "@tanstack/react-query";
 import { financialClientsService } from "@/services/financialClientsService";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
+import { ContaPagar } from "./types";
 
 interface NovaContaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
+  contaToEdit?: ContaPagar | null;
 }
 
-export function NovaContaDialog({ open, onOpenChange, onSubmit }: NovaContaDialogProps) {
+export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: NovaContaDialogProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const { currentClientId } = useMultiTenant();
   const { categories } = useClientCategories();
@@ -41,173 +44,125 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit }: NovaContaDialo
     defaultValues: {
       descricao: "",
       valor: 0,
-      dataVencimento: new Date(),
-      categoria: "",
       fornecedor: "",
+      categoria: "",
+      dataVencimento: new Date(),
       recorrente: false,
-      frequencia: "mensal",
-      numParcelas: 1,
     },
   });
 
+  useEffect(() => {
+    if (open && contaToEdit) {
+      form.reset({
+        descricao: contaToEdit.descricao,
+        valor: contaToEdit.valor,
+        dataVencimento: new Date(contaToEdit.dataVencimento),
+        categoria: contaToEdit.categoria,
+        fornecedor: contaToEdit.fornecedorId,
+        recorrente: contaToEdit.recorrente || false,
+        frequencia: contaToEdit.frequencia,
+        numParcelas: contaToEdit.numParcelas
+      });
+    } else {
+      form.reset({
+        descricao: "",
+        valor: 0,
+        dataVencimento: new Date(),
+        categoria: "",
+        fornecedor: "",
+        recorrente: false,
+      });
+    }
+  }, [open, contaToEdit, form]);
+
+
   const isRecorrente = form.watch("recorrente");
-
   const expenseCategories = categories.filter(cat => cat.type === 'expense');
-
-  function handleSubmit(values: z.infer<typeof formSchema>) {
-    onSubmit(values);
-    form.reset();
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Nova Conta
-        </Button>
-      </DialogTrigger>
+      {!contaToEdit && (
+        <DialogTrigger asChild>
+          <Button onClick={() => onOpenChange(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Conta
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Nova Conta a Pagar</DialogTitle>
+          <DialogTitle>{contaToEdit ? 'Editar Conta a Pagar' : 'Nova Conta a Pagar'}</DialogTitle>
+           <DialogDescription>
+            {contaToEdit ? 'Atualize as informações da conta.' : 'Preencha os dados para criar uma nova conta.'}
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="descricao">Descrição</Label>
-              <Input
-                id="descricao"
-                {...form.register("descricao")}
-                placeholder="Ex: Aluguel escritório"
-              />
-              {form.formState.errors.descricao && (
-                <p className="text-sm text-red-500">{form.formState.errors.descricao.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="valor">Valor</Label>
-              <Input
-                id="valor"
-                type="number"
-                step="0.01"
-                {...form.register("valor", { valueAsNumber: true })}
-                placeholder="0,00"
-              />
-              {form.formState.errors.valor && (
-                <p className="text-sm text-red-500">{form.formState.errors.valor.message}</p>
-              )}
-            </div>
-          </div>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="descricao" render={({ field }) => (<FormItem><FormLabel>Descrição</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="valor" render={({ field }) => (<FormItem><FormLabel>Valor</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Data de Vencimento</Label>
-              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.watch("dataVencimento") ? format(form.watch("dataVencimento"), "dd/MM/yyyy", { locale: ptBR }) : "Selecione uma data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={form.watch("dataVencimento")}
-                    onSelect={(date) => {
-                      if (date) {
-                        form.setValue("dataVencimento", date);
-                        setCalendarOpen(false);
-                      }
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="categoria">Categoria</Label>
-              <Select onValueChange={(value) => form.setValue("categoria", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {expenseCategories.map((categoria) => (
-                    <SelectItem key={categoria.id} value={categoria.name}>
-                      {categoria.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="dataVencimento" render={({ field }) => (
+                    <FormItem className="flex flex-col pt-2"><FormLabel>Data de Vencimento</FormLabel>
+                        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                        <PopoverTrigger asChild>
+                            <FormControl>
+                            <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {field.value ? format(field.value, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione a data</span>}
+                            </Button>
+                            </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={field.value} onSelect={(date) => { if(date) {field.onChange(date); setCalendarOpen(false); }}} initialFocus /></PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                    </FormItem>
+                    )} />
+                    <FormField control={form.control} name="categoria" render={({ field }) => (
+                    <FormItem><FormLabel>Categoria</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
+                        <SelectContent>{expenseCategories.map((cat) => (<SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>))}</SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )} />
+                </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="fornecedor">Fornecedor</Label>
-            <Select onValueChange={(value) => form.setValue("fornecedor", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um fornecedor" />
-              </SelectTrigger>
-              <SelectContent>
-                {fornecedores?.map((fornecedor) => (
-                  <SelectItem key={fornecedor.id} value={fornecedor.id}>
-                    {fornecedor.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                <FormField control={form.control} name="fornecedor" render={({ field }) => (
+                <FormItem><FormLabel>Fornecedor</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
+                    <SelectContent>{(fornecedores || []).map((f) => (<SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>))}</SelectContent>
+                    </Select>
+                    <FormMessage />
+                </FormItem>
+                )} />
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="recorrente"
-              checked={form.watch("recorrente")}
-              onCheckedChange={(checked) => form.setValue("recorrente", checked as boolean)}
-            />
-            <Label htmlFor="recorrente">Conta recorrente</Label>
-          </div>
+                <div className="flex items-center space-x-2">
+                    <FormField control={form.control} name="recorrente" render={({ field }) => (<FormItem><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={!!contaToEdit} /></FormControl></FormItem>)} />
+                    <Label htmlFor="recorrente">Conta recorrente</Label>
+                </div>
 
-          {isRecorrente && (
-            <div className="grid grid-cols-2 gap-4 p-4 border rounded">
-              <div className="space-y-2">
-                <Label htmlFor="frequencia">Frequência</Label>
-                <Select onValueChange={(value) => form.setValue("frequencia", value as any)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a frequência" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {opcoesFrequencia.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="numParcelas">Número de Parcelas</Label>
-                <Input
-                  id="numParcelas"
-                  type="number"
-                  min="1"
-                  max="360"
-                  {...form.register("numParcelas", { valueAsNumber: true })}
-                />
-              </div>
-            </div>
-          )}
+                {isRecorrente && (
+                    <div className="grid grid-cols-2 gap-4 p-4 border rounded">
+                    <FormField control={form.control} name="frequencia" render={({ field }) => (<FormItem><FormLabel>Frequência</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{opcoesFrequencia.map(opt => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="numParcelas" render={({ field }) => (<FormItem><FormLabel>Nº de Parcelas</FormLabel><FormControl><Input type="number" min="1" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    </div>
+                )}
 
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit">
-              {isRecorrente ? "Criar Contas" : "Criar Conta"}
-            </Button>
-          </div>
-        </form>
+                <div className="flex justify-end space-x-2">
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    Cancelar
+                    </Button>
+                    <Button type="submit">
+                    {contaToEdit ? 'Salvar Alterações' : 'Criar Conta'}
+                    </Button>
+                </div>
+            </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

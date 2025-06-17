@@ -1,4 +1,3 @@
-
 export interface ContaPagar {
   id: string;
   descricao: string;
@@ -6,6 +5,7 @@ export interface ContaPagar {
   dataVencimento: Date;
   status: 'pendente' | 'pago' | 'atrasado' | 'parcial';
   fornecedor: string;
+  fornecedorId?: string; // ID do financial_client
   categoria: string;
   numeroDocumento?: string;
   dataPagamento?: Date;

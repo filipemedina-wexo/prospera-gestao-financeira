@@ -12,16 +12,18 @@ export interface AccountPayable {
   category?: string;
   created_at: string;
   updated_at: string;
+  financial_clients?: { name: string }; // Adicionado para receber o nome do fornecedor
 }
 
-// Omit 'fornecedor' as it is not a direct column
-type CreateAccountPayload = Omit<AccountPayable, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>;
+type CreateAccountPayload = Omit<AccountPayable, 'id' | 'created_at' | 'updated_at' | 'saas_client_id' | 'financial_clients'>;
+type UpdateAccountPayload = Partial<CreateAccountPayload>;
 
 export const accountsPayableService = {
   async getAll(): Promise<AccountPayable[]> {
+    // A query agora busca o nome do financial_client relacionado
     const { data, error } = await supabase
       .from('accounts_payable')
-      .select('*')
+      .select('*, financial_clients ( name )')
       .order('due_date');
 
     if (error) {
@@ -59,7 +61,7 @@ export const accountsPayableService = {
     return data as AccountPayable;
   },
 
-  async update(id: string, updates: Partial<CreateAccountPayload>): Promise<AccountPayable> {
+  async update(id: string, updates: UpdateAccountPayload): Promise<AccountPayable> {
     const { data, error } = await supabase
       .from('accounts_payable')
       .update(updates)

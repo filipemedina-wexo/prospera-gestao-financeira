@@ -7,40 +7,86 @@ import { GerenciarTipos } from "./fornecedores/GerenciarTipos";
 import { Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { financialClientsService, FinancialClient } from "@/services/financialClientsService";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TablesUpdate } from "@/integrations/supabase/types";
 
-interface FornecedoresProps {
-  fornecedores: Fornecedor[];
-  setFornecedores: React.Dispatch<React.SetStateAction<Fornecedor[]>>;
-}
-
-export const Fornecedores = ({ fornecedores, setFornecedores }: FornecedoresProps) => {
+export const Fornecedores = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedFornecedor, setSelectedFornecedor] = useState<Fornecedor | null>(null);
-  const [tipoFilter, setTipoFilter] = useState('Todos');
   const [searchFilter, setSearchFilter] = useState('');
   
-  // Estado para gerenciar tipos de fornecedores
   const [tiposFornecedor, setTiposFornecedor] = useState<TipoFornecedor[]>([
     { id: '1', nome: 'Produto' },
     { id: '2', nome: 'Serviço' },
     { id: '3', nome: 'Ambos' },
   ]);
 
-  const handleSave = (fornecedor: Fornecedor) => {
-    const isEditing = !!selectedFornecedor;
-    if (isEditing) {
-      setFornecedores(fornecedores.map(f => f.id === fornecedor.id ? fornecedor : f));
-    } else {
-      setFornecedores([...fornecedores, { ...fornecedor, id: Date.now().toString(), dataCadastro: new Date() }]);
-    }
-    toast({
+  const { data: fornecedoresData = [], isLoading } = useQuery<FinancialClient[]>({
+    queryKey: ['financial_clients'],
+    queryFn: financialClientsService.getAll,
+  });
+
+  const upsertMutation = useMutation({
+    mutationFn: (fornecedorData: Fornecedor) => {
+      const payload: Omit<TablesUpdate<'financial_clients'>, 'id'> = {
+        name: fornecedorData.razaoSocial,
+        document: fornecedorData.cnpj,
+        email: fornecedorData.email,
+        phone: fornecedorData.telefone,
+        address: fornecedorData.endereco,
+        city: fornecedorData.cidade,
+        state: fornecedorData.estado,
+        cep: fornecedorData.cep,
+      };
+
+      if (fornecedorData.id.startsWith('new-')) { // Criando novo fornecedor
+        return financialClientsService.create(payload);
+      } else { // Editando fornecedor existente
+        return financialClientsService.update(fornecedorData.id, payload);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['financial_clients'] });
+      toast({
         title: "Sucesso!",
-        description: `Fornecedor ${isEditing ? 'atualizado' : 'criado'} com sucesso.`,
-    });
-    setDialogOpen(false);
-    setSelectedFornecedor(null);
+        description: `Fornecedor ${selectedFornecedor ? 'atualizado' : 'criado'} com sucesso.`,
+      });
+      setDialogOpen(false);
+      setSelectedFornecedor(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro!",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: financialClientsService.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['financial_clients'] });
+      toast({
+        title: "Fornecedor removido",
+        description: "O fornecedor foi removido com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao remover!",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleSave = (fornecedorData: Fornecedor) => {
+    upsertMutation.mutate(fornecedorData);
   };
 
   const handleEdit = (fornecedor: Fornecedor) => {
@@ -54,21 +100,28 @@ export const Fornecedores = ({ fornecedores, setFornecedores }: FornecedoresProp
   }
   
   const handleDelete = (id: string) => {
-    setFornecedores(fornecedores.filter(f => f.id !== id));
-    toast({
-        title: "Fornecedor removido",
-        description: "O fornecedor foi removido com sucesso.",
-        variant: "destructive"
-    });
+    deleteMutation.mutate(id);
   };
 
-  const filteredFornecedores = fornecedores.filter(f => {
-    const tipoMatch = tipoFilter === 'Todos' || f.tipo === tipoFilter;
+  const fornecedoresParaTabela: Fornecedor[] = fornecedoresData.map(f => ({
+    id: f.id,
+    razaoSocial: f.name,
+    nomeFantasia: f.name,
+    cnpj: f.document || '',
+    email: f.email || '',
+    telefone: f.phone || '',
+    status: 'Ativo', // Adicionar status real se existir no DB
+    tipo: 'Serviço', // Adicionar tipo real se existir no DB
+    dataCadastro: new Date(f.created_at),
+    cep: f.cep || '',
+    endereco: f.address || '',
+    cidade: f.city || '',
+    estado: f.state || ''
+  })).filter(f => {
     const searchMatch = searchFilter === '' ||
                         f.razaoSocial.toLowerCase().includes(searchFilter.toLowerCase()) ||
-                        f.cnpj.includes(searchFilter) ||
-                        (f.nomeFantasia && f.nomeFantasia.toLowerCase().includes(searchFilter.toLowerCase()));
-    return tipoMatch && searchMatch;
+                        f.cnpj.includes(searchFilter);
+    return searchMatch;
   });
 
   return (
@@ -89,25 +142,22 @@ export const Fornecedores = ({ fornecedores, setFornecedores }: FornecedoresProp
 
       <div className="flex items-center gap-2">
         <Input
-          placeholder="Buscar por Razão Social, Nome Fantasia ou CNPJ..."
+          placeholder="Buscar por Nome ou CNPJ..."
           value={searchFilter}
           onChange={(e) => setSearchFilter(e.target.value)}
           className="max-w-sm"
         />
-        <Select value={tipoFilter} onValueChange={setTipoFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrar por tipo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Todos">Todos os tipos</SelectItem>
-            {tiposFornecedor.map((tipo) => (
-              <SelectItem key={tipo.id} value={tipo.nome}>{tipo.nome}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
-      <FornecedoresTable fornecedores={filteredFornecedores} onEdit={handleEdit} onDelete={handleDelete} />
+      {isLoading ? (
+        <div className="space-y-2">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+      ) : (
+        <FornecedoresTable fornecedores={fornecedoresParaTabela} onEdit={handleEdit} onDelete={handleDelete} />
+      )}
 
       <FornecedorDialog
         open={dialogOpen}

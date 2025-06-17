@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { z } from "zod";
-
 import { ContaPagar } from "./contas-pagar/types";
 import { formSchema } from "./contas-pagar/config";
 import { ContasPagarSummary } from "./contas-pagar/ContasPagarSummary";
@@ -12,23 +11,22 @@ import { NovaContaDialog } from "./contas-pagar/NovaContaDialog";
 import { RegistrarPagamentoDialog } from "./contas-pagar/RegistrarPagamentoDialog";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { accountsPayableService } from "@/services/accountsPayableService";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
-interface ContasPagarProps {
-  contas: ContaPagar[];
-  setContas: React.Dispatch<React.SetStateAction<ContaPagar[]>>;
-}
-
-export function ContasPagar({ contas, setContas }: ContasPagarProps) {
+export function ContasPagar() {
   const { toast } = useToast();
   const { currentClientId, loading: clientLoading } = useMultiTenant();
   const queryClient = useQueryClient();
+  
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
-  const [filtroCompetencia, setFiltroCompetencia] = useState<string>("");
   const [busca, setBusca] = useState("");
   const [showNovaContaDialog, setShowNovaContaDialog] = useState(false);
+  const [contaParaEditar, setContaParaEditar] = useState<ContaPagar | null>(null);
   const [pagamentoDialogState, setPagamentoDialogState] = useState<{ open: boolean; contaId: string | null }>({ open: false, contaId: null });
+  const [contaParaRemover, setContaParaRemover] = useState<string | null>(null);
 
   const { data: contasDatabase, isLoading } = useQuery({
     queryKey: ['accounts-payable', currentClientId],
@@ -36,105 +34,127 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
     enabled: !!currentClientId && !clientLoading,
   });
 
-  const todasContas = (contasDatabase || []).map(conta => ({
-    id: conta.id,
-    descricao: conta.description,
-    valor: conta.amount,
-    dataVencimento: new Date(conta.due_date),
-    status: conta.status as 'pendente' | 'pago' | 'atrasado' | 'parcial',
-    fornecedor: conta.financial_client_id || 'Não informado',
-    categoria: conta.category || 'Geral',
-    numeroDocumento: '',
-    dataPagamento: conta.paid_date ? new Date(conta.paid_date) : undefined,
-    competencia: format(new Date(conta.due_date), 'MM/yyyy'),
-  }));
-
-  const contasFiltradas = todasContas.filter(conta => {
-    const matchStatus = filtroStatus === "todos" || conta.status === filtroStatus;
-    const matchCategoria = filtroCategoria === "todas" || conta.categoria === filtroCategoria;
-    const matchBusca = busca === "" || 
-      conta.descricao.toLowerCase().includes(busca.toLowerCase()) ||
-      (typeof conta.fornecedor === 'string' && conta.fornecedor.toLowerCase().includes(busca.toLowerCase()));
-    const matchCompetencia = !filtroCompetencia || (conta.competencia && conta.competencia.includes(filtroCompetencia));
-    
-    return matchStatus && matchCategoria && matchBusca && matchCompetencia;
-  });
-
-  async function onSubmitNovaConta(values: z.infer<typeof formSchema>) {
-    if (!currentClientId) {
-      toast({ title: "Erro", description: "Nenhum cliente ativo encontrado.", variant: "destructive" });
-      return;
-    }
-
-    try {
-      const contaBase = {
-        description: values.descricao,
-        amount: values.valor,
-        status: 'pending' as const,
-        category: values.categoria,
-        financial_client_id: values.fornecedor,
-      };
-
-      if (values.recorrente && values.frequencia && values.numParcelas) {
-        const dataVencimentoBase = new Date(values.dataVencimento);
-        const getIncrementoMeses = (frequencia: typeof values.frequencia) => {
-          switch(frequencia) {
-            case 'mensal': return 1;
-            case 'bimestral': return 2;
-            case 'trimestral': return 3;
-            case 'semestral': return 6;
-            case 'anual': return 12;
-            default: return 0;
-          }
+  const upsertMutation = useMutation({
+    mutationFn: (conta: Partial<ContaPagar>) => {
+        const payload = {
+            description: conta.descricao!,
+            amount: conta.valor!,
+            due_date: format(conta.dataVencimento!, 'yyyy-MM-dd'),
+            category: conta.categoria,
+            financial_client_id: conta.fornecedorId,
+            status: conta.status || 'pendente',
         };
-        const incremento = getIncrementoMeses(values.frequencia);
-
-        for (let i = 0; i < values.numParcelas; i++) {
-          const vencimento = new Date(dataVencimentoBase);
-          vencimento.setMonth(vencimento.getMonth() + (i * incremento));
-          await accountsPayableService.create({
-            ...contaBase,
-            description: `${values.descricao} (${i + 1}/${values.numParcelas})`,
-            due_date: format(vencimento, 'yyyy-MM-dd'),
-          });
+        if (conta.id) {
+            return accountsPayableService.update(conta.id, payload);
         }
-        toast({ title: "Contas recorrentes criadas!", description: `${values.numParcelas} contas foram adicionadas.` });
-      } else {
-        await accountsPayableService.create({
-          ...contaBase,
-          due_date: format(values.dataVencimento, 'yyyy-MM-dd'),
-        });
-        toast({ title: "Conta criada com sucesso!" });
-      }
-
+        const { status, ...creationPayload } = payload;
+        return accountsPayableService.create(creationPayload);
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });
       setShowNovaContaDialog(false);
-    } catch (error) {
-      console.error('Error creating account:', error);
-      toast({ title: "Erro", description: "Erro ao criar conta a pagar.", variant: "destructive" });
+      setContaParaEditar(null);
+      toast({ title: `Conta ${contaParaEditar ? 'atualizada' : 'criada'} com sucesso!` });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
     }
+  });
+  
+  const deleteMutation = useMutation({
+    mutationFn: accountsPayableService.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });
+      setContaParaRemover(null);
+      toast({ title: "Conta removida com sucesso!" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+    }
+  });
+
+  const dadosProcessados = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todasContas = (contasDatabase || []).map((conta): ContaPagar => {
+      const dataVencimento = new Date(`${conta.due_date}T00:00:00`);
+      let status = conta.status as ContaPagar['status'];
+      
+      if (status === 'pendente' && dataVencimento < today) {
+        status = 'atrasado';
+      }
+
+      return {
+        id: conta.id,
+        descricao: conta.description,
+        valor: conta.amount,
+        dataVencimento: dataVencimento,
+        status: status,
+        fornecedor: conta.financial_clients?.name || 'Não informado',
+        fornecedorId: conta.financial_client_id || '',
+        categoria: conta.category || 'Geral',
+      };
+    });
+
+    const contasFiltradas = todasContas.filter(conta => {
+        const matchStatus = filtroStatus === "todos" || conta.status === filtroStatus;
+        const matchCategoria = filtroCategoria === "todas" || conta.categoria === filtroCategoria;
+        const matchBusca = busca === "" || 
+          conta.descricao.toLowerCase().includes(busca.toLowerCase()) ||
+          (conta.fornecedor && conta.fornecedor.toLowerCase().includes(busca.toLowerCase()));
+        
+        return matchStatus && matchCategoria && matchBusca;
+    });
+
+    const summary = {
+      totalAPagar: todasContas
+        .filter(c => c.status === 'pendente' || c.status === 'atrasado')
+        .reduce((sum, c) => sum + c.valor, 0),
+      contasAtrasadas: todasContas.filter(c => c.status === 'atrasado').length,
+      contasPagas: todasContas.filter(c => c.status === 'pago').length,
+    };
+    
+    return { contasFiltradas, summary };
+
+  }, [contasDatabase, filtroStatus, filtroCategoria, busca]);
+
+
+  function onSubmitConta(values: z.infer<typeof formSchema>) {
+    const contaPayload: Partial<ContaPagar> = {
+        id: contaParaEditar?.id,
+        descricao: values.descricao,
+        valor: values.valor,
+        dataVencimento: values.dataVencimento,
+        categoria: values.categoria,
+        fornecedorId: values.fornecedor,
+        status: contaParaEditar?.status || 'pendente',
+    };
+    upsertMutation.mutate(contaPayload);
   }
 
   const handleRegistrarPagamento = async (dataPagamento: Date) => {
     if (!pagamentoDialogState.contaId || !currentClientId) return;
-
     try {
       await accountsPayableService.markAsPaid(
         pagamentoDialogState.contaId, 
         format(dataPagamento, 'yyyy-MM-dd')
       );
       queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });
-
       setPagamentoDialogState({ open: false, contaId: null });
-      toast({ title: "Pagamento Registrado!", description: "A conta foi marcada como paga com sucesso." });
+      toast({ title: "Pagamento Registrado!", description: "A conta foi marcada como paga." });
     } catch (error) {
-      console.error('Error marking as paid:', error);
       toast({ title: "Erro", description: "Erro ao registrar pagamento.", variant: "destructive" });
     }
   };
 
   const handleAbrirDialogPagamento = (contaId: string) => {
     setPagamentoDialogState({ open: true, contaId });
+  };
+  
+  const handleEditConta = (conta: ContaPagar) => {
+    setContaParaEditar(conta);
+    setShowNovaContaDialog(true);
   };
 
   if (clientLoading || isLoading) {
@@ -152,23 +172,30 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
         </div>
         <NovaContaDialog 
             open={showNovaContaDialog} 
-            onOpenChange={setShowNovaContaDialog} 
-            onSubmit={onSubmitNovaConta} 
+            onOpenChange={(isOpen) => {
+                if (!isOpen) setContaParaEditar(null);
+                setShowNovaContaDialog(isOpen);
+            }} 
+            onSubmit={onSubmitConta} 
+            contaToEdit={contaParaEditar}
         />
       </div>
 
-      <ContasPagarSummary contas={todasContas} />
+      <ContasPagarSummary {...dadosProcessados.summary} />
 
       <ContasPagarFilters
         busca={busca} setBusca={setBusca}
-        filtroCompetencia={filtroCompetencia} setFiltroCompetencia={setFiltroCompetencia}
+        filtroCompetencia={""} // Passando valor vazio, pois a variável foi removida
+        setFiltroCompetencia={() => {}} // Passando função vazia
         filtroStatus={filtroStatus} setFiltroStatus={setFiltroStatus}
         filtroCategoria={filtroCategoria} setFiltroCategoria={setFiltroCategoria}
       />
       
       <ContasPagarTable
-        contas={contasFiltradas}
+        contas={dadosProcessados.contasFiltradas}
         onAbrirDialogPagamento={handleAbrirDialogPagamento}
+        onEdit={handleEditConta}
+        onDelete={(id) => setContaParaRemover(id)}
       />
 
       <RegistrarPagamentoDialog
@@ -176,6 +203,23 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
         onOpenChange={(open) => setPagamentoDialogState({ ...pagamentoDialogState, open })}
         onConfirm={handleRegistrarPagamento}
       />
+
+      <AlertDialog open={!!contaParaRemover} onOpenChange={() => setContaParaRemover(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Esta ação irá remover permanentemente a conta.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={() => contaParaRemover && deleteMutation.mutate(contaParaRemover)}>
+                    Confirmar
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

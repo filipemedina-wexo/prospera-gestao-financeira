@@ -28,7 +28,6 @@ const Index = () => {
   
   const getInitialModule = () => {
     const visibleItems = menuItems.filter(item => {
-      // Special handling for super admin only items
       if (item.id === "gestao-saas") {
         return isSupperAdmin;
       }
@@ -38,62 +37,42 @@ const Index = () => {
   };
   
   const [activeModule, setActiveModule] = useState(getInitialModule);
+  // Removemos as contas a pagar e receber do useAppData
   const {
     propostas,
     setPropostas,
     vendedores,
-    contasAReceber,
-    setContasAReceber,
-    contasAPagar,
-    setContasAPagar,
     handlePropostaAceita,
     clients,
     setClients,
     produtosServicos,
     setProdutosServicos,
-    fornecedores,
-    setFornecedores,
   } = useAppData();
-  const {
-    clientName,
-    clientSubtitle
-  } = useClient();
   const { companyName } = useConfig();
   
-  // Mock data for Pessoas module
   const [funcionarios, setFuncionarios] = useState([]);
   const [departamentos, setDepartamentos] = useState([]);
   const [cargos, setCargos] = useState([]);
   const [holerites, setHolerites] = useState([]);
-  
-  const getModuleTitle = () => {
-    if (!activeModule) {
-      return "Acesso Restrito";
-    }
-    const module = menuItems.find(item => item.id === activeModule);
-    return module ? module.title : "Dashboard";
-  };
   
   const renderContent = () => {
     switch (activeModule) {
       case "caixa":
         return <Caixa />;
       case "contas-pagar":
-        return <ContasPagarModule contas={contasAPagar} setContas={setContasAPagar} />;
+        return <ContasPagarModule />; // Agora sem props
       case "contas-receber":
-        return <ContasReceberModule contas={contasAReceber} setContas={setContasAReceber} />;
+        return <ContasReceberModule />; // Agora sem props
       case "comercial":
         return <Comercial propostas={propostas} setPropostas={setPropostas} vendedores={vendedores} onPropostaAceita={handlePropostaAceita} clients={clients} setClients={setClients} produtosServicos={produtosServicos} />;
       case "fornecedores":
-        return <Fornecedores fornecedores={fornecedores} setFornecedores={setFornecedores} />;
+        return <Fornecedores />;
       case "produtos-servicos":
         return <ProdutosServicos produtos={produtosServicos} />;
       case "relatorios":
         return <Relatorios />;
       case "dre":
-        return <DRE contasPagar={contasAPagar} contasReceber={contasAReceber} />;
-      case "configuracoes":
-        return <Configuracoes />;
+        return <DRE />; // Agora sem props
       case "crm":
         return <CRM clients={clients} setClients={setClients} />;
       case "pessoas":
@@ -124,7 +103,8 @@ const Index = () => {
     }
   };
   
-  return <SidebarProvider>
+  return (
+    <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
         <AppSidebar onMenuChange={setActiveModule} />
         <main className="flex-1 p-6 overflow-auto">
@@ -142,6 +122,7 @@ const Index = () => {
         </main>
         <Toaster />
       </div>
-    </SidebarProvider>;
+    </SidebarProvider>
+  );
 };
 export default Index;

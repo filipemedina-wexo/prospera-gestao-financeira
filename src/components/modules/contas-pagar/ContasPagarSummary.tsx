@@ -1,20 +1,17 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, CheckCircle, DollarSign } from "lucide-react";
-import { ContaPagar } from "./types";
 
 interface ContasPagarSummaryProps {
-  contas: ContaPagar[];
+  totalAPagar: number;
+  contasAtrasadas: number;
+  contasPagas: number;
 }
 
-export function ContasPagarSummary({ contas }: ContasPagarSummaryProps) {
-  const totalPendente = contas
-    .filter(c => c.status === 'pendente' || c.status === 'atrasado')
-    .reduce((sum, c) => sum + c.valor, 0);
-
-  const contasAtrasadas = contas.filter(c => c.status === 'atrasado').length;
-  const contasPagas = contas.filter(c => c.status === 'pago').length;
-
+export function ContasPagarSummary({
+  totalAPagar,
+  contasAtrasadas,
+  contasPagas,
+}: ContasPagarSummaryProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <Card>
@@ -23,7 +20,7 @@ export function ContasPagarSummary({ contas }: ContasPagarSummaryProps) {
             <div>
               <p className="text-sm font-medium text-muted-foreground">Total a Pagar</p>
               <p className="text-2xl font-bold text-red-600">
-                R$ {totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {totalAPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
             <div className="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center">
