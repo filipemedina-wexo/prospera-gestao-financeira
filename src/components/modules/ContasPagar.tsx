@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -31,14 +30,12 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
   const [showNovaContaDialog, setShowNovaContaDialog] = useState(false);
   const [pagamentoDialogState, setPagamentoDialogState] = useState<{ open: boolean; contaId: string | null }>({ open: false, contaId: null });
 
-  // Buscar contas do banco de dados se temos um cliente ativo
   const { data: contasDatabase, isLoading } = useQuery({
     queryKey: ['accounts-payable', currentClientId],
     queryFn: () => currentClientId ? accountsPayableService.getAll() : Promise.resolve([]),
     enabled: !!currentClientId && !clientLoading,
   });
 
-  // Use only database data, no more mock data
   const todasContas = (contasDatabase || []).map(conta => ({
     id: conta.id,
     descricao: conta.description,
@@ -57,7 +54,7 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
     const matchCategoria = filtroCategoria === "todas" || conta.categoria === filtroCategoria;
     const matchBusca = busca === "" || 
       conta.descricao.toLowerCase().includes(busca.toLowerCase()) ||
-      conta.fornecedor.toLowerCase().includes(busca.toLowerCase());
+      (typeof conta.fornecedor === 'string' && conta.fornecedor.toLowerCase().includes(busca.toLowerCase()));
     const matchCompetencia = !filtroCompetencia || (conta.competencia && conta.competencia.includes(filtroCompetencia));
     
     return matchStatus && matchCategoria && matchBusca && matchCompetencia;
@@ -65,19 +62,21 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
 
   async function onSubmitNovaConta(values: z.infer<typeof formSchema>) {
     if (!currentClientId) {
-      toast({
-        title: "Erro",
-        description: "Nenhum cliente ativo encontrado.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Nenhum cliente ativo encontrado.", variant: "destructive" });
       return;
     }
 
     try {
-      if (values.recorrente && values.frequencia && values.numParcelas) {
-        // Criar múltiplas contas recorrentes
-        const dataVencimentoBase = new Date(values.dataVencimento);
+      const contaBase = {
+        description: values.descricao,
+        amount: values.valor,
+        status: 'pending' as const,
+        category: values.categoria,
+        financial_client_id: values.fornecedor,
+      };
 
+      if (values.recorrente && values.frequencia && values.numParcelas) {
+        const dataVencimentoBase = new Date(values.dataVencimento);
         const getIncrementoMeses = (frequencia: typeof values.frequencia) => {
           switch(frequencia) {
             case 'mensal': return 1;
@@ -88,51 +87,31 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
             default: return 0;
           }
         };
-
         const incremento = getIncrementoMeses(values.frequencia);
 
         for (let i = 0; i < values.numParcelas; i++) {
           const vencimento = new Date(dataVencimentoBase);
           vencimento.setMonth(vencimento.getMonth() + (i * incremento));
-          
-          const parcelaNum = i + 1;
-          
           await accountsPayableService.create({
-            description: `${values.descricao} (${parcelaNum}/${values.numParcelas})`,
-            amount: values.valor,
+            ...contaBase,
+            description: `${values.descricao} (${i + 1}/${values.numParcelas})`,
             due_date: format(vencimento, 'yyyy-MM-dd'),
-            status: 'pending',
-            category: values.categoria,
           });
         }
-        
-        toast({ 
-          title: "Contas recorrentes criadas!", 
-          description: `${values.numParcelas} contas foram adicionadas.` 
-        });
+        toast({ title: "Contas recorrentes criadas!", description: `${values.numParcelas} contas foram adicionadas.` });
       } else {
-        // Criar conta única
         await accountsPayableService.create({
-          description: values.descricao,
-          amount: values.valor,
+          ...contaBase,
           due_date: format(values.dataVencimento, 'yyyy-MM-dd'),
-          status: 'pending',
-          category: values.categoria,
         });
-        
         toast({ title: "Conta criada com sucesso!" });
       }
 
-      // Recarregar dados
       queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });
       setShowNovaContaDialog(false);
     } catch (error) {
       console.error('Error creating account:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao criar conta a pagar.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Erro ao criar conta a pagar.", variant: "destructive" });
     }
   }
 
@@ -147,17 +126,10 @@ export function ContasPagar({ contas, setContas }: ContasPagarProps) {
       queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });
 
       setPagamentoDialogState({ open: false, contaId: null });
-      toast({
-        title: "Pagamento Registrado!",
-        description: "A conta foi marcada como paga com sucesso.",
-      });
+      toast({ title: "Pagamento Registrado!", description: "A conta foi marcada como paga com sucesso." });
     } catch (error) {
       console.error('Error marking as paid:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao registrar pagamento.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Erro ao registrar pagamento.", variant: "destructive" });
     }
   };
 

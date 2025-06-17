@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Proposta, Vendedor } from "@/components/modules/comercial/types";

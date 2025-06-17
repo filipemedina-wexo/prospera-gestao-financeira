@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AccountPayable {
@@ -15,9 +14,11 @@ export interface AccountPayable {
   updated_at: string;
 }
 
+// Omit 'fornecedor' as it is not a direct column
+type CreateAccountPayload = Omit<AccountPayable, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>;
+
 export const accountsPayableService = {
   async getAll(): Promise<AccountPayable[]> {
-    // RLS will automatically filter by the user's client
     const { data, error } = await supabase
       .from('accounts_payable')
       .select('*')
@@ -30,8 +31,7 @@ export const accountsPayableService = {
     return (data || []) as AccountPayable[];
   },
 
-  async create(account: Omit<AccountPayable, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>): Promise<AccountPayable> {
-    // Get current client ID
+  async create(account: CreateAccountPayload): Promise<AccountPayable> {
     const { data: clientMapping } = await supabase
       .from('saas_user_client_mapping')
       .select('client_id')
@@ -46,13 +46,7 @@ export const accountsPayableService = {
     const { data, error } = await supabase
       .from('accounts_payable')
       .insert({
-        description: account.description,
-        amount: account.amount,
-        due_date: account.due_date,
-        paid_date: account.paid_date,
-        status: account.status,
-        category: account.category,
-        financial_client_id: account.financial_client_id,
+        ...account,
         saas_client_id: clientMapping.client_id
       })
       .select()
@@ -65,7 +59,7 @@ export const accountsPayableService = {
     return data as AccountPayable;
   },
 
-  async update(id: string, updates: Partial<Omit<AccountPayable, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>>): Promise<AccountPayable> {
+  async update(id: string, updates: Partial<CreateAccountPayload>): Promise<AccountPayable> {
     const { data, error } = await supabase
       .from('accounts_payable')
       .update(updates)

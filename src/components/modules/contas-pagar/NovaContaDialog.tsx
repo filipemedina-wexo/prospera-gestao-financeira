@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { formSchema } from "./config";
+import { formSchema, opcoesFrequencia } from "./config";
 import { useClientCategories } from "@/hooks/useClientCategories";
 import { useQuery } from "@tanstack/react-query";
 import { financialClientsService } from "@/services/financialClientsService";
@@ -153,7 +152,7 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit }: NovaContaDialo
               </SelectTrigger>
               <SelectContent>
                 {fornecedores?.map((fornecedor) => (
-                  <SelectItem key={fornecedor.id} value={fornecedor.name}>
+                  <SelectItem key={fornecedor.id} value={fornecedor.id}>
                     {fornecedor.name}
                   </SelectItem>
                 ))}
@@ -179,11 +178,11 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit }: NovaContaDialo
                     <SelectValue placeholder="Selecione a frequência" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="mensal">Mensal</SelectItem>
-                    <SelectItem value="bimestral">Bimestral</SelectItem>
-                    <SelectItem value="trimestral">Trimestral</SelectItem>
-                    <SelectItem value="semestral">Semestral</SelectItem>
-                    <SelectItem value="anual">Anual</SelectItem>
+                    {opcoesFrequencia.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

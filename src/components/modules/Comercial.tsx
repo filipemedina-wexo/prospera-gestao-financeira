@@ -1,12 +1,11 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
 import { Proposta, Vendedor } from "./comercial/types";
 import { useToast } from "@/hooks/use-toast";
-import { Client } from "./crm/types";
-import { ProdutoServico } from "./produtos-servicos/types";
+import { Client } from "../crm/types";
+import { ProdutoServico } from "../produtos-servicos/types";
 import { NovaPropostaDialog } from "./comercial/NovaPropostaDialog";
 import { ComercialStats } from "./comercial/ComercialStats";
 import { PropostasList } from "./comercial/PropostasList";
@@ -42,7 +41,7 @@ export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceit
         descricao: item.descricao,
         quantidade: item.quantidade,
         valorUnitario: item.valorUnitario,
-        valorTotal: item.quantidade * item.valorUnitario,
+        valorTotal: item.quantidade * item.valorTotal,
       })),
       observacoes: propostaData.observacoes,
       faturada: false,
