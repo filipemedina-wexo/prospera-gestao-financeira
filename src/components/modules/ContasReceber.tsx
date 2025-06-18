@@ -149,7 +149,7 @@ export function ContasReceber() {
     };
     
     const config = statusConfig[status as keyof typeof statusConfig];
-    if (!config) return null; // Prevenção de erro
+    if (!config) return null;
     const Icon = config.icon;
     
     return (

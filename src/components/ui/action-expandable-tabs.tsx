@@ -3,6 +3,7 @@ import React from 'react';
 import { ExpandableTabs } from './expandable-tabs';
 import { Eye, Settings, Bell, Home, FileText, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LucideIcon } from 'lucide-react';
 
 export interface ActionItem {
   type: 'view' | 'edit' | 'delete' | 'accept' | 'reject' | 'register' | 'block' | 'activate' | 'custom';
@@ -10,7 +11,7 @@ export interface ActionItem {
   onClick: () => void;
   disabled?: boolean;
   variant?: 'default' | 'destructive' | 'success';
-  customIcon?: React.ComponentType<{ size?: number }>;
+  customIcon?: LucideIcon;
 }
 
 interface ActionExpandableTabsProps {
@@ -18,15 +19,15 @@ interface ActionExpandableTabsProps {
   className?: string;
 }
 
-const getIconForAction = (type: ActionItem['type'], customIcon?: React.ComponentType<{ size?: number }>) => {
+const getIconForAction = (type: ActionItem['type'], customIcon?: LucideIcon): LucideIcon => {
   if (customIcon) return customIcon;
   
   switch (type) {
     case 'view': return Eye;
     case 'edit': return Settings;
-    case 'delete': return Bell; // Usando Bell como alerta para ação destrutiva
+    case 'delete': return Bell;
     case 'accept': return Home;
-    case 'reject': return Shield; // Usando Shield como proteção/rejeição
+    case 'reject': return Shield;
     case 'register': return FileText;
     case 'block': return Shield;
     case 'activate': return Home;
