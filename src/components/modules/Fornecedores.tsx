@@ -32,7 +32,7 @@ export const Fornecedores = () => {
 
   const upsertMutation = useMutation({
     mutationFn: (fornecedorData: Fornecedor) => {
-      const payload: Omit<TablesUpdate<'financial_clients'>, 'id'> = {
+      const payload = {
         name: fornecedorData.razaoSocial,
         document: fornecedorData.cnpj,
         email: fornecedorData.email,
@@ -110,7 +110,7 @@ export const Fornecedores = () => {
     cnpj: f.document || '',
     email: f.email || '',
     telefone: f.phone || '',
-    status: 'Ativo', // Adicionar status real se existir no DB
+    status: 'Ativo' as const, // Explicit type assertion
     tipo: 'Serviço', // Adicionar tipo real se existir no DB
     dataCadastro: new Date(f.created_at),
     cep: f.cep || '',

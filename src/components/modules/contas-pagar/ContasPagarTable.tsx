@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -33,8 +32,8 @@ const getStatusBadge = (status?: 'pendente' | 'pago' | 'atrasado' | 'parcial') =
   const Icon = config.icon;
   
   return (
-    <Badge variant={config.variant} className={cn("flex items-center gap-1", config.className)}>
-      <Icon className="h-3 w-3" />
+    <Badge variant={config.variant} className={config.className || ""}>
+      <Icon className="h-3 w-3 mr-1" />
       {config.label}
     </Badge>
   );

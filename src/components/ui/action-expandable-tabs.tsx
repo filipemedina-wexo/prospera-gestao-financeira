@@ -34,14 +34,6 @@ const getIconForAction = (type: ActionItem['type'], customIcon?: React.Component
   }
 };
 
-const getColorForVariant = (variant?: ActionItem['variant']) => {
-  switch (variant) {
-    case 'destructive': return 'text-red-500';
-    case 'success': return 'text-green-500';
-    default: return 'text-primary';
-  }
-};
-
 export function ActionExpandableTabs({ actions, className }: ActionExpandableTabsProps) {
   const tabs = actions.map((action, index) => ({
     title: action.label,

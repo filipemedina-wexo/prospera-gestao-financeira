@@ -36,19 +36,27 @@ export function ContasPagar() {
 
   const upsertMutation = useMutation({
     mutationFn: (conta: Partial<ContaPagar>) => {
+        const statusMapping = {
+          'pendente': 'pending',
+          'pago': 'paid',
+          'atrasado': 'overdue',
+          'parcial': 'partial'
+        } as const;
+
         const payload = {
             description: conta.descricao!,
             amount: conta.valor!,
             due_date: format(conta.dataVencimento!, 'yyyy-MM-dd'),
             category: conta.categoria,
             financial_client_id: conta.fornecedorId,
-            status: conta.status || 'pendente',
+            status: statusMapping[conta.status || 'pendente'],
         };
+        
         if (conta.id) {
             return accountsPayableService.update(conta.id, payload);
         }
-        const { status, ...creationPayload } = payload;
-        return accountsPayableService.create(creationPayload);
+        
+        return accountsPayableService.create(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });

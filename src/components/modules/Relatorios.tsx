@@ -51,8 +51,43 @@ export function Relatorios() {
     enabled: !!currentClientId,
   });
   
-  const contasAPagar: ContaPagar[] = useMemo(() => (contasPagarData || []).map(c => ({...c, dataVencimento: new Date(c.due_date), valor: c.amount, descricao: c.description, categoria: c.category || '', fornecedor: ''})), [contasPagarData]);
-  const contasAReceber: ContaReceber[] = useMemo(() => (contasReceberData || []).map(c => ({...c, dataVencimento: new Date(c.due_date), valor: c.amount, descricao: c.description, categoria: c.category || '', cliente: ''})), [contasReceberData]);
+  const contasAPagar: ContaPagar[] = useMemo(() => (contasPagarData || []).map(c => {
+    const statusMapping = {
+      'pending': 'pendente',
+      'paid': 'pago', 
+      'overdue': 'atrasado',
+      'partial': 'parcial'
+    } as const;
+
+    return {
+      ...c, 
+      dataVencimento: new Date(c.due_date), 
+      valor: c.amount, 
+      descricao: c.description, 
+      categoria: c.category || '', 
+      fornecedor: '',
+      status: statusMapping[c.status] || 'pendente'
+    };
+  }), [contasPagarData]);
+  
+  const contasAReceber: ContaReceber[] = useMemo(() => (contasReceberData || []).map(c => {
+    const statusMapping = {
+      'pending': 'pendente',
+      'received': 'recebido',
+      'overdue': 'atrasado', 
+      'partial': 'parcial'
+    } as const;
+
+    return {
+      ...c, 
+      dataVencimento: new Date(c.due_date), 
+      valor: c.amount, 
+      descricao: c.description, 
+      categoria: c.category || '', 
+      cliente: '',
+      status: statusMapping[c.status] || 'pendente'
+    };
+  }), [contasReceberData]);
 
   // MOCK DATA (pode ser substituído por dados reais derivados das queries)
   const dadosFluxoCaixa = {
