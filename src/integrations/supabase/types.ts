@@ -246,6 +246,7 @@ export type Database = {
       financial_clients: {
         Row: {
           address: string | null
+          cep: string | null
           city: string | null
           created_at: string
           document: string | null
@@ -259,6 +260,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          cep?: string | null
           city?: string | null
           created_at?: string
           document?: string | null
@@ -272,6 +274,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          cep?: string | null
           city?: string | null
           created_at?: string
           document?: string | null

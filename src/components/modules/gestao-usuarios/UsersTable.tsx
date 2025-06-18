@@ -8,17 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, MoreHorizontal } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { ActionExpandableTabs, ActionItem } from '@/components/ui/action-expandable-tabs';
 
 interface UsersTableProps {
   users: User[];
@@ -71,6 +64,14 @@ export function UsersTable({ users, onEditUser }: UsersTableProps) {
     });
   };
 
+  const getActionsForUser = (user: User): ActionItem[] => [
+    {
+      type: 'edit',
+      label: 'Editar',
+      onClick: () => onEditUser(user),
+    }
+  ];
+
   if (users.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -101,19 +102,7 @@ export function UsersTable({ users, onEditUser }: UsersTableProps) {
               <TableCell>{getStatusBadge(user.status)}</TableCell>
               <TableCell>{formatLastLogin(user.lastLogin)}</TableCell>
               <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEditUser(user)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Editar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <ActionExpandableTabs actions={getActionsForUser(user)} />
               </TableCell>
             </TableRow>
           ))}

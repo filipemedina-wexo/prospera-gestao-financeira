@@ -9,16 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { MoreHorizontal, Building2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Tables } from '@/integrations/supabase/types';
 import { getStatusBadge } from './clienteUtils';
+import { ActionExpandableTabs, ActionItem } from '@/components/ui/action-expandable-tabs';
 
 type SaasClient = Tables<'saas_clients'>;
 
@@ -29,6 +24,20 @@ interface ClientesTableProps {
 }
 
 export function ClientesTable({ clients, onEditClient, onToggleStatus }: ClientesTableProps) {
+  const getActionsForClient = (client: SaasClient): ActionItem[] => [
+    {
+      type: 'edit',
+      label: 'Editar',
+      onClick: () => onEditClient(client),
+    },
+    {
+      type: client.status === 'active' ? 'block' : 'activate',
+      label: client.status === 'active' ? 'Bloquear' : 'Ativar',
+      onClick: () => onToggleStatus(client),
+      variant: client.status === 'active' ? 'destructive' : 'success',
+    }
+  ];
+
   return (
     <Card>
       <CardHeader>
@@ -58,21 +67,7 @@ export function ClientesTable({ clients, onEditClient, onToggleStatus }: Cliente
                 <TableCell>{getStatusBadge(client.status)}</TableCell>
                 <TableCell>{format(new Date(client.created_at), 'dd/MM/yyyy')}</TableCell>
                 <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onEditClient(client)}>
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onToggleStatus(client)}>
-                        {client.status === 'active' ? 'Bloquear' : 'Ativar'}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <ActionExpandableTabs actions={getActionsForClient(client)} />
                 </TableCell>
               </TableRow>
             ))}

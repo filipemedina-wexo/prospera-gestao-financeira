@@ -1,12 +1,12 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Proposta } from "./types";
-import { Eye, Edit, MoreVertical, CheckCircle, XCircle } from "lucide-react";
+import { Eye } from "lucide-react";
+import { ActionExpandableTabs, ActionItem } from "@/components/ui/action-expandable-tabs";
 
 interface PropostasListProps {
   propostas: Proposta[];
@@ -33,6 +33,42 @@ const getStatusBadge = (status: string) => {
 };
 
 export function PropostasList({ propostas, onStatusChange }: PropostasListProps) {
+  const getActionsForProposta = (proposta: Proposta): ActionItem[] => {
+    const actions: ActionItem[] = [
+      {
+        type: 'view',
+        label: 'Ver detalhes',
+        onClick: () => console.log('Ver proposta', proposta.id),
+      }
+    ];
+
+    if (proposta.status !== 'aceita' && proposta.status !== 'recusada' && !proposta.faturada) {
+      actions.push({
+        type: 'accept',
+        label: 'Aceitar',
+        onClick: () => onStatusChange(proposta.id, 'aceita'),
+        variant: 'success',
+      });
+    }
+
+    if (proposta.status !== 'aceita' && proposta.status !== 'recusada') {
+      actions.push({
+        type: 'reject',
+        label: 'Recusar',
+        onClick: () => onStatusChange(proposta.id, 'recusada'),
+        variant: 'destructive',
+      });
+    }
+
+    actions.push({
+      type: 'edit',
+      label: 'Editar',
+      onClick: () => console.log('Editar proposta', proposta.id),
+    });
+
+    return actions;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -73,35 +109,7 @@ export function PropostasList({ propostas, onStatusChange }: PropostasListProps)
                       <span className="sr-only">Ver detalhes</span>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-                          <span className="sr-only">Abrir menu</span>
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem 
-                          onClick={() => onStatusChange(proposta.id, 'aceita')}
-                          disabled={proposta.status === 'aceita' || proposta.status === 'recusada' || proposta.faturada}
-                        >
-                          <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                          <span>Aceitar</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => onStatusChange(proposta.id, 'recusada')}
-                          disabled={proposta.status === 'aceita' || proposta.status === 'recusada'}
-                        >
-                          <XCircle className="mr-2 h-4 w-4 text-red-500" />
-                          <span>Recusar</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          <span>Editar</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <ActionExpandableTabs actions={getActionsForProposta(proposta)} />
                   </div>
                 </TableCell>
               </TableRow>

@@ -3,9 +3,8 @@ import { Fornecedor } from "./types";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
+import { ActionExpandableTabs, ActionItem } from "@/components/ui/action-expandable-tabs";
 
 interface FornecedoresTableProps {
   fornecedores: Fornecedor[];
@@ -14,6 +13,20 @@ interface FornecedoresTableProps {
 }
 
 export const FornecedoresTable = ({ fornecedores, onEdit, onDelete }: FornecedoresTableProps) => {
+  const getActionsForFornecedor = (fornecedor: Fornecedor): ActionItem[] => [
+    {
+      type: 'edit',
+      label: 'Editar',
+      onClick: () => onEdit(fornecedor),
+    },
+    {
+      type: 'delete',
+      label: 'Deletar',
+      onClick: () => onDelete(fornecedor.id),
+      variant: 'destructive',
+    }
+  ];
+
   return (
     <Table>
       <TableHeader>
@@ -50,19 +63,7 @@ export const FornecedoresTable = ({ fornecedores, onEdit, onDelete }: Fornecedor
             </TableCell>
             <TableCell>{format(new Date(fornecedor.dataCadastro), "dd/MM/yyyy")}</TableCell>
             <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button aria-haspopup="true" size="icon" variant="ghost">
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Toggle menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => onEdit(fornecedor)}>Editar</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onDelete(fornecedor.id)} className="text-red-600">Deletar</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ActionExpandableTabs actions={getActionsForFornecedor(fornecedor)} />
             </TableCell>
           </TableRow>
         ))}
