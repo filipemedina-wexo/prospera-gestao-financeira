@@ -1,4 +1,3 @@
-
 export interface ContaReceber {
   id: string;
   descricao: string;
@@ -6,10 +5,11 @@ export interface ContaReceber {
   dataVencimento: Date;
   status: 'pendente' | 'recebido' | 'atrasado' | 'parcial';
   cliente: string;
+  clienteId?: string;
   categoria: string;
   numeroFatura?: string;
   dataRecebimento?: Date;
   formaRecebimento?: string;
   observacoes?: string;
-  competencia?: string; // "MM/YYYY"
+  competencia?: string;
 }

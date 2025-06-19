@@ -1,10 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Calendar,
-  Download,
-  Filter,
   DollarSign,
   CreditCard,
   PiggyBank,
@@ -54,14 +50,32 @@ export function Relatorios() {
   const contasAPagar: ContaPagar[] = useMemo(() => (contasPagarData || []).map(c => ({...c, dataVencimento: new Date(c.due_date), valor: c.amount, descricao: c.description, categoria: c.category || '', fornecedor: ''})), [contasPagarData]);
   const contasAReceber: ContaReceber[] = useMemo(() => (contasReceberData || []).map(c => ({...c, dataVencimento: new Date(c.due_date), valor: c.amount, descricao: c.description, categoria: c.category || '', cliente: ''})), [contasReceberData]);
 
-  // MOCK DATA (pode ser substituído por dados reais derivados das queries)
-  const dadosFluxoCaixa = {
-    totalEntradas: 45000.00,
-    totalSaidas: 23400.00,
-    saldoLiquido: 21600.00,
-    entradasPorCategoria: [],
-    saidasPorCategoria: [],
-  };
+  // Calcula os dados para o Relatório de Fluxo de Caixa
+  const dadosFluxoCaixa = useMemo(() => {
+    const totalEntradas = contasAReceber.filter(c => c.status === 'recebido').reduce((sum, c) => sum + c.valor, 0);
+    const totalSaidas = contasAPagar.filter(c => c.status === 'pago').reduce((sum, c) => sum + c.valor, 0);
+
+    const entradasPorCategoria = contasAReceber.filter(c => c.status === 'recebido').reduce((acc, c) => {
+        const cat = c.categoria || 'Outras';
+        acc[cat] = (acc[cat] || 0) + c.valor;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const saidasPorCategoria = contasAPagar.filter(c => c.status === 'pago').reduce((acc, c) => {
+        const cat = c.categoria || 'Outras';
+        acc[cat] = (acc[cat] || 0) + c.valor;
+        return acc;
+    }, {} as Record<string, number>);
+
+    return {
+      totalEntradas,
+      totalSaidas,
+      saldoLiquido: totalEntradas - totalSaidas,
+      entradasPorCategoria: Object.entries(entradasPorCategoria).map(([categoria, valor]) => ({ categoria, valor, percentual: totalEntradas > 0 ? (valor / totalEntradas) * 100 : 0 })),
+      saidasPorCategoria: Object.entries(saidasPorCategoria).map(([categoria, valor]) => ({ categoria, valor, percentual: totalSaidas > 0 ? (valor / totalSaidas) * 100 : 0 })),
+    }
+  }, [contasAReceber, contasAPagar]);
+  
   const dadosVendas = {
     totalVendas: 38200.00,
     metaMensal: 50000.00,
@@ -70,13 +84,13 @@ export function Relatorios() {
   };
 
   const relatoriosDisponiveis = [
-    { id: "fluxo-caixa", nome: "Fluxo de Caixa", descricao: "Entradas e saídas de dinheiro", icon: DollarSign },
-    { id: "contas-pagar", nome: "Contas a Pagar", descricao: "Análise de obrigações", icon: CreditCard },
-    { id: "contas-receber", nome: "Contas a Receber", descricao: "Análise de recebimentos", icon: PiggyBank },
-    { id: "vendas", nome: "Relatório de Vendas", descricao: "Performance comercial", icon: TrendingUp },
-    { id: "despesas-categoria", nome: "Despesas por Categoria", descricao: "Classificação de gastos", icon: PieChart },
-    { id: "inadimplencia", nome: "Relatório de Inadimplência", descricao: "Contas em atraso", icon: FileText },
-    { id: "extrato", nome: "Extrato", descricao: "Movimentação diária", icon: List }
+    { id: "fluxo-caixa", nome: "Fluxo de Caixa", icon: DollarSign },
+    { id: "contas-pagar", nome: "Contas a Pagar", icon: CreditCard },
+    { id: "contas-receber", nome: "Contas a Receber", icon: PiggyBank },
+    { id: "vendas", nome: "Relatório de Vendas", icon: TrendingUp },
+    { id: "despesas-categoria", nome: "Despesas por Categoria", icon: PieChart },
+    { id: "inadimplencia", nome: "Relatório de Inadimplência", icon: FileText },
+    { id: "extrato", nome: "Extrato", icon: List }
   ];
 
   const renderRelatorio = () => {

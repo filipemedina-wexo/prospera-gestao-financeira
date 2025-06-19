@@ -18,26 +18,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { useAppData } from "@/hooks/useAppData";
 import { useAuth } from "@/contexts/AuthContext";
 import { menuItems } from "@/config/menu";
-import { useClient } from "@/contexts/ClientContext";
 import { useConfig } from "@/contexts/ConfigContext";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
+import QuickChartsSection from "@/components/QuickChartsSection";
 
 const Index = () => {
   const { user, hasPermission } = useAuth();
   const { isSupperAdmin } = useMultiTenant();
   
   const getInitialModule = () => {
-    const visibleItems = menuItems.filter(item => {
-      if (item.id === "gestao-saas") {
-        return isSupperAdmin;
-      }
-      return hasPermission(item.permission);
-    });
-    return visibleItems.length > 0 ? visibleItems[0].id : "";
+    return "dashboard";
   };
   
   const [activeModule, setActiveModule] = useState(getInitialModule);
-  // Removemos as contas a pagar e receber do useAppData
   const {
     propostas,
     setPropostas,
@@ -57,12 +50,14 @@ const Index = () => {
   
   const renderContent = () => {
     switch (activeModule) {
+      case "dashboard":
+        return <QuickChartsSection />;
       case "caixa":
         return <Caixa />;
       case "contas-pagar":
-        return <ContasPagarModule />; // Agora sem props
+        return <ContasPagarModule />;
       case "contas-receber":
-        return <ContasReceberModule />; // Agora sem props
+        return <ContasReceberModule />;
       case "comercial":
         return <Comercial propostas={propostas} setPropostas={setPropostas} vendedores={vendedores} onPropostaAceita={handlePropostaAceita} clients={clients} setClients={setClients} produtosServicos={produtosServicos} />;
       case "fornecedores":
@@ -72,7 +67,7 @@ const Index = () => {
       case "relatorios":
         return <Relatorios />;
       case "dre":
-        return <DRE />; // Agora sem props
+        return <DRE />;
       case "crm":
         return <CRM clients={clients} setClients={setClients} />;
       case "pessoas":
@@ -95,6 +90,8 @@ const Index = () => {
             <p className="text-muted-foreground">Você não tem permissão para acessar este módulo.</p>
           </div>
         );
+      case "configuracoes":
+        return <Configuracoes />;
       default:
         return <div className="flex flex-col items-center justify-center h-full text-center">
             <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
