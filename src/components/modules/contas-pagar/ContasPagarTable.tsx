@@ -1,14 +1,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertCircle, CheckCircle, Clock, DollarSign, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { ContaPagar } from "./types";
 import { currencyFormatter } from "./config";
 import { cn } from "@/lib/utils";
+import { ActionExpandableTabs, ActionItem } from "@/components/ui/action-expandable-tabs";
 
 interface ContasPagarTableProps {
   contas: ContaPagar[];
@@ -33,14 +32,42 @@ const getStatusBadge = (status?: 'pendente' | 'pago' | 'atrasado' | 'parcial') =
   const Icon = config.icon;
   
   return (
-    <Badge variant={config.variant} className={cn("flex items-center gap-1", config.className)}>
-      <Icon className="h-3 w-3" />
+    <Badge variant={config.variant} className={config.className || ""}>
+      <Icon className="h-3 w-3 mr-1" />
       {config.label}
     </Badge>
   );
 };
 
 export function ContasPagarTable({ contas, onAbrirDialogPagamento, onEdit, onDelete }: ContasPagarTableProps) {
+  const getActionsForConta = (conta: ContaPagar): ActionItem[] => {
+    const actions: ActionItem[] = [
+      {
+        type: 'edit',
+        label: 'Editar',
+        onClick: () => onEdit(conta),
+      }
+    ];
+
+    if (conta.status === 'pendente' || conta.status === 'atrasado') {
+      actions.push({
+        type: 'register',
+        label: 'Marcar como Paga',
+        onClick: () => onAbrirDialogPagamento(conta.id),
+        variant: 'success',
+      });
+    }
+
+    actions.push({
+      type: 'delete',
+      label: 'Excluir',
+      onClick: () => onDelete(conta.id),
+      variant: 'destructive',
+    });
+
+    return actions;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -86,29 +113,7 @@ export function ContasPagarTable({ contas, onAbrirDialogPagamento, onEdit, onDel
                     </TableCell>
                     <TableCell>{getStatusBadge(conta.status)}</TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                           <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                           <DropdownMenuItem onClick={() => onEdit(conta)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Editar
-                           </DropdownMenuItem>
-                            {(conta.status === 'pendente' || conta.status === 'atrasado') && (
-                               <DropdownMenuItem onClick={() => onAbrirDialogPagamento(conta.id)}>
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    Marcar como Paga
-                               </DropdownMenuItem>
-                            )}
-                           <DropdownMenuItem className="text-red-500" onClick={() => onDelete(conta.id)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Excluir
-                           </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <ActionExpandableTabs actions={getActionsForConta(conta)} />
                     </TableCell>
                   </TableRow>
                 ))

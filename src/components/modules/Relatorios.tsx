@@ -47,8 +47,43 @@ export function Relatorios() {
     enabled: !!currentClientId,
   });
   
-  const contasAPagar: ContaPagar[] = useMemo(() => (contasPagarData || []).map(c => ({...c, dataVencimento: new Date(c.due_date), valor: c.amount, descricao: c.description, categoria: c.category || '', fornecedor: ''})), [contasPagarData]);
-  const contasAReceber: ContaReceber[] = useMemo(() => (contasReceberData || []).map(c => ({...c, dataVencimento: new Date(c.due_date), valor: c.amount, descricao: c.description, categoria: c.category || '', cliente: ''})), [contasReceberData]);
+  const contasAPagar: ContaPagar[] = useMemo(() => (contasPagarData || []).map(c => {
+    const statusMapping = {
+      'pending': 'pendente',
+      'paid': 'pago', 
+      'overdue': 'atrasado',
+      'partial': 'parcial'
+    } as const;
+
+    return {
+      ...c, 
+      dataVencimento: new Date(c.due_date), 
+      valor: c.amount, 
+      descricao: c.description, 
+      categoria: c.category || '', 
+      fornecedor: '',
+      status: statusMapping[c.status] || 'pendente'
+    };
+  }), [contasPagarData]);
+  
+  const contasAReceber: ContaReceber[] = useMemo(() => (contasReceberData || []).map(c => {
+    const statusMapping = {
+      'pending': 'pendente',
+      'received': 'recebido',
+      'overdue': 'atrasado', 
+      'partial': 'parcial'
+    } as const;
+
+    return {
+      ...c, 
+      dataVencimento: new Date(c.due_date), 
+      valor: c.amount, 
+      descricao: c.description, 
+      categoria: c.category || '', 
+      cliente: '',
+      status: statusMapping[c.status] || 'pendente'
+    };
+  }), [contasReceberData]);
 
   // Calcula os dados para o Relatório de Fluxo de Caixa
   const dadosFluxoCaixa = useMemo(() => {

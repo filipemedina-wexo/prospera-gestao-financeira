@@ -79,57 +79,81 @@ export function ContasReceber() {
       setContaParaRemover(null);
       toast({ title: 'Conta removida com sucesso!' });
     },
-    onError: (error: any) => toast({ title: 'Erro ao remover', description: error.message, variant: 'destructive' }),
-  });
-  
-  const { mutate: markAsReceivedMutation } = useMutation({
-    mutationFn: (conta: ContaReceber) => accountsReceivableService.markAsReceived(conta.id, format(new Date(), 'yyyy-MM-dd')),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts-receivable', currentClientId] });
-      toast({ title: 'Conta marcada como recebida!' });
-    },
-    onError: (error: any) => toast({ title: 'Erro', description: error.message, variant: 'destructive' }),
+    onError: (error) => {
+        toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    }
   });
 
-  const dadosProcessados = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
-    const todasContas = (contasDatabase || []).map((conta): ContaReceber => {
-        const dataVencimento = parseISO(conta.due_date);
-        let status = (conta.status || 'pendente') as ContaReceber['status'];
-        if (status === 'pendente' && isPast(dataVencimento) && !isToday(dataVencimento)) {
-            status = 'atrasado';
-        }
-        return {
-            id: conta.id,
-            descricao: conta.description,
-            valor: conta.amount,
-            dataVencimento,
-            status,
-            cliente: conta.financial_clients?.name || 'Cliente não vinculado',
-            clienteId: conta.financial_client_id || '',
-            categoria: conta.category || 'Geral',
-            competencia: (conta as any).competencia || format(dataVencimento, 'MM/yyyy'),
-        };
-    });
+  const todasContas: ContaReceber[] = (contasDatabase || []).map(conta => ({
+    id: conta.id,
+    descricao: conta.description,
+    valor: conta.amount,
+    dataVencimento: new Date(conta.due_date),
+    status: conta.status as 'pendente' | 'recebido' | 'atrasado' | 'parcial',
+    cliente: conta.financial_client_id || 'Não informado',
+    categoria: conta.category || 'Geral',
+    numeroFatura: '',
+    dataRecebimento: conta.received_date ? new Date(conta.received_date) : undefined,
+    observacoes: undefined,
+  }));
 
-    const contasFiltradas = todasContas.filter(conta => 
-        (filtroStatus === "todos" || conta.status === filtroStatus) &&
-        (filtroCategoria === "todas" || conta.categoria === filtroCategoria) &&
-        (busca === "" || conta.descricao.toLowerCase().includes(busca.toLowerCase()) || (conta.cliente && conta.cliente.toLowerCase().includes(busca.toLowerCase())))
-    );
-
-    const summary = {
-      totalAReceber: todasContas.filter(c => c.status === 'pendente' || c.status === 'atrasado').reduce((sum, c) => sum + c.valor, 0),
-      totalRecebido: todasContas.filter(c => c.status === 'received').reduce((sum, c) => sum + c.valor, 0),
-      contasAtrasadas: todasContas.filter(c => c.status === 'atrasado').length,
-      taxaRecebimento: todasContas.length > 0 ? Math.round((todasContas.filter(c => c.status === 'received').length / todasContas.length) * 100) : 0,
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pendente: { variant: "secondary" as const, label: "Pendente", icon: Clock },
+      recebido: { variant: "default" as const, label: "Recebido", icon: CheckCircle, className: 'bg-green-100 text-green-800' },
+      atrasado: { variant: "destructive" as const, label: "Atrasado", icon: AlertCircle },
+      parcial: { variant: "outline" as const, label: "Parcial", icon: DollarSign }
     };
     
-    return { contasFiltradas, summary };
-  }, [contasDatabase, filtroStatus, filtroCategoria, busca]);
+    const config = statusConfig[status as keyof typeof statusConfig];
+    if (!config) return null; // Prevenção de erro
+    const Icon = config.icon;
+    
+    return (
+      <Badge variant={config.variant} className={cn("flex items-center gap-1", config.className)}>
+        <Icon className="h-3 w-3" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const contasFiltradas = todasContas.filter(conta => {
+    const matchStatus = filtroStatus === "todos" || conta.status === filtroStatus;
+    const matchCategoria = filtroCategoria === "todas" || conta.categoria === filtroCategoria;
+    const matchBusca = busca === "" || 
+      conta.descricao.toLowerCase().includes(busca.toLowerCase()) ||
+      (conta.cliente && conta.cliente.toLowerCase().includes(busca.toLowerCase()));
+    
+    return matchStatus && matchCategoria && matchBusca;
+  });
+
+  const totalReceber = todasContas
+    .filter(c => c.status === 'pendente' || c.status === 'atrasado')
+    .reduce((sum, c) => sum + c.valor, 0);
+
+  const totalRecebido = todasContas
+    .filter(c => c.status === 'recebido')
+    .reduce((sum, c) => sum + c.valor, 0);
   
+  const resetForm = () => {
+    setFormData({
+      descricao: "",
+      valor: "",
+      dataVencimento: undefined,
+      cliente: "",
+      categoria: "",
+      numeroFatura: "",
+      observacoes: ""
+    });
+    setContaParaEditar(null);
+  }
+
+  const handleOpenCreateDialog = () => {
+    resetForm();
+    setShowFormDialog(true);
+  }
+
   const handleOpenEditDialog = (conta: ContaReceber) => {
     setContaParaEditar(conta);
     setShowFormDialog(true);

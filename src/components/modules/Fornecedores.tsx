@@ -25,9 +25,9 @@ export const Fornecedores = () => {
   });
 
   const upsertMutation = useMutation({
-    mutationFn: (fornecedorData: Partial<Fornecedor>) => {
-      const payload = {
-        name: fornecedorData.razaoSocial!,
+    mutationFn: (fornecedorData: Fornecedor) => {
+      const payload: Omit<TablesUpdate<'financial_clients'>, 'id'> = {
+        name: fornecedorData.razaoSocial,
         document: fornecedorData.cnpj,
         email: fornecedorData.email,
         phone: fornecedorData.telefone,
@@ -55,18 +55,30 @@ export const Fornecedores = () => {
     setDialogOpen(true);
   }
   
-  const filteredFornecedores = fornecedoresData
-    .map(f => ({
-        id: f.id,
-        razaoSocial: f.name,
-        cnpj: f.document || '',
-        status: 'Ativo',
-        dataCadastro: new Date(f.created_at)
-    }))
-    .filter(f =>
-        f.razaoSocial.toLowerCase().includes(searchFilter.toLowerCase()) ||
-        f.cnpj.includes(searchFilter)
-    );
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
+  };
+
+  const fornecedoresParaTabela: Fornecedor[] = fornecedoresData.map(f => ({
+    id: f.id,
+    razaoSocial: f.name,
+    nomeFantasia: f.name,
+    cnpj: f.document || '',
+    email: f.email || '',
+    telefone: f.phone || '',
+    status: 'Ativo', // Adicionar status real se existir no DB
+    tipo: 'Serviço', // Adicionar tipo real se existir no DB
+    dataCadastro: new Date(f.created_at),
+    cep: f.cep || '',
+    endereco: f.address || '',
+    cidade: f.city || '',
+    estado: f.state || ''
+  })).filter(f => {
+    const searchMatch = searchFilter === '' ||
+                        f.razaoSocial.toLowerCase().includes(searchFilter.toLowerCase()) ||
+                        f.cnpj.includes(searchFilter);
+    return searchMatch;
+  });
 
   return (
     <div className="space-y-6">
