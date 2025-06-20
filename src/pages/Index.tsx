@@ -27,10 +27,13 @@ const Index = () => {
   const { isSupperAdmin } = useMultiTenant();
   
   const getInitialModule = () => {
+    // Garante que o dashboard seja sempre a tela inicial ao carregar
     return "dashboard";
   };
   
   const [activeModule, setActiveModule] = useState(getInitialModule);
+  
+  // Removemos a gestão de dados financeiros daqui, pois cada módulo agora é independente
   const {
     propostas,
     setPropostas,
@@ -43,6 +46,7 @@ const Index = () => {
   } = useAppData();
   const { companyName } = useConfig();
   
+  // Mock data para Pessoas (pode ser refatorado no futuro)
   const [funcionarios, setFuncionarios] = useState([]);
   const [departamentos, setDepartamentos] = useState([]);
   const [cargos, setCargos] = useState([]);
@@ -82,14 +86,10 @@ const Index = () => {
           setHolerites={setHolerites}
         />;
       case "gestao-usuarios":
-        return <UsersManagement />;
+        // Passa a prop `isActive` para controlar a busca de dados
+        return <UsersManagement isActive={activeModule === 'gestao-usuarios'} />;
       case "gestao-saas":
-        return isSupperAdmin ? <SuperAdminDashboard /> : (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <h2 className="text-2xl font-bold mb-2">Acesso Restrito</h2>
-            <p className="text-muted-foreground">Você não tem permissão para acessar este módulo.</p>
-          </div>
-        );
+        return isSupperAdmin ? <SuperAdminDashboard /> : null;
       case "configuracoes":
         return <Configuracoes />;
       default:
@@ -110,9 +110,7 @@ const Index = () => {
               <SidebarTrigger />
             </div>
             <div className="hidden md:flex items-center gap-2">
-              <div>
-                <h1 className="text-xl text-sky-950 text-right font-extrabold">{companyName}</h1>
-              </div>
+              <div><h1 className="text-xl text-sky-950 text-right font-extrabold">{companyName}</h1></div>
             </div>
           </header>
           {renderContent()}

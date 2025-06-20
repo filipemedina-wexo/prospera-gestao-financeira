@@ -15,12 +15,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { accountsReceivableService } from "@/services/accountsReceivableService";
 import { financialClientsService } from "@/services/financialClientsService";
+import { bankAccountsService } from "@/services/bankAccountsService";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContasReceberTable } from "./contas-receber/ContasReceberTable";
 import { NovaContaReceberDialog } from "./contas-receber/NovaContaReceberDialog";
 import { ContasReceberFilters } from "./contas-receber/ContasReceberFilters";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { RegistrarRecebimentoDialog } from "./contas-receber/RegistrarRecebimentoDialog";
 
 const categorias = [ "Vendas de Produtos", "Vendas de Serviços", "Receitas Financeiras", "Outras Receitas", "Mensalidades", "Assinaturas" ];
 
@@ -33,8 +35,10 @@ export function ContasReceber() {
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
   const [busca, setBusca] = useState("");
   const [showFormDialog, setShowFormDialog] = useState(false);
+  const [showReceberDialog, setShowReceberDialog] = useState(false);
   const [contaParaEditar, setContaParaEditar] = useState<ContaReceber | null>(null);
   const [contaParaRemover, setContaParaRemover] = useState<ContaReceber | null>(null);
+  const [contaParaReceber, setContaParaReceber] = useState<ContaReceber | null>(null);
 
   const { data: contasDatabase, isLoading: isLoadingContas } = useQuery({
     queryKey: ['accounts-receivable', currentClientId],
@@ -45,6 +49,12 @@ export function ContasReceber() {
   const { data: clientes, isLoading: isLoadingClientes } = useQuery({
     queryKey: ['financial-clients', currentClientId],
     queryFn: () => currentClientId ? financialClientsService.getAll() : Promise.resolve([]),
+    enabled: !!currentClientId,
+  });
+
+  const { data: bankAccounts, isLoading: isLoadingBankAccounts } = useQuery({
+    queryKey: ['bank-accounts', currentClientId],
+    queryFn: () => currentClientId ? bankAccountsService.getAll() : Promise.resolve([]),
     enabled: !!currentClientId,
   });
 
@@ -79,81 +89,60 @@ export function ContasReceber() {
       setContaParaRemover(null);
       toast({ title: 'Conta removida com sucesso!' });
     },
-    onError: (error) => {
-        toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-    }
+    onError: (error: any) => toast({ title: 'Erro ao remover', description: error.message, variant: 'destructive' }),
+  });
+  
+  const { mutate: markAsReceivedMutation } = useMutation({
+    mutationFn: (data: { contaId: string; receivedDate: string; bankAccountId: string }) => 
+      accountsReceivableService.markAsReceived(data.contaId, data.receivedDate, data.bankAccountId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts-receivable', currentClientId] });
+      queryClient.invalidateQueries({ queryKey: ['bank-accounts', currentClientId] });
+      setShowReceberDialog(false);
+      toast({ title: 'Conta marcada como recebida!' });
+    },
+    onError: (error: any) => toast({ title: 'Erro', description: error.message, variant: 'destructive' }),
   });
 
+  const dadosProcessados = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const todasContas: ContaReceber[] = (contasDatabase || []).map(conta => ({
-    id: conta.id,
-    descricao: conta.description,
-    valor: conta.amount,
-    dataVencimento: new Date(conta.due_date),
-    status: conta.status as 'pendente' | 'recebido' | 'atrasado' | 'parcial',
-    cliente: conta.financial_client_id || 'Não informado',
-    categoria: conta.category || 'Geral',
-    numeroFatura: '',
-    dataRecebimento: conta.received_date ? new Date(conta.received_date) : undefined,
-    observacoes: undefined,
-  }));
+    const todasContas = (contasDatabase || []).map((conta): ContaReceber => {
+        const dataVencimento = parseISO(conta.due_date);
+        let status = (conta.status || 'pendente') as ContaReceber['status'];
+        if (status === 'pendente' && isPast(dataVencimento) && !isToday(dataVencimento)) {
+            status = 'atrasado';
+        }
+        return {
+            id: conta.id,
+            descricao: conta.description,
+            valor: conta.amount,
+            dataVencimento,
+            status,
+            cliente: conta.financial_clients?.name || 'Cliente não vinculado',
+            clienteId: conta.financial_client_id || '',
+            categoria: conta.category || 'Geral',
+            competencia: (conta as any).competencia || format(dataVencimento, 'MM/yyyy'),
+        };
+    });
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pendente: { variant: "secondary" as const, label: "Pendente", icon: Clock },
-      recebido: { variant: "default" as const, label: "Recebido", icon: CheckCircle, className: 'bg-green-100 text-green-800' },
-      atrasado: { variant: "destructive" as const, label: "Atrasado", icon: AlertCircle },
-      parcial: { variant: "outline" as const, label: "Parcial", icon: DollarSign }
+    const contasFiltradas = todasContas.filter(conta => 
+        (filtroStatus === "todos" || conta.status === filtroStatus) &&
+        (filtroCategoria === "todas" || conta.categoria === filtroCategoria) &&
+        (busca === "" || conta.descricao.toLowerCase().includes(busca.toLowerCase()) || (conta.cliente && conta.cliente.toLowerCase().includes(busca.toLowerCase())))
+    );
+
+    const summary = {
+      totalAReceber: todasContas.filter(c => c.status === 'pendente' || c.status === 'atrasado').reduce((sum, c) => sum + c.valor, 0),
+      totalRecebido: todasContas.filter(c => c.status === 'received').reduce((sum, c) => sum + c.valor, 0),
+      contasAtrasadas: todasContas.filter(c => c.status === 'atrasado').length,
+      taxaRecebimento: todasContas.length > 0 ? Math.round((todasContas.filter(c => c.status === 'received').length / todasContas.length) * 100) : 0,
     };
     
-    const config = statusConfig[status as keyof typeof statusConfig];
-    if (!config) return null; // Prevenção de erro
-    const Icon = config.icon;
-    
-    return (
-      <Badge variant={config.variant} className={cn("flex items-center gap-1", config.className)}>
-        <Icon className="h-3 w-3" />
-        {config.label}
-      </Badge>
-    );
-  };
-
-  const contasFiltradas = todasContas.filter(conta => {
-    const matchStatus = filtroStatus === "todos" || conta.status === filtroStatus;
-    const matchCategoria = filtroCategoria === "todas" || conta.categoria === filtroCategoria;
-    const matchBusca = busca === "" || 
-      conta.descricao.toLowerCase().includes(busca.toLowerCase()) ||
-      (conta.cliente && conta.cliente.toLowerCase().includes(busca.toLowerCase()));
-    
-    return matchStatus && matchCategoria && matchBusca;
-  });
-
-  const totalReceber = todasContas
-    .filter(c => c.status === 'pendente' || c.status === 'atrasado')
-    .reduce((sum, c) => sum + c.valor, 0);
-
-  const totalRecebido = todasContas
-    .filter(c => c.status === 'recebido')
-    .reduce((sum, c) => sum + c.valor, 0);
+    return { contasFiltradas, summary };
+  }, [contasDatabase, filtroStatus, filtroCategoria, busca]);
   
-  const resetForm = () => {
-    setFormData({
-      descricao: "",
-      valor: "",
-      dataVencimento: undefined,
-      cliente: "",
-      categoria: "",
-      numeroFatura: "",
-      observacoes: ""
-    });
-    setContaParaEditar(null);
-  }
-
-  const handleOpenCreateDialog = () => {
-    resetForm();
-    setShowFormDialog(true);
-  }
-
   const handleOpenEditDialog = (conta: ContaReceber) => {
     setContaParaEditar(conta);
     setShowFormDialog(true);
@@ -163,14 +152,28 @@ export function ContasReceber() {
     setContaParaEditar(null);
     setShowFormDialog(true);
   };
-
+  
   const handleConfirmarRemocao = () => {
     if (contaParaRemover) {
       deleteMutation(contaParaRemover.id);
     }
   };
+
+  const handleOpenReceberDialog = (conta: ContaReceber) => {
+    setContaParaReceber(conta);
+    setShowReceberDialog(true);
+  };
   
-  const isLoading = clientLoading || isLoadingContas || isLoadingClientes;
+  const handleConfirmarRecebimento = (data: { receivedDate: Date; bankAccountId: string }) => {
+    if (!contaParaReceber) return;
+    markAsReceivedMutation({
+      contaId: contaParaReceber.id,
+      receivedDate: format(data.receivedDate, 'yyyy-MM-dd'),
+      bankAccountId: data.bankAccountId
+    });
+  };
+  
+  const isLoading = clientLoading || isLoadingContas || isLoadingClientes || isLoadingBankAccounts;
 
   return (
     <div className="space-y-6">
@@ -179,23 +182,25 @@ export function ContasReceber() {
           <h2 className="text-2xl font-bold">Contas a Receber</h2>
           <p className="text-muted-foreground">Gerencie suas receitas e controle a inadimplência</p>
         </div>
-        <Dialog open={showFormDialog} onOpenChange={(isOpen) => {
-            if (!isOpen) setContaParaEditar(null);
-            setShowFormDialog(isOpen);
-          }}>
-          <DialogTrigger asChild>
-            <Button onClick={handleOpenCreateDialog}><Plus className="mr-2 h-4 w-4" />Nova Conta a Receber</Button>
-          </DialogTrigger>
-          <NovaContaReceberDialog
-              open={showFormDialog}
-              onOpenChange={setShowFormDialog}
-              onSubmit={(values) => upsertMutation(values)}
-              contaToEdit={contaParaEditar}
-              clientes={clientes || []}
-              categorias={categorias}
-          />
-        </Dialog>
+        <Button onClick={handleOpenCreateDialog}><Plus className="mr-2 h-4 w-4" />Nova Conta a Receber</Button>
       </div>
+
+      <NovaContaReceberDialog
+          open={showFormDialog}
+          onOpenChange={setShowFormDialog}
+          onSubmit={(values) => upsertMutation(values)}
+          contaToEdit={contaParaEditar}
+          clientes={clientes || []}
+          categorias={categorias}
+      />
+      
+      <RegistrarRecebimentoDialog
+        open={showReceberDialog}
+        onOpenChange={setShowReceberDialog}
+        onConfirm={handleConfirmarRecebimento}
+        conta={contaParaReceber}
+        bankAccounts={bankAccounts || []}
+      />
 
       {isLoading ? <Skeleton className="h-24 w-full" /> : (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -233,7 +238,7 @@ export function ContasReceber() {
                 contas={dadosProcessados.contasFiltradas} 
                 onEdit={handleOpenEditDialog} 
                 onDelete={(conta) => setContaParaRemover(conta)} 
-                onReceber={(conta) => markAsReceivedMutation(conta)} 
+                onReceber={handleOpenReceberDialog} 
             />}
         </CardContent>
       </Card>

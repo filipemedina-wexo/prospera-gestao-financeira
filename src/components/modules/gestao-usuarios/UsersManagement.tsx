@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { UserDialog } from './UserDialog';
@@ -8,11 +7,16 @@ import { UsersManagementHeader } from './components/UsersManagementHeader';
 import { UsersManagementContent } from './components/UsersManagementContent';
 import { AccessDeniedAlert } from './components/AccessDeniedAlert';
 
-export function UsersManagement() {
+interface UsersManagementProps {
+  isActive: boolean; // Adicionamos esta prop
+}
+
+export function UsersManagement({ isActive }: UsersManagementProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   
-  const { users, loading, canManageUsers, saveUser } = useUsersManagement();
+  // Passamos o `isActive` para o hook
+  const { users, loading, canManageUsers, saveUser } = useUsersManagement(isActive);
 
   const handleAddUser = () => {
     setSelectedUser(null);

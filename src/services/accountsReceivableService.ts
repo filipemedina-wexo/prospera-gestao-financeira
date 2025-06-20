@@ -11,19 +11,22 @@ export const accountsReceivableService = {
       .from('accounts_receivable')
       .select('*, financial_clients ( name )')
       .order('due_date');
-    if (error) throw error;
+
+    if (error) throw new Error(`Erro ao buscar contas a receber: ${error.message}`);
     return data || [];
   },
 
   async create(account: Omit<TablesInsert<'accounts_receivable'>, 'id' | 'created_at' | 'updated_at' | 'saas_client_id' | 'status'>): Promise<AccountReceivableFromDB> {
-    const { data: clientMapping } = await supabase.from('saas_user_client_mapping').select('client_id').single();
-    if (!clientMapping) throw new Error('Cliente não encontrado');
-    const { data, error } = await supabase
-      .from('accounts_receivable')
-      .insert({ ...account, saas_client_id: clientMapping.client_id })
-      .select('*, financial_clients ( name )')
-      .single();
-    if (error) throw error;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Usuário não autenticado.");
+    
+    const { data: clientMapping, error: mappingError } = await supabase.from('saas_user_client_mapping').select('client_id').eq('user_id', user.id).single();
+    if (mappingError || !clientMapping) throw new Error('Mapeamento de cliente não encontrado.');
+
+    const payload: TablesInsert<'accounts_receivable'> = { ...account, saas_client_id: clientMapping.client_id, status: 'pending' };
+
+    const { data, error } = await supabase.from('accounts_receivable').insert(payload).select('*, financial_clients ( name )').single();
+    if (error) { console.error("Supabase error details:", error); throw new Error(`Erro ao criar conta a receber: ${error.message}`); }
     return data;
   },
 
@@ -38,11 +41,17 @@ export const accountsReceivableService = {
     if (error) throw error;
   },
 
-  async markAsReceived(id: string, receivedDate: string, bankAccountId: string): Promise<AccountReceivableFromDB> {
-    return this.update(id, {
-      status: 'received',
-      received_date: receivedDate,
-      bank_account_id: bankAccountId,
+  async markAsReceived(id: string, receivedDate: string, bankAccountId: string): Promise<void> {
+    // CORREÇÃO APLICADA AQUI
+    const { error } = await supabase.rpc('registrar_recebimento', {
+      p_receivable_id: id,
+      p_received_date: receivedDate,
+      p_bank_account_id: bankAccountId
     });
+    
+    if (error) {
+      console.error("Erro ao registrar recebimento via RPC:", error);
+      throw error;
+    }
   },
 };

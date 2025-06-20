@@ -72,12 +72,7 @@ export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEd
 
   const clientMutation = useMutation({
     mutationFn: (clientData: Partial<any>) => {
-      const payload = {
-        name: clientData.razaoSocial,
-        document: clientData.cnpj,
-        email: clientData.email,
-        phone: clientData.telefone,
-      };
+      const payload = { name: clientData.razaoSocial, document: clientData.cnpj, email: clientData.email, phone: clientData.telefone };
       return financialClientsService.create(payload);
     },
     onSuccess: (newClient) => {
@@ -88,21 +83,16 @@ export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEd
     },
     onError: (error: Error) => toast({ title: "Erro!", description: error.message, variant: 'destructive' })
   });
-
+  
   const handleFormSubmit = (values: FormValues) => {
-    onSubmit({
-      id: contaToEdit?.id,
-      ...values,
-    });
+    onSubmit({ id: contaToEdit?.id, status: contaToEdit?.status, ...values });
   };
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{contaToEdit ? 'Editar Conta a Receber' : 'Nova Conta a Receber'}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>{contaToEdit ? 'Editar' : 'Nova'} Conta a Receber</DialogTitle><DialogDescription>Preencha os dados da receita.</DialogDescription></DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
               <FormField control={form.control} name="descricao" render={({ field }) => (<FormItem><FormLabel>Descrição *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -118,10 +108,7 @@ export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEd
               <FormField control={form.control} name="clienteId" render={({ field }) => (
                 <FormItem><FormLabel>Cliente/Devedor *</FormLabel>
                     <div className="flex items-center gap-2">
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger></FormControl>
-                            <SelectContent>{clientes.map((cli) => (<SelectItem key={cli.id} value={cli.id}>{cli.name}</SelectItem>))}</SelectContent>
-                        </Select>
+                        <Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger></FormControl><SelectContent>{(clientes || []).map((cli) => (<SelectItem key={cli.id} value={cli.id}>{cli.name}</SelectItem>))}</SelectContent></Select>
                         <Button type="button" variant="outline" size="icon" onClick={() => setShowClientDialog(true)}><UserPlus className="h-4 w-4" /></Button>
                     </div>
                 <FormMessage />
@@ -132,21 +119,12 @@ export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEd
                 <FormField control={form.control} name="competencia" render={({ field }) => (<FormItem><FormLabel>Competência</FormLabel><FormControl><Input placeholder="MM/AAAA" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
               </div>
               <FormField control={form.control} name="observacoes" render={({ field }) => (<FormItem><FormLabel>Observações</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                <Button type="submit">Salvar</Button>
-              </DialogFooter>
+              <DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button><Button type="submit">Salvar</Button></DialogFooter>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
-      <FinancialClientDialog
-        open={showClientDialog}
-        onOpenChange={setShowClientDialog}
-        onSave={(data) => clientMutation.mutate(data)}
-        client={null}
-        title="Novo Cliente/Devedor"
-      />
+      <FinancialClientDialog open={showClientDialog} onOpenChange={setShowClientDialog} onSave={(data) => clientMutation.mutate(data)} client={null} title="Novo Cliente/Devedor" />
     </>
   );
 }

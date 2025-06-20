@@ -65,8 +65,8 @@ import {
               <Select value={bankAccountId} onValueChange={setBankAccountId}>
                   <SelectTrigger><SelectValue placeholder="Selecione a conta..." /></SelectTrigger>
                   <SelectContent>
-                      {bankAccounts.map(account => (
-                          <SelectItem key={account.id} value={account.id}>{account.name} ({account.bank_name})</SelectItem>
+                      {(bankAccounts || []).map(account => (
+                          <SelectItem key={account.id} value={account.id}>{account.name} {account.bank_name ? `(${account.bank_name})` : ''}</SelectItem>
                       ))}
                   </SelectContent>
               </Select>

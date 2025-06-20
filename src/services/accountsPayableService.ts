@@ -1,93 +1,47 @@
 import { supabase } from '@/integrations/supabase/client';
+import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-export interface AccountPayable {
-  id: string;
-  saas_client_id: string;
-  financial_client_id?: string;
-  description: string;
-  amount: number;
-  due_date: string;
-  paid_date?: string;
-  status: 'pending' | 'paid' | 'overdue' | 'partial';
-  category?: string;
-  created_at: string;
-  updated_at: string;
-  financial_clients?: { name: string }; // Adicionado para receber o nome do fornecedor
-}
-
-type CreateAccountPayload = Omit<AccountPayable, 'id' | 'created_at' | 'updated_at' | 'saas_client_id' | 'financial_clients'>;
-type UpdateAccountPayload = Partial<CreateAccountPayload>;
+export type AccountPayableFromDB = Tables<'accounts_payable'> & {
+  financial_clients?: { name: string } | null;
+};
 
 export const accountsPayableService = {
-  async getAll(): Promise<AccountPayable[]> {
-    // A query agora busca o nome do financial_client relacionado
+  async getAll(): Promise<AccountPayableFromDB[]> {
     const { data, error } = await supabase
       .from('accounts_payable')
       .select('*, financial_clients ( name )')
       .order('due_date');
 
-    if (error) {
-      throw new Error(`Erro ao buscar contas a pagar: ${error.message}`);
-    }
-
-    return (data || []) as AccountPayable[];
+    if (error) throw new Error(`Erro ao buscar contas a pagar: ${error.message}`);
+    return data || [];
   },
 
-  async create(account: CreateAccountPayload): Promise<AccountPayable> {
-    const { data: clientMapping } = await supabase
-      .from('saas_user_client_mapping')
-      .select('client_id')
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-      .eq('is_active', true)
-      .single();
+  async create(account: Omit<TablesInsert<'accounts_payable'>, 'id' | 'created_at' | 'updated_at' | 'saas_client_id' | 'status'>): Promise<AccountPayableFromDB> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Usuário não autenticado.");
+    
+    const { data: clientMapping, error: mappingError } = await supabase.from('saas_user_client_mapping').select('client_id').eq('user_id', user.id).single();
+    if (mappingError || !clientMapping) throw new Error('Mapeamento de cliente não encontrado.');
 
-    if (!clientMapping) {
-      throw new Error('Cliente não encontrado');
-    }
+    const payload: TablesInsert<'accounts_payable'> = { ...account, saas_client_id: clientMapping.client_id, status: 'pending' };
 
-    const { data, error } = await supabase
-      .from('accounts_payable')
-      .insert({
-        ...account,
-        saas_client_id: clientMapping.client_id
-      })
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(`Erro ao criar conta a pagar: ${error.message}`);
-    }
-
-    return data as AccountPayable;
+    const { data, error } = await supabase.from('accounts_payable').insert(payload).select('*, financial_clients ( name )').single();
+    if (error) throw error;
+    return data;
   },
 
-  async update(id: string, updates: UpdateAccountPayload): Promise<AccountPayable> {
-    const { data, error } = await supabase
-      .from('accounts_payable')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(`Erro ao atualizar conta a pagar: ${error.message}`);
-    }
-
-    return data as AccountPayable;
+  async update(id: string, updates: TablesUpdate<'accounts_payable'>): Promise<AccountPayableFromDB> {
+    const { data, error } = await supabase.from('accounts_payable').update(updates).eq('id', id).select('*, financial_clients ( name )').single();
+    if (error) throw error;
+    return data;
   },
 
   async delete(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('accounts_payable')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      throw new Error(`Erro ao deletar conta a pagar: ${error.message}`);
-    }
+    const { error } = await supabase.from('accounts_payable').delete().eq('id', id);
+    if (error) throw error;
   },
 
-  async markAsPaid(id: string, paidDate: string): Promise<AccountPayable> {
+  async markAsPaid(id: string, paidDate: string): Promise<AccountPayableFromDB> {
     return this.update(id, {
       status: 'paid',
       paid_date: paidDate,
