@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Fornecedor, TipoFornecedor } from "./fornecedores/types";
+import { Fornecedor } from "./fornecedores/types";
 import { Button } from "@/components/ui/button";
 import { FornecedoresTable } from "./fornecedores/FornecedoresTable";
 import { FinancialClientDialog } from "./fornecedores/FinancialClientDialog"; // Importação atualizada
-import { GerenciarTipos } from "./fornecedores/GerenciarTipos";
 import { Briefcase, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,6 @@ export const Fornecedores = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedFornecedor, setSelectedFornecedor] = useState<Partial<Fornecedor> | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
-  const [tiposFornecedor, setTiposFornecedor] = useState<TipoFornecedor[]>([]);
 
   const { data: fornecedoresData = [], isLoading } = useQuery<FinancialClient[]>({
     queryKey: ['financial_clients'],
@@ -46,14 +44,23 @@ export const Fornecedores = () => {
     onError: (error: Error) => toast({ title: "Erro!", description: error.message, variant: "destructive" }),
   });
 
-  const { mutate: deleteMutation } = useMutation({
-    mutationFn: (id: string) => financialClientsService.delete(id),
+
+  const deleteMutation = useMutation({
+    mutationFn: financialClientsService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['financial_clients'] });
-      toast({ title: 'Sucesso!', description: 'Fornecedor removido com sucesso.' });
+      toast({
+        title: 'Fornecedor removido',
+        description: 'O fornecedor foi removido com sucesso.',
+      });
     },
     onError: (error: Error) =>
-      toast({ title: 'Erro!', description: error.message, variant: 'destructive' }),
+      toast({
+        title: 'Erro ao remover!',
+        description: error.message,
+        variant: 'destructive',
+      }),
+
   });
 
   const handleEdit = (fornecedor: Fornecedor) => {
@@ -113,7 +120,9 @@ export const Fornecedores = () => {
       {isLoading ? (
         <Skeleton className="h-64 w-full" />
       ) : (
-        <FornecedoresTable fornecedores={filteredFornecedores} onEdit={handleEdit} onDelete={handleDelete} />
+
+        <FornecedoresTable fornecedores={fornecedoresParaTabela} onEdit={handleEdit} onDelete={handleDelete} />
+
       )}
 
       <FinancialClientDialog
