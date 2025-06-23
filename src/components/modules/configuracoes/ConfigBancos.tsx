@@ -1,14 +1,62 @@
 
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CreditCard, Plus } from "lucide-react";
+import { useMultiTenant } from "@/contexts/MultiTenantContext";
+import { useToast } from "@/hooks/use-toast";
+import { bankAccountsService, BankAccount } from "@/services/bankAccountsService";
+import { NovaContaBancariaDialog } from "../caixa/NovaContaBancariaDialog";
 
 export const ConfigBancos = () => {
+  const { currentClientId } = useMultiTenant();
+  const [showDialog, setShowDialog] = useState(false);
+  const [contaParaEditar, setContaParaEditar] = useState<BankAccount | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const { data: bankAccounts = [], isLoading } = useQuery({
+    queryKey: ["bank-accounts", currentClientId],
+    queryFn: () => currentClientId ? bankAccountsService.getAll() : Promise.resolve([]),
+    enabled: !!currentClientId,
+  });
+
+  const upsertMutation = useMutation({
+    mutationFn: (conta: any) =>
+      conta.id ? bankAccountsService.update(conta.id, conta) : bankAccountsService.create(conta),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bank-accounts", currentClientId] });
+      setShowDialog(false);
+      setContaParaEditar(null);
+      toast({ title: `Conta ${contaParaEditar ? "atualizada" : "criada"} com sucesso!` });
+    },
+    onError: (error: any) =>
+      toast({ title: "Erro", description: error.message, variant: "destructive" }),
+  });
+
+  const handleOpenEditDialog = (conta: BankAccount) => {
+    setContaParaEditar(conta);
+    setShowDialog(true);
+  };
+
+  const handleOpenCreateDialog = () => {
+    setContaParaEditar(null);
+    setShowDialog(true);
+  };
+
+  const getTipoContaBadge = (tipo: string) => {
+    const tipos: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
+      corrente: { label: "Corrente", variant: "default" },
+      poupanca: { label: "Poupança", variant: "secondary" },
+      investimento: { label: "Investimento", variant: "outline" },
+    };
+    const config = tipos[tipo] || { label: tipo, variant: "outline" };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -16,60 +64,63 @@ export const ConfigBancos = () => {
           <CreditCard className="h-5 w-5" />
           Contas Bancárias
         </CardTitle>
-        <CardDescription>
-          Gerencie as contas bancárias da empresa
-        </CardDescription>
+        <CardDescription>Gerencie as contas bancárias da empresa</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <h3 className="font-medium">Banco do Brasil - CC</h3>
-              <p className="text-sm text-muted-foreground">Ag: 1234-5 • CC: 12345-6</p>
-            </div>
-            <Badge variant="outline">Principal</Badge>
-          </div>
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <h3 className="font-medium">Santander - Poupança</h3>
-              <p className="text-sm text-muted-foreground">Ag: 5678-9 • CP: 98765-4</p>
-            </div>
-            <Badge variant="secondary">Reserva</Badge>
-          </div>
+        <div className="flex justify-end">
+          <Button onClick={handleOpenCreateDialog}>
+            <Plus className="mr-2 h-4 w-4" />Nova Conta
+          </Button>
         </div>
-        <Separator />
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Nova Conta</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="banco">Banco</Label>
-              <Input id="banco" placeholder="Nome do banco" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="agencia">Agência</Label>
-              <Input id="agencia" placeholder="0000-0" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="conta">Conta</Label>
-              <Input id="conta" placeholder="00000-0" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tipo-conta">Tipo</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tipo da conta" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="corrente">Conta Corrente</SelectItem>
-                  <SelectItem value="poupanca">Poupança</SelectItem>
-                  <SelectItem value="investimento">Investimento</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <Button>Adicionar Conta</Button>
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Banco</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead className="text-right">Saldo Atual</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={4}>Carregando...</TableCell>
+              </TableRow>
+            ) : (
+              bankAccounts.map((conta) => (
+                <TableRow
+                  key={conta.id}
+                  onClick={() => handleOpenEditDialog(conta)}
+                  className="cursor-pointer"
+                >
+                  <TableCell className="font-medium">{conta.name}</TableCell>
+                  <TableCell>{conta.bank_name}</TableCell>
+                  <TableCell>{getTipoContaBadge(conta.type!)}</TableCell>
+                  <TableCell className="text-right font-semibold">
+                    {Number(conta.balance).toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </CardContent>
+
+      <NovaContaBancariaDialog
+        open={showDialog}
+        onOpenChange={setShowDialog}
+        onSave={(values) =>
+          upsertMutation.mutate({ id: contaParaEditar?.id, ...values })
+        }
+        contaToEdit={
+          contaParaEditar
+            ? { ...contaParaEditar, initial_balance: contaParaEditar.balance }
+            : null
+        }
+      />
     </Card>
   );
 };
