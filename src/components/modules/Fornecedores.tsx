@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { financialClientsService, FinancialClient } from "@/services/financialClientsService";
+import { TablesUpdate } from "@/integrations/supabase/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Fornecedores = () => {
@@ -45,6 +46,16 @@ export const Fornecedores = () => {
     onError: (error: Error) => toast({ title: "Erro!", description: error.message, variant: "destructive" }),
   });
 
+  const { mutate: deleteMutation } = useMutation({
+    mutationFn: (id: string) => financialClientsService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['financial_clients'] });
+      toast({ title: 'Sucesso!', description: 'Fornecedor removido com sucesso.' });
+    },
+    onError: (error: Error) =>
+      toast({ title: 'Erro!', description: error.message, variant: 'destructive' }),
+  });
+
   const handleEdit = (fornecedor: Fornecedor) => {
     setSelectedFornecedor(fornecedor);
     setDialogOpen(true);
@@ -59,7 +70,7 @@ export const Fornecedores = () => {
     deleteMutation.mutate(id);
   };
 
-  const fornecedoresParaTabela: Fornecedor[] = fornecedoresData.map(f => ({
+  const filteredFornecedores: Fornecedor[] = fornecedoresData.map(f => ({
     id: f.id,
     razaoSocial: f.name,
     nomeFantasia: f.name,
@@ -102,7 +113,7 @@ export const Fornecedores = () => {
       {isLoading ? (
         <Skeleton className="h-64 w-full" />
       ) : (
-        <FornecedoresTable fornecedores={filteredFornecedores} onEdit={handleEdit} onDelete={() => {}} />
+        <FornecedoresTable fornecedores={filteredFornecedores} onEdit={handleEdit} onDelete={handleDelete} />
       )}
 
       <FinancialClientDialog
