@@ -84,10 +84,11 @@ export function useUsersManagement(isActive: boolean) { // Adicionamos o parâme
       let authUsersList: AuthUser[] = [];
 
       // Chamada crítica que agora está protegida
-      const { data: authUsersResponse, error: authError } = await supabase.auth.admin.listUsers();
+      const { data: authUsersResponse, error: authError } = await supabase
+        .functions.invoke('list-auth-users');
       if (authError) throw authError;
-      
-      const allAuthUsers = authUsersResponse?.users?.map((user): AuthUser => ({
+
+      const allAuthUsers = (authUsersResponse as any)?.users?.map((user: any): AuthUser => ({
         id: user.id, email: user.email || '', created_at: user.created_at,
         last_sign_in_at: user.last_sign_in_at || null
       })) || [];
