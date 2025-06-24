@@ -117,7 +117,14 @@ export const ConfigBancos = () => {
         }
         contaToEdit={
           contaParaEditar
-            ? { ...contaParaEditar, initial_balance: contaParaEditar.balance }
+            ? {
+                name: contaParaEditar.name,
+                bank_name: contaParaEditar.bank_name,
+                initial_balance: contaParaEditar.balance,
+                type: contaParaEditar.type as "corrente" | "poupanca" | "investimento",
+                agency: contaParaEditar.agency || '',
+                account_number: contaParaEditar.account_number || ''
+              }
             : null
         }
       />

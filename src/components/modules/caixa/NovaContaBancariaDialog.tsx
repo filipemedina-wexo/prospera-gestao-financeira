@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +8,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BankAccount } from "@/services/bankAccountsService";
 
 const formSchema = z.object({
   name: z.string().min(3, "O nome da conta é obrigatório."),
@@ -24,7 +24,14 @@ interface NovaContaBancariaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (values: FormValues) => void;
-  contaToEdit?: BankAccount | null;
+  contaToEdit?: {
+    name: string;
+    bank_name: string;
+    initial_balance: number;
+    type: "corrente" | "poupanca" | "investimento";
+    agency: string;
+    account_number: string;
+  } | null;
 }
 
 export function NovaContaBancariaDialog({ open, onOpenChange, onSave, contaToEdit }: NovaContaBancariaDialogProps) {

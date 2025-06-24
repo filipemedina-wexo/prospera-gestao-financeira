@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +24,7 @@ interface RelatorioContasReceberProps {
 }
 
 export function RelatorioContasReceber({ contas = [] }: RelatorioContasReceberProps) {
-  const totalRecebido = contas.filter(c => c.status === 'recebido' || c.status === 'received').reduce((acc, item) => acc + item.valor, 0);
+  const totalRecebido = contas.filter(c => c.status === 'recebido').reduce((acc, item) => acc + item.valor, 0);
   const totalPendente = contas.filter(c => c.status === 'pendente').reduce((acc, item) => acc + item.valor, 0);
   const totalAtrasado = contas.filter(c => c.status === 'atrasado').reduce((acc, item) => acc + item.valor, 0);
   const totalAReceber = totalPendente + totalAtrasado;
@@ -62,7 +63,6 @@ export function RelatorioContasReceber({ contas = [] }: RelatorioContasReceberPr
   const statusConfig: { [key: string]: { variant: "default" | "destructive" | "secondary" | "outline", label: string, icon: React.ElementType, className?: string } } = {
     pendente: { variant: "secondary", label: "Pendente", icon: Clock },
     recebido: { variant: "default", label: "Recebido", icon: CheckCircle, className: "bg-green-100 text-green-800 border border-green-200" },
-    received: { variant: "default", label: "Recebido", icon: CheckCircle, className: "bg-green-100 text-green-800 border border-green-200" },
     atrasado: { variant: "destructive", label: "Atrasado", icon: AlertCircle },
     parcial: { variant: "outline", label: "Parcial", icon: DollarSign },
   };

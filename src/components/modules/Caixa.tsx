@@ -106,7 +106,14 @@ export function Caixa() {
         open={showContaDialog}
         onOpenChange={setShowContaDialog}
         onSave={(values) => upsertMutation.mutate({id: contaParaEditar?.id, ...values, balance: values.initial_balance})}
-        contaToEdit={contaParaEditar ? {...contaParaEditar, initial_balance: contaParaEditar.balance} : null}
+        contaToEdit={contaParaEditar ? {
+          name: contaParaEditar.name,
+          bank_name: contaParaEditar.bank_name,
+          initial_balance: contaParaEditar.balance,
+          type: contaParaEditar.type as "corrente" | "poupanca" | "investimento",
+          agency: contaParaEditar.agency || '',
+          account_number: contaParaEditar.account_number || ''
+        } : null}
       />
     </div>
   );
