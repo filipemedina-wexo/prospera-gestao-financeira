@@ -1,3 +1,4 @@
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ interface ContasReceberTableProps {
 }
 
 const getStatusBadge = (status?: ContaReceber['status']) => {
-    const statusConfig = {
+    const statusConfig: Record<string, { variant: "secondary" | "default" | "destructive" | "outline"; label: string; icon: any; className?: string }> = {
       pendente: { variant: "secondary" as const, label: "Pendente", icon: Clock },
       recebido: { variant: "default" as const, label: "Recebido", icon: CheckCircle, className: 'bg-green-100 text-green-800' },
       atrasado: { variant: "destructive" as const, label: "Atrasado", icon: AlertCircle },

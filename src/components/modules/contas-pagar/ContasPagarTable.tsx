@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,7 @@ interface ContasPagarTableProps {
 }
 
 const getStatusBadge = (status?: 'pendente' | 'pago' | 'atrasado' | 'parcial') => {
-  const statusConfig = {
+  const statusConfig: Record<string, { variant: "secondary" | "default" | "destructive" | "outline"; label: string; icon: any; className?: string }> = {
     pendente: { variant: "secondary" as const, label: "Pendente", icon: Clock },
     pago: { variant: "default" as const, label: "Pago", icon: CheckCircle, className: "bg-green-100 text-green-800" },
     atrasado: { variant: "destructive" as const, label: "Atrasado", icon: AlertCircle },
