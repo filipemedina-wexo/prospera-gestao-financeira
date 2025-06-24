@@ -6,6 +6,20 @@ export type BankAccount = Tables<'bank_accounts'> & {
   type: "corrente" | "poupanca" | "investimento" | null;
 };
 
+// Helper function to safely cast the type field
+const validateAccountType = (type: string | null): "corrente" | "poupanca" | "investimento" | null => {
+  if (type === "corrente" || type === "poupanca" || type === "investimento") {
+    return type;
+  }
+  return null;
+};
+
+// Helper function to transform database response to our BankAccount type
+const transformBankAccount = (dbAccount: Tables<'bank_accounts'>): BankAccount => ({
+  ...dbAccount,
+  type: validateAccountType(dbAccount.type)
+});
+
 export const bankAccountsService = {
   async getAll(): Promise<BankAccount[]> {
     const { data, error } = await supabase
@@ -15,7 +29,7 @@ export const bankAccountsService = {
       .order('name');
     
     if (error) throw error;
-    return data || [];
+    return (data || []).map(transformBankAccount);
   },
 
   async create(account: Omit<TablesInsert<'bank_accounts'>, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>): Promise<BankAccount> {
@@ -45,7 +59,7 @@ export const bankAccountsService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return transformBankAccount(data);
   },
 
   async update(id: string, updates: TablesUpdate<'bank_accounts'>): Promise<BankAccount> {
@@ -57,7 +71,7 @@ export const bankAccountsService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return transformBankAccount(data);
   },
 
   async getBalance(id: string): Promise<number> {
