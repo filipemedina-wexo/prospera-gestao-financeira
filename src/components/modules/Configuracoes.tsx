@@ -53,7 +53,7 @@ export const Configuracoes = () => {
         
         {canViewUsers && (
           <TabsContent value="usuarios">
-            <UsersManagement />
+            <UsersManagement isActive={true} />
           </TabsContent>
         )}
       </Tabs>

@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -135,9 +136,9 @@ export function ContasReceber() {
 
     const summary = {
       totalAReceber: todasContas.filter(c => c.status === 'pendente' || c.status === 'atrasado').reduce((sum, c) => sum + c.valor, 0),
-      totalRecebido: todasContas.filter(c => c.status === 'received').reduce((sum, c) => sum + c.valor, 0),
+      totalRecebido: todasContas.filter(c => c.status === 'recebido').reduce((sum, c) => sum + c.valor, 0),
       contasAtrasadas: todasContas.filter(c => c.status === 'atrasado').length,
-      taxaRecebimento: todasContas.length > 0 ? Math.round((todasContas.filter(c => c.status === 'received').length / todasContas.length) * 100) : 0,
+      taxaRecebimento: todasContas.length > 0 ? Math.round((todasContas.filter(c => c.status === 'recebido').length / todasContas.length) * 100) : 0,
     };
     
     return { contasFiltradas, summary };

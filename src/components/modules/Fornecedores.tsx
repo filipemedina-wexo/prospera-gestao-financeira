@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Fornecedor } from "./fornecedores/types";
 import { Button } from "@/components/ui/button";
 import { FornecedoresTable } from "./fornecedores/FornecedoresTable";
-import { FinancialClientDialog } from "./fornecedores/FinancialClientDialog"; // Importação atualizada
+import { FinancialClientDialog } from "./fornecedores/FinancialClientDialog";
 import { Briefcase, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -26,11 +26,12 @@ export const Fornecedores = () => {
 
   const upsertMutation = useMutation({
     mutationFn: (fornecedorData: Fornecedor) => {
-      const payload: Omit<TablesUpdate<'financial_clients'>, 'id'> = {
+      const payload: Omit<TablesUpdate<'financial_clients'>, 'id' | 'created_at' | 'updated_at'> & { name: string; saas_client_id: string } = {
         name: fornecedorData.razaoSocial,
         document: fornecedorData.cnpj,
         email: fornecedorData.email,
         phone: fornecedorData.telefone,
+        saas_client_id: '', // This should come from context
       };
       if (fornecedorData.id) {
         return financialClientsService.update(fornecedorData.id, payload);
@@ -44,7 +45,6 @@ export const Fornecedores = () => {
     },
     onError: (error: Error) => toast({ title: "Erro!", description: error.message, variant: "destructive" }),
   });
-
 
   const deleteMutation = useMutation({
     mutationFn: financialClientsService.delete,
@@ -61,7 +61,6 @@ export const Fornecedores = () => {
         description: error.message,
         variant: 'destructive',
       }),
-
   });
 
   const handleEdit = (fornecedor: Fornecedor) => {
@@ -85,8 +84,8 @@ export const Fornecedores = () => {
     cnpj: f.document || '',
     email: f.email || '',
     telefone: f.phone || '',
-    status: 'Ativo', // Adicionar status real se existir no DB
-    tipo: 'Serviço', // Adicionar tipo real se existir no DB
+    status: 'Ativo' as const,
+    tipo: 'Serviço',
     dataCadastro: new Date(f.created_at),
     cep: f.cep || '',
     endereco: f.address || '',
@@ -127,7 +126,7 @@ export const Fornecedores = () => {
       <FinancialClientDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onSave={(data) => upsertMutation.mutate(data)}
+        onSave={(data) => selectedFornecedor?.id ? upsertMutation.mutate({...data, id: selectedFornecedor.id}) : upsertMutation.mutate(data)}
         client={selectedFornecedor}
         title={selectedFornecedor ? "Editar Fornecedor" : "Novo Fornecedor"}
       />

@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -104,8 +105,8 @@ export function Caixa() {
       <NovaContaBancariaDialog 
         open={showContaDialog}
         onOpenChange={setShowContaDialog}
-        onSave={(values) => upsertMutation.mutate({id: contaParaEditar?.id, ...values, initial_balance: values.balance})} // Renomeando de volta para o schema
-        contaToEdit={contaParaEditar ? {...contaParaEditar, initial_balance: contaParaEditar.balance} : null} // Renomeando para o form
+        onSave={(values) => upsertMutation.mutate({id: contaParaEditar?.id, ...values, balance: values.initial_balance})}
+        contaToEdit={contaParaEditar ? {...contaParaEditar, initial_balance: contaParaEditar.balance} : null}
       />
     </div>
   );

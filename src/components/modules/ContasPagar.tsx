@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format, isToday, isPast, parseISO } from "date-fns";
@@ -24,6 +25,7 @@ export function ContasPagar() {
   
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
+  const [filtroCompetencia, setFiltroCompetencia] = useState<string>("todas");
   const [busca, setBusca] = useState("");
   const [showNovaContaDialog, setShowNovaContaDialog] = useState(false);
   const [contaParaEditar, setContaParaEditar] = useState<ContaPagar | null>(null);
@@ -80,6 +82,7 @@ export function ContasPagar() {
     const contasFiltradas = todasContas.filter(c => 
         (filtroStatus === 'todos' || c.status === filtroStatus) &&
         (filtroCategoria === 'todas' || c.categoria === filtroCategoria) &&
+        (filtroCompetencia === 'todas' || c.competencia === filtroCompetencia) &&
         (busca === '' || c.descricao.toLowerCase().includes(busca.toLowerCase()) || c.fornecedor.toLowerCase().includes(busca.toLowerCase()))
     );
     const summary = {
@@ -88,7 +91,7 @@ export function ContasPagar() {
       contasPagas: todasContas.filter(c => c.status === 'pago').length,
     };
     return { contasFiltradas, summary };
-  }, [contasDatabase, filtroStatus, filtroCategoria, busca]);
+  }, [contasDatabase, filtroStatus, filtroCategoria, filtroCompetencia, busca]);
 
   const handleEditConta = (conta: ContaPagar) => {
     setContaParaEditar(conta);
@@ -112,7 +115,16 @@ export function ContasPagar() {
       </div>
 
       {isLoading ? <Skeleton className="h-24 w-full" /> : <ContasPagarSummary {...dadosProcessados.summary} />}
-      <ContasPagarFilters busca={busca} setBusca={setBusca} filtroStatus={filtroStatus} setFiltroStatus={setFiltroStatus} filtroCategoria={filtroCategoria} setFiltroCategoria={setFiltroCategoria} />
+      <ContasPagarFilters 
+        busca={busca} 
+        setBusca={setBusca} 
+        filtroStatus={filtroStatus} 
+        setFiltroStatus={setFiltroStatus} 
+        filtroCategoria={filtroCategoria} 
+        setFiltroCategoria={setFiltroCategoria}
+        filtroCompetencia={filtroCompetencia}
+        setFiltroCompetencia={setFiltroCompetencia}
+      />
       {isLoading ? <Skeleton className="h-64 w-full" /> : <ContasPagarTable contas={dadosProcessados.contasFiltradas} onAbrirDialogPagamento={() => {}} onEdit={handleEditConta} onDelete={(id) => setContaParaRemover({id} as ContaPagar)} />}
 
       <AlertDialog open={!!contaParaRemover} onOpenChange={() => setContaParaRemover(null)}>
