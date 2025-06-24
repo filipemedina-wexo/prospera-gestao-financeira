@@ -6,5 +6,6 @@ export type Alert = {
   type: "Atrasado" | "Vencendo hoje" | "A Receber";
   amount: number;
   category: "contas-pagar" | "contas-receber";
+  dueDate?: string;
   resolved?: boolean;
 };

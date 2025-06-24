@@ -2,7 +2,9 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-export type BankAccount = Tables<'bank_accounts'>;
+export type BankAccount = Tables<'bank_accounts'> & {
+  type: "corrente" | "poupanca" | "investimento" | null;
+};
 
 export const bankAccountsService = {
   async getAll(): Promise<BankAccount[]> {

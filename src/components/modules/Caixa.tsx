@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,7 +95,14 @@ export function Caixa() {
         open={showNovaContaDialog}
         onOpenChange={setShowNovaContaDialog}
         onSave={handleSaveAccount}
-        contaToEdit={contaParaEditar}
+        contaToEdit={contaParaEditar ? {
+          name: contaParaEditar.name,
+          bank_name: contaParaEditar.bank_name || '',
+          initial_balance: contaParaEditar.initial_balance || 0,
+          type: (contaParaEditar.type as "corrente" | "poupanca" | "investimento") || "corrente",
+          agency: contaParaEditar.agency || '',
+          account_number: contaParaEditar.account_number || ''
+        } : null}
       />
 
       {/* Summary Cards */}
