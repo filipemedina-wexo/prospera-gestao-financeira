@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Fornecedor } from "./fornecedores/types";
 import { Button } from "@/components/ui/button";
@@ -120,9 +121,7 @@ export const Fornecedores = () => {
       {isLoading ? (
         <Skeleton className="h-64 w-full" />
       ) : (
-
-        <FornecedoresTable fornecedores={fornecedoresParaTabela} onEdit={handleEdit} onDelete={handleDelete} />
-
+        <FornecedoresTable fornecedores={filteredFornecedores} onEdit={handleEdit} onDelete={handleDelete} />
       )}
 
       <FinancialClientDialog

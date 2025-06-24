@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           amount: number
           category: string | null
+          competencia: string | null
           created_at: string
           description: string
           due_date: string
@@ -26,6 +27,7 @@ export type Database = {
         Insert: {
           amount: number
           category?: string | null
+          competencia?: string | null
           created_at?: string
           description: string
           due_date: string
@@ -39,6 +41,7 @@ export type Database = {
         Update: {
           amount?: number
           category?: string | null
+          competencia?: string | null
           created_at?: string
           description?: string
           due_date?: string
@@ -69,7 +72,9 @@ export type Database = {
       accounts_receivable: {
         Row: {
           amount: number
+          bank_account_id: string | null
           category: string | null
+          competencia: string | null
           created_at: string
           description: string
           due_date: string
@@ -82,7 +87,9 @@ export type Database = {
         }
         Insert: {
           amount: number
+          bank_account_id?: string | null
           category?: string | null
+          competencia?: string | null
           created_at?: string
           description: string
           due_date: string
@@ -95,7 +102,9 @@ export type Database = {
         }
         Update: {
           amount?: number
+          bank_account_id?: string | null
           category?: string | null
+          competencia?: string | null
           created_at?: string
           description?: string
           due_date?: string
@@ -108,6 +117,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "accounts_receivable_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "accounts_receivable_financial_client_id_fkey"
             columns: ["financial_client_id"]
             isOneToOne: false
@@ -116,6 +132,56 @@ export type Database = {
           },
           {
             foreignKeyName: "accounts_receivable_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_accounts: {
+        Row: {
+          account_number: string | null
+          agency: string | null
+          balance: number
+          bank_name: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          saas_client_id: string
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          agency?: string | null
+          balance?: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          saas_client_id: string
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          agency?: string | null
+          balance?: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          saas_client_id?: string
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_saas_client_id_fkey"
             columns: ["saas_client_id"]
             isOneToOne: false
             referencedRelation: "saas_clients"
@@ -829,6 +895,14 @@ export type Database = {
           p_success?: boolean
           p_error_message?: string
           p_metadata?: Json
+        }
+        Returns: undefined
+      }
+      registrar_recebimento: {
+        Args: {
+          p_receivable_id: string
+          p_bank_account_id: string
+          p_received_date: string
         }
         Returns: undefined
       }
