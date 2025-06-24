@@ -147,6 +147,7 @@ export type Database = {
           bank_name: string | null
           created_at: string
           id: string
+          initial_balance: number | null
           is_active: boolean
           name: string
           saas_client_id: string
@@ -160,6 +161,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string
           id?: string
+          initial_balance?: number | null
           is_active?: boolean
           name: string
           saas_client_id: string
@@ -173,6 +175,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string
           id?: string
+          initial_balance?: number | null
           is_active?: boolean
           name?: string
           saas_client_id?: string
@@ -358,6 +361,59 @@ export type Database = {
             columns: ["saas_client_id"]
             isOneToOne: false
             referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_transactions: {
+        Row: {
+          amount: number
+          bank_account_id: string | null
+          category: string | null
+          created_at: string
+          description: string
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          saas_client_id: string
+          transaction_date: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id?: string | null
+          category?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          saas_client_id: string
+          transaction_date?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          saas_client_id?: string
+          transaction_date?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
             referencedColumns: ["id"]
           },
         ]
