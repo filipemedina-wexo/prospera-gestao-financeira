@@ -27,19 +27,83 @@ export function AnalyticsManagement() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData[]>([]);
   const { toast } = useToast();
 
-  // Dados mockados para demonstração
-  const mockData: AnalyticsData[] = [
-    { month: 'Jan', newClients: 5, revenue: 2500, activeSubscriptions: 15 },
-    { month: 'Fev', newClients: 8, revenue: 4200, activeSubscriptions: 23 },
-    { month: 'Mar', newClients: 12, revenue: 6800, activeSubscriptions: 35 },
-    { month: 'Abr', newClients: 7, revenue: 5400, activeSubscriptions: 42 },
-    { month: 'Mai', newClients: 15, revenue: 8900, activeSubscriptions: 57 },
-    { month: 'Jun', newClients: 10, revenue: 7200, activeSubscriptions: 67 },
-  ];
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true);
+
+      const currentYear = new Date().getFullYear();
+
+      const { data: clients, error: clientsError } = await supabase
+        .from('saas_clients')
+        .select('id, created_at');
+
+      if (clientsError) throw clientsError;
+
+      const { data: subscriptions, error: subsError } = await supabase
+        .from('saas_subscriptions')
+        .select('start_date, end_date, status, monthly_price');
+
+      if (subsError) throw subsError;
+
+      const { data: payments, error: paymentsError } = await supabase
+        .from('saas_payment_history')
+        .select('amount, payment_date');
+
+      if (paymentsError) throw paymentsError;
+
+      const months = [
+        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+      ];
+
+      const newAnalytics: AnalyticsData[] = months.map((monthName, index) => {
+        const monthStart = new Date(currentYear, index, 1);
+        const monthEnd = new Date(currentYear, index + 1, 0);
+
+        const newClients = clients?.filter(c => {
+          const created = new Date(c.created_at);
+          return (
+            created.getFullYear() === currentYear &&
+            created.getMonth() === index
+          );
+        }).length || 0;
+
+        const revenue = payments?.filter(p => {
+          const paid = new Date(p.payment_date);
+          return (
+            paid.getFullYear() === currentYear &&
+            paid.getMonth() === index
+          );
+        }).reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+
+        const activeSubscriptions = subscriptions?.filter(s => {
+          const start = new Date(s.start_date);
+          const end = s.end_date ? new Date(s.end_date) : null;
+          return (
+            start <= monthEnd &&
+            (!end || end >= monthStart) &&
+            s.status === 'active'
+          );
+        }).length || 0;
+
+        return { month: monthName, newClients, revenue, activeSubscriptions };
+      });
+
+      setAnalyticsData(newAnalytics);
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar dados de analytics.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Por enquanto usando dados mockados
-    setAnalyticsData(mockData);
+    fetchAnalyticsData();
   }, []);
 
   const generateReport = async () => {

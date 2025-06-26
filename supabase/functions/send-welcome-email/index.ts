@@ -52,7 +52,7 @@ serve(async (req) => {
     }
 
     // Get the current domain for login link
-    const loginUrl = `${Deno.env.get('SUPABASE_URL')?.replace('/v1', '') || 'https://localhost:5173'}/login`
+    const loginUrl = `${Deno.env.get('BASE_URL') ?? Deno.env.get('SUPABASE_URL')?.replace('/v1', '') || 'https://localhost:5173'}/login`
 
     // Send welcome email using Resend
     const emailContent = {
