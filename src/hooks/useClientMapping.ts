@@ -38,12 +38,8 @@ export const useClientMapping = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('saas_user_client_mapping')
-        .select('client_id')
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .maybeSingle();
+      // Use the database function instead of direct query to avoid multiple rows issue
+      const { data, error } = await supabase.rpc('get_user_client_id');
 
       if (!mountedRef.current) return;
 
@@ -51,8 +47,8 @@ export const useClientMapping = () => {
         console.error('Error fetching client mapping:', error);
         
         // If it's an auth error and we have attempts left, retry
-        if (error.code === 'PGRST301' && attempt < 3) {
-          console.log(`Auth error, retrying in 1 second... (attempt ${attempt + 1}/3)`);
+        if ((error.code === 'PGRST301' || error.message.includes('JSON object requested')) && attempt < 3) {
+          console.log(`Auth/JSON error, retrying in 1 second... (attempt ${attempt + 1}/3)`);
           setRetryCount(attempt + 1);
           
           setTimeout(() => {
@@ -68,9 +64,9 @@ export const useClientMapping = () => {
         return;
       }
 
-      if (data?.client_id) {
+      if (data) {
         console.log('Client mapping found:', data);
-        setCurrentClientId(data.client_id);
+        setCurrentClientId(data);
         setRetryCount(0);
         setLoading(false);
         return;
@@ -135,6 +131,18 @@ export const useClientMapping = () => {
   const assignUserToClient = async (clientId: string, role: string = 'user') => {
     if (!user) throw new Error('Usuário não autenticado');
 
+    // First, deactivate any existing mappings for this user
+    const { error: deactivateError } = await supabase
+      .from('saas_user_client_mapping')
+      .update({ is_active: false })
+      .eq('user_id', user.id)
+      .eq('is_active', true);
+
+    if (deactivateError) {
+      console.error('Error deactivating existing mappings:', deactivateError);
+    }
+
+    // Then create the new mapping
     const { error } = await supabase
       .from('saas_user_client_mapping')
       .insert({
