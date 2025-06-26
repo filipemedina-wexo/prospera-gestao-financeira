@@ -47,8 +47,7 @@ export const bankAccountsService = {
     // Set initial balance if provided, otherwise use 0
     const accountData = {
       ...account,
-      balance: account.balance || 0,
-      initial_balance: account.balance || 0,
+      balance: account.initial_balance || 0,
       saas_client_id: clientMapping.client_id
     };
 
