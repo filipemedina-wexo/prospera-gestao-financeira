@@ -5,7 +5,6 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { menuItems } from "@/config/menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { ClientSelector } from "@/components/ClientSelector";
 
 const Dashboard = () => {
   const { hasPermission } = useAuth();
@@ -42,7 +41,6 @@ const Dashboard = () => {
             </div>
           </header>
           <div className="flex-1 overflow-auto p-4">
-            <ClientSelector />
             {renderContent()}
           </div>
         </main>

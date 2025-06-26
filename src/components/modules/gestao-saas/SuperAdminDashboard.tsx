@@ -26,6 +26,7 @@ import { ClientDetailsModal } from './ClientDetailsModal';
 import { UserAssignmentDialog } from './UserAssignmentDialog';
 import { PaymentHistoryView } from './PaymentHistoryView';
 import { UsersManagement } from '../gestao-usuarios/UsersManagement';
+import { ClientSelector } from '@/components/ClientSelector';
 
 type SaasClient = Tables<'saas_clients'>;
 type SaasSubscription = Tables<'saas_subscriptions'>;
@@ -265,6 +266,8 @@ export function SuperAdminDashboard() {
           Novo Cliente
         </Button>
       </div>
+
+      <ClientSelector />
 
       {/* Estatísticas */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">

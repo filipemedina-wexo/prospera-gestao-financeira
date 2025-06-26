@@ -18,7 +18,6 @@ import { DRE } from "@/components/modules/DRE";
 import { DashboardPrincipal } from "@/components/modules/DashboardPrincipal";
 import { menuItems } from "@/config/menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { ClientSelector } from "@/components/ClientSelector";
 import { AlertsPopup } from "@/components/AlertsPopup";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { useAppData } from "@/hooks/useAppData";
@@ -41,7 +40,7 @@ const Index = () => {
 
   const visibleMenuItems = menuItems.filter((item) => hasPermission(item.permission));
   const [activeMenu, setActiveMenu] = useState(
-    isSupperAdmin ? "gestao-saas" : visibleMenuItems.length > 0 ? visibleMenuItems[0].id : ""
+    isSupperAdmin ? "admin-saas" : visibleMenuItems.length > 0 ? visibleMenuItems[0].id : ""
   );
 
   // Alerts popup state
@@ -123,7 +122,7 @@ const Index = () => {
             setHolerites={setHolerites}
           />
         );
-      case "gestao-saas":
+      case "admin-saas":
         return <SuperAdminDashboard />;
       case "dre":
         return <DRE />;
@@ -144,7 +143,6 @@ const Index = () => {
               <h1 className="text-lg font-semibold">
                 {visibleMenuItems.find(item => item.id === activeMenu)?.title || 'Dashboard'}
               </h1>
-              <ClientSelector />
             </div>
           </header>
           <div className="flex-1 overflow-auto p-4">
