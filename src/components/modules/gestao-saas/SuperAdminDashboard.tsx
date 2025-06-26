@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +25,7 @@ import { ClientOnboardingWizard } from './ClientOnboardingWizard';
 import { ClientDetailsModal } from './ClientDetailsModal';
 import { UserAssignmentDialog } from './UserAssignmentDialog';
 import { PaymentHistoryView } from './PaymentHistoryView';
+import { UsersManagement } from '../gestao-usuarios/UsersManagement';
 
 type SaasClient = Tables<'saas_clients'>;
 type SaasSubscription = Tables<'saas_subscriptions'>;
@@ -66,6 +66,7 @@ export function SuperAdminDashboard() {
   const [showClientDetails, setShowClientDetails] = useState(false);
   const [showUserAssignment, setShowUserAssignment] = useState(false);
   const [showPaymentHistory, setShowPaymentHistory] = useState(false);
+  const [activeTab, setActiveTab] = useState('clients');
   const { toast } = useToast();
 
   const fetchDashboardData = async () => {
@@ -330,10 +331,11 @@ export function SuperAdminDashboard() {
         </Card>
       </div>
 
-      {/* Gerenciamento de Clientes */}
-      <Tabs defaultValue="clients" className="space-y-4">
+      {/* Gerenciamento */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="clients">Clientes</TabsTrigger>
+          <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
         </TabsList>
@@ -414,6 +416,10 @@ export function SuperAdminDashboard() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-4">
+          <UsersManagement isActive={activeTab === 'users'} />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">

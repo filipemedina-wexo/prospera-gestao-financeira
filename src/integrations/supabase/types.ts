@@ -934,6 +934,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_client_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       initialize_client_data: {
         Args: { client_id_param: string }
         Returns: undefined

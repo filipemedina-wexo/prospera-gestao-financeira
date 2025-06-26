@@ -1,18 +1,88 @@
 
-import { Home, Wallet, CreditCard, PiggyBank, TrendingUp, Package, BarChart3, FileText, Settings, Users, Briefcase, UserCog, Building2 } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  CreditCard, 
+  PiggyBank, 
+  BarChart3, 
+  Settings, 
+  Building2, 
+  Users, 
+  ShoppingCart, 
+  Package,
+  UserCheck
+} from "lucide-react";
 
 export const menuItems = [
-  { title: "Dashboard", icon: Home, id: "dashboard", permission: "dashboard.view" },
-  { title: "Caixa", icon: Wallet, id: "caixa", permission: "caixa.view" },
-  { title: "Contas a Pagar", icon: CreditCard, id: "contas-pagar", permission: "contas-pagar.view" },
-  { title: "Contas a Receber", icon: PiggyBank, id: "contas-receber", permission: "contas-receber.view" },
-  { title: "Comercial", icon: TrendingUp, id: "comercial", permission: "comercial.view" },
-  { title: "Fornecedores", icon: Briefcase, id: "fornecedores", permission: "fornecedores.view" },
-  { title: "Produtos/Serviços", icon: Package, id: "produtos-servicos", permission: "produtos-servicos.view" },
-  { title: "Relatórios", icon: BarChart3, id: "relatorios", permission: "relatorios.view" },
-  { title: "DRE", icon: FileText, id: "dre", permission: "dre.view" },
-  { title: "CRM", icon: Users, id: "crm", permission: "crm.view" },
-  { title: "Gestão de Usuários", icon: UserCog, id: "gestao-usuarios", permission: "gestao-usuarios.view" },
-  { title: "Gestão SaaS", icon: Building2, id: "gestao-saas", permission: "saas.manage" },
-  { title: "Configurações", icon: Settings, id: "configuracoes", permission: "configuracoes.view" },
+  {
+    id: "dashboard",
+    title: "Dashboard",
+    icon: LayoutDashboard,
+    permission: "dashboard.view"
+  },
+  {
+    id: "contas-pagar",
+    title: "Contas a Pagar",
+    icon: CreditCard,
+    permission: "contas-pagar.view"
+  },
+  {
+    id: "contas-receber",
+    title: "Contas a Receber",
+    icon: PiggyBank,
+    permission: "contas-receber.view"
+  },
+  {
+    id: "caixa",
+    title: "Caixa",
+    icon: PiggyBank,
+    permission: "caixa.view"
+  },
+  {
+    id: "fornecedores",
+    title: "Fornecedores",
+    icon: Building2,
+    permission: "fornecedores.view"
+  },
+  {
+    id: "crm",
+    title: "CRM",
+    icon: Users,
+    permission: "crm.view"
+  },
+  {
+    id: "comercial",
+    title: "Comercial",
+    icon: ShoppingCart,
+    permission: "comercial.view"
+  },
+  {
+    id: "produtos-servicos",
+    title: "Produtos/Serviços",
+    icon: Package,
+    permission: "produtos-servicos.view"
+  },
+  {
+    id: "pessoas",
+    title: "Pessoas",
+    icon: UserCheck,
+    permission: "pessoas.view"
+  },
+  {
+    id: "dre",
+    title: "DRE",
+    icon: BarChart3,
+    permission: "dre.view"
+  },
+  {
+    id: "relatorios",
+    title: "Relatórios",
+    icon: BarChart3,
+    permission: "relatorios.view"
+  },
+  {
+    id: "configuracoes",
+    title: "Configurações",
+    icon: Settings,
+    permission: "configuracoes.view"
+  }
 ];
