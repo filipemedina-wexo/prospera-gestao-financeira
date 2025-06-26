@@ -1,8 +1,6 @@
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
@@ -12,10 +10,8 @@ import {
   DollarSign,
   Calendar,
   CheckCircle,
-  CreditCard,
   Wallet,
-  Users,
-  Building
+  Users
 } from "lucide-react";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { alertsService } from "@/services/alertsService";
@@ -23,7 +19,9 @@ import { bankAccountsService } from "@/services/bankAccountsService";
 import { accountsPayableService } from "@/services/accountsPayableService";
 import { accountsReceivableService } from "@/services/accountsReceivableService";
 import { financialClientsService } from "@/services/financialClientsService";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isToday } from "date-fns";
+import { ExtratoTabela } from "@/components/modules/relatorios/ExtratoTabela";
+import { agruparTransacoesPorDia } from "@/components/modules/relatorios/extratoUtils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export type DashboardPrincipalProps = {
@@ -97,6 +95,34 @@ export function DashboardPrincipal({ onAlertsClick }: DashboardPrincipalProps) {
   const contasAtrasadas = (alerts?.filter(a => a.type === 'Atrasado').length) || 0;
 
   const isLoading = alertsLoading || bankAccountsLoading || contasPagarLoading || contasReceberLoading || clientesLoading;
+
+  const extratoReceberAgrupado = agruparTransacoesPorDia(
+    (contasReceber || [])
+      .filter(c => c.status === 'received' && c.received_date && isToday(parseISO(c.received_date)))
+      .map(c => ({
+        id: c.id,
+        data: parseISO(c.received_date!),
+        tipo: 'entrada' as const,
+        descricao: c.description,
+        valor: c.amount,
+        categoria: c.category || 'Geral',
+        saldoApos: 0,
+      }))
+  );
+
+  const extratoPagarAgrupado = agruparTransacoesPorDia(
+    (contasPagar || [])
+      .filter(c => c.status === 'paid' && c.paid_date && isToday(parseISO(c.paid_date)))
+      .map(c => ({
+        id: c.id,
+        data: parseISO(c.paid_date!),
+        tipo: 'saida' as const,
+        descricao: c.description,
+        valor: c.amount,
+        categoria: c.category || 'Geral',
+        saldoApos: 0,
+      }))
+  );
 
   return (
     <div className="space-y-6">
@@ -222,44 +248,46 @@ export function DashboardPrincipal({ onAlertsClick }: DashboardPrincipalProps) {
         </CardContent>
       </Card>
 
-      {/* Contas Bancárias */}
+      {/* Extrato Contas a Receber */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Contas Bancárias
+            <TrendingUp className="h-5 w-5" />
+            Extrato Contas a Receber
           </CardTitle>
-          <CardDescription>
-            Resumo das suas contas bancárias
-          </CardDescription>
+          <CardDescription>Movimentações de hoje</CardDescription>
         </CardHeader>
         <CardContent>
-          {bankAccountsLoading ? (
+          {contasReceberLoading ? (
             <Skeleton className="h-32 w-full" />
-          ) : !bankAccounts || bankAccounts.length === 0 ? (
-            <div className="text-center py-8">
-              <Building className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-              <p className="text-muted-foreground">Nenhuma conta bancária cadastrada</p>
+          ) : Object.keys(extratoReceberAgrupado).length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Nenhuma movimentação hoje.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {bankAccounts.slice(0, 6).map((account) => (
-                <Card key={account.id} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium">{account.name}</h4>
-                      <p className="text-sm text-muted-foreground">{account.bank_name}</p>
-                    </div>
-                    <Badge variant="outline">{account.type || 'Corrente'}</Badge>
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-2xl font-bold text-blue-600">
-                      {account.balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                    </p>
-                  </div>
-                </Card>
-              ))}
+            <ExtratoTabela extratoAgrupado={extratoReceberAgrupado} useRealData />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Extrato Contas a Pagar */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingDown className="h-5 w-5" />
+            Extrato Contas a Pagar
+          </CardTitle>
+          <CardDescription>Movimentações de hoje</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {contasPagarLoading ? (
+            <Skeleton className="h-32 w-full" />
+          ) : Object.keys(extratoPagarAgrupado).length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Nenhuma movimentação hoje.
             </div>
+          ) : (
+            <ExtratoTabela extratoAgrupado={extratoPagarAgrupado} useRealData />
           )}
         </CardContent>
       </Card>
