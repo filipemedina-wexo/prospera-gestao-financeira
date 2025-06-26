@@ -9,7 +9,8 @@ import {
   Users, 
   ShoppingCart, 
   Package,
-  UserCheck
+  UserCheck,
+  Shield
 } from "lucide-react";
 
 export const menuItems = [
@@ -84,5 +85,11 @@ export const menuItems = [
     title: "Configurações",
     icon: Settings,
     permission: "configuracoes.view"
+  },
+  {
+    id: "admin-saas",
+    title: "Admin SaaS",
+    icon: Shield,
+    permission: "saas.manage"
   }
 ];
