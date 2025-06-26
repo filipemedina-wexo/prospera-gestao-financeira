@@ -36,6 +36,15 @@ npm i
 npm run dev
 ```
 
+## Variáveis de ambiente
+
+Crie um arquivo `.env` a partir de `.env.example` contendo as seguintes variáveis:
+
+```sh
+VITE_SUPABASE_URL=<sua URL do Supabase>
+VITE_SUPABASE_KEY=<sua chave pública do Supabase>
+```
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).
