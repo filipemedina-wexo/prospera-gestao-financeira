@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@/data/users';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +13,7 @@ const mockUsers: User[] = [
     email: 'joao@empresa.com',
     role: 'admin',
     status: 'active',
+    createdAt: '2024-01-01T10:00:00Z',
     lastLogin: '2024-01-15T10:30:00Z',
   },
   {
@@ -20,6 +22,7 @@ const mockUsers: User[] = [
     email: 'maria@empresa.com',
     role: 'financeiro',
     status: 'active',
+    createdAt: '2024-01-02T11:00:00Z',
     lastLogin: '2024-01-14T16:45:00Z',
   },
   {
@@ -28,6 +31,7 @@ const mockUsers: User[] = [
     email: 'carlos@empresa.com',
     role: 'comercial',
     status: 'inactive',
+    createdAt: '2024-01-03T12:00:00Z',
     lastLogin: '2024-01-10T09:15:00Z',
   },
 ];
@@ -77,7 +81,8 @@ export function useUsersManagement(isActive: boolean) {
         email: 'user@example.com', // Would need to get from auth.users
         role: assignment.role,
         status: assignment.is_active ? 'active' : 'inactive',
-        lastLogin: undefined
+        lastLogin: undefined,
+        createdAt: assignment.created_at
       })) || [];
       
       setUsers(transformedUsers);
@@ -111,7 +116,11 @@ export function useUsersManagement(isActive: boolean) {
         });
       } else {
         // Create new user
-        const newUser = { ...userData, id: Date.now().toString() };
+        const newUser = { 
+          ...userData, 
+          id: Date.now().toString(),
+          createdAt: new Date().toISOString()
+        };
         setUsers([...users, newUser]);
         
         toast({
