@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
 import { categorias } from "./config";
+import { gerarCompetencias } from "@/utils/competencias";
 
 interface ContasPagarFiltersProps {
   busca: string;
@@ -22,6 +23,7 @@ export function ContasPagarFilters({
   filtroStatus, setFiltroStatus,
   filtroCategoria, setFiltroCategoria
 }: ContasPagarFiltersProps) {
+  const competencias = gerarCompetencias();
   return (
     <Card>
       <CardHeader>
@@ -46,24 +48,9 @@ export function ContasPagarFilters({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas as competências</SelectItem>
-              <SelectItem value="01/2024">01/2024</SelectItem>
-              <SelectItem value="02/2024">02/2024</SelectItem>
-              <SelectItem value="03/2024">03/2024</SelectItem>
-              <SelectItem value="04/2024">04/2024</SelectItem>
-              <SelectItem value="05/2024">05/2024</SelectItem>
-              <SelectItem value="06/2024">06/2024</SelectItem>
-              <SelectItem value="07/2024">07/2024</SelectItem>
-              <SelectItem value="08/2024">08/2024</SelectItem>
-              <SelectItem value="09/2024">09/2024</SelectItem>
-              <SelectItem value="10/2024">10/2024</SelectItem>
-              <SelectItem value="11/2024">11/2024</SelectItem>
-              <SelectItem value="12/2024">12/2024</SelectItem>
-              <SelectItem value="01/2025">01/2025</SelectItem>
-              <SelectItem value="02/2025">02/2025</SelectItem>
-              <SelectItem value="03/2025">03/2025</SelectItem>
-              <SelectItem value="04/2025">04/2025</SelectItem>
-              <SelectItem value="05/2025">05/2025</SelectItem>
-              <SelectItem value="06/2025">06/2025</SelectItem>
+              {competencias.map((comp) => (
+                <SelectItem key={comp} value={comp}>{comp}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={filtroStatus} onValueChange={setFiltroStatus}>
