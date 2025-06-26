@@ -9,6 +9,7 @@ import { ContasPagarSummary } from "./contas-pagar/ContasPagarSummary";
 import { ContasPagarFilters } from "./contas-pagar/ContasPagarFilters";
 import { ContasPagarTable } from "./contas-pagar/ContasPagarTable";
 import { NovaContaDialog } from "./contas-pagar/NovaContaDialog";
+import { RegistrarPagamentoDialog } from "./contas-pagar/RegistrarPagamentoDialog";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { accountsPayableService } from "@/services/accountsPayableService";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -28,8 +29,10 @@ export function ContasPagar() {
   const [filtroCompetencia, setFiltroCompetencia] = useState<string>("todas");
   const [busca, setBusca] = useState("");
   const [showNovaContaDialog, setShowNovaContaDialog] = useState(false);
+  const [showPagamentoDialog, setShowPagamentoDialog] = useState(false);
   const [contaParaEditar, setContaParaEditar] = useState<ContaPagar | null>(null);
   const [contaParaRemover, setContaParaRemover] = useState<ContaPagar | null>(null);
+  const [contaParaPagar, setContaParaPagar] = useState<ContaPagar | null>(null);
 
   const { data: contasDatabase, isLoading } = useQuery({
     queryKey: ['accounts-payable', currentClientId],
@@ -60,6 +63,18 @@ export function ContasPagar() {
       toast({ title: "Conta removida com sucesso!" });
     },
     onError: (error: any) => toast({ title: "Erro ao remover", description: error.message, variant: "destructive" })
+  });
+
+  const { mutate: markAsPaidMutation } = useMutation({
+    mutationFn: (data: { contaId: string; paidDate: string }) => 
+      accountsPayableService.markAsPaid(data.contaId, data.paidDate),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });
+      setShowPagamentoDialog(false);
+      setContaParaPagar(null);
+      toast({ title: 'Pagamento registrado com sucesso!' });
+    },
+    onError: (error: any) => toast({ title: 'Erro', description: error.message, variant: 'destructive' }),
   });
 
   const dadosProcessados = useMemo(() => {
@@ -102,6 +117,19 @@ export function ContasPagar() {
     if (contaParaRemover) deleteMutation(contaParaRemover.id);
   };
 
+  const handleAbrirDialogPagamento = (conta: ContaPagar) => {
+    setContaParaPagar(conta);
+    setShowPagamentoDialog(true);
+  };
+
+  const handleConfirmarPagamento = (dataPagamento: Date) => {
+    if (!contaParaPagar) return;
+    markAsPaidMutation({
+      contaId: contaParaPagar.id,
+      paidDate: format(dataPagamento, 'yyyy-MM-dd')
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -114,6 +142,12 @@ export function ContasPagar() {
         </Dialog>
       </div>
 
+      <RegistrarPagamentoDialog
+        open={showPagamentoDialog}
+        onOpenChange={setShowPagamentoDialog}
+        onConfirm={handleConfirmarPagamento}
+      />
+
       {isLoading ? <Skeleton className="h-24 w-full" /> : <ContasPagarSummary {...dadosProcessados.summary} />}
       <ContasPagarFilters 
         busca={busca} 
@@ -125,7 +159,7 @@ export function ContasPagar() {
         filtroCompetencia={filtroCompetencia}
         setFiltroCompetencia={setFiltroCompetencia}
       />
-      {isLoading ? <Skeleton className="h-64 w-full" /> : <ContasPagarTable contas={dadosProcessados.contasFiltradas} onAbrirDialogPagamento={() => {}} onEdit={handleEditConta} onDelete={(id) => setContaParaRemover({id} as ContaPagar)} />}
+      {isLoading ? <Skeleton className="h-64 w-full" /> : <ContasPagarTable contas={dadosProcessados.contasFiltradas} onAbrirDialogPagamento={handleAbrirDialogPagamento} onEdit={handleEditConta} onDelete={(id) => setContaParaRemover({id} as ContaPagar)} />}
 
       <AlertDialog open={!!contaParaRemover} onOpenChange={() => setContaParaRemover(null)}>
         <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Você tem certeza?</AlertDialogTitle><AlertDialogDescription>Esta ação irá remover permanentemente a conta.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleConfirmarRemocao}>Confirmar</AlertDialogAction></AlertDialogFooter></AlertDialogContent>

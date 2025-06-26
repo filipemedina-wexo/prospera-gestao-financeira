@@ -40,19 +40,32 @@ export function ContasPagarFilters({
               />
             </div>
           </div>
-          <Input
-              placeholder="Competência (MM/AAAA)"
-              value={filtroCompetencia}
-              onChange={(e) => {
-                  let value = e.target.value.replace(/\D/g, '');
-                  if (value.length > 2) {
-                      value = `${value.slice(0, 2)}/${value.slice(2, 6)}`;
-                  }
-                  setFiltroCompetencia(value);
-              }}
-              maxLength={7}
-              className="w-40"
-          />
+          <Select value={filtroCompetencia} onValueChange={setFiltroCompetencia}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Todas as competências" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas as competências</SelectItem>
+              <SelectItem value="01/2024">01/2024</SelectItem>
+              <SelectItem value="02/2024">02/2024</SelectItem>
+              <SelectItem value="03/2024">03/2024</SelectItem>
+              <SelectItem value="04/2024">04/2024</SelectItem>
+              <SelectItem value="05/2024">05/2024</SelectItem>
+              <SelectItem value="06/2024">06/2024</SelectItem>
+              <SelectItem value="07/2024">07/2024</SelectItem>
+              <SelectItem value="08/2024">08/2024</SelectItem>
+              <SelectItem value="09/2024">09/2024</SelectItem>
+              <SelectItem value="10/2024">10/2024</SelectItem>
+              <SelectItem value="11/2024">11/2024</SelectItem>
+              <SelectItem value="12/2024">12/2024</SelectItem>
+              <SelectItem value="01/2025">01/2025</SelectItem>
+              <SelectItem value="02/2025">02/2025</SelectItem>
+              <SelectItem value="03/2025">03/2025</SelectItem>
+              <SelectItem value="04/2025">04/2025</SelectItem>
+              <SelectItem value="05/2025">05/2025</SelectItem>
+              <SelectItem value="06/2025">06/2025</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={filtroStatus} onValueChange={setFiltroStatus}>
             <SelectTrigger className="w-48">
               <Filter className="h-4 w-4 mr-2" />
