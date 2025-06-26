@@ -26,7 +26,10 @@ import { financialClientsService } from "@/services/financialClientsService";
 import { format, parseISO } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function DashboardPrincipal() {
+export type DashboardPrincipalProps = {
+  onAlertsClick?: () => void;
+};
+export function DashboardPrincipal({ onAlertsClick }: DashboardPrincipalProps) {
   const { currentClientId } = useMultiTenant();
 
   const { data: alerts, isLoading: alertsLoading } = useQuery({
@@ -155,7 +158,7 @@ export function DashboardPrincipal() {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card onClick={onAlertsClick} className="cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Alertas</CardTitle>
               <AlertCircle className="h-4 w-4 text-muted-foreground" />

@@ -81,7 +81,7 @@ const Index = () => {
   const renderContent = () => {
     switch (activeMenu) {
       case "dashboard":
-        return <DashboardPrincipal />;
+        return <DashboardPrincipal onAlertsClick={() => setShowAlertsPopup(true)} />;
       case "contas-pagar":
         return <ContasPagar />;
       case "contas-receber":
@@ -128,7 +128,7 @@ const Index = () => {
       case "dre":
         return <DRE />;
       default:
-        return <DashboardPrincipal />;
+        return <DashboardPrincipal onAlertsClick={() => setShowAlertsPopup(true)} />;
     }
   };
 
