@@ -47,64 +47,6 @@ export function AuditLog({ clientId }: AuditLogProps) {
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
   const { toast } = useToast();
 
-  // Mock data - em produção isso viria do banco de dados
-  const mockLogs: AuditLogEntry[] = [
-    {
-      id: '1',
-      client_id: 'client-1',
-      user_id: 'user-1',
-      action: 'CREATE_ACCOUNT_PAYABLE',
-      resource_type: 'accounts_payable',
-      resource_id: 'acc-123',
-      new_values: { description: 'Conta de luz', amount: 150.00 },
-      ip_address: '192.168.1.1',
-      created_at: new Date().toISOString(),
-      client_name: 'Empresa ABC',
-      user_name: 'João Silva',
-      severity: 'info'
-    },
-    {
-      id: '2',
-      client_id: 'client-1',
-      user_id: 'user-2',
-      action: 'UPDATE_CLIENT_STATUS',
-      resource_type: 'saas_clients',
-      resource_id: 'client-1',
-      old_values: { status: 'trial' },
-      new_values: { status: 'active' },
-      ip_address: '192.168.1.2',
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-      client_name: 'Empresa ABC',
-      user_name: 'Admin Sistema',
-      severity: 'success'
-    },
-    {
-      id: '3',
-      client_id: 'client-2',
-      user_id: 'user-3',
-      action: 'DELETE_FINANCIAL_CLIENT',
-      resource_type: 'financial_clients',
-      resource_id: 'fc-456',
-      old_values: { name: 'Cliente Teste' },
-      ip_address: '192.168.1.3',
-      created_at: new Date(Date.now() - 7200000).toISOString(),
-      client_name: 'Empresa XYZ',
-      user_name: 'Maria Santos',
-      severity: 'warning'
-    },
-    {
-      id: '4',
-      client_id: 'client-1',
-      user_id: 'user-1',
-      action: 'LOGIN_FAILED',
-      resource_type: 'auth',
-      ip_address: '192.168.1.1',
-      created_at: new Date(Date.now() - 10800000).toISOString(),
-      client_name: 'Empresa ABC',
-      user_name: 'João Silva',
-      severity: 'error'
-    }
-  ];
 
   useEffect(() => {
     fetchAuditLogs();
@@ -113,15 +55,19 @@ export function AuditLog({ clientId }: AuditLogProps) {
   const fetchAuditLogs = async () => {
     try {
       setLoading(true);
-      // Por enquanto usando dados mock
-      // Em produção, implementar query real ao banco
-      let filteredLogs = mockLogs;
-      
+      let query = supabase
+        .from('security_audit_log')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
       if (clientId) {
-        filteredLogs = mockLogs.filter(log => log.client_id === clientId);
+        query = query.eq('client_id', clientId);
       }
-      
-      setLogs(filteredLogs);
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setLogs(data || []);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       toast({
