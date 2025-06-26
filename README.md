@@ -71,3 +71,7 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Variáveis de ambiente do Supabase
+
+Crie um arquivo `supabase/.env` (ou copie `supabase/.env.example`) e defina o valor de `BASE_URL` com a URL do frontend utilizada nos links enviados por email.
