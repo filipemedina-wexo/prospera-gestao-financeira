@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tags, Edit, Trash2 } from "lucide-react";
+import { ActionsDropdown, ActionItem } from "@/components/ui/actions-dropdown";
 import { CategoriaDespesa } from "./types";
 import {
   AlertDialog,
@@ -70,6 +71,11 @@ export const ConfigCategorias = () => {
     ));
   };
 
+  const getActionsForCategoria = (categoria: CategoriaDespesa): ActionItem[] => [
+    { type: 'edit', label: 'Editar', onClick: () => iniciarEdicaoCategoria(categoria) },
+    { type: 'delete', label: 'Excluir', onClick: () => setCategoriaParaRemover(categoria), variant: 'destructive' }
+  ];
+
   return (
     <>
       <Card>
@@ -110,12 +116,7 @@ export const ConfigCategorias = () => {
                       <p className="text-sm text-muted-foreground">{categoria.descricao}</p>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => iniciarEdicaoCategoria(categoria)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setCategoriaParaRemover(categoria)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <ActionsDropdown actions={getActionsForCategoria(categoria)} />
                     </div>
                   </>
                 )}

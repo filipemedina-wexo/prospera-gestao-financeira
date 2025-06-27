@@ -8,7 +8,7 @@ import { Plus } from "lucide-react";
 import { TipoFornecedor } from "./types";
 import { TipoFornecedorDialog } from "./TipoFornecedorDialog";
 import { useToast } from "@/hooks/use-toast";
-import { ActionExpandableTabs, ActionItem } from "@/components/ui/action-expandable-tabs";
+import { ActionsDropdown, ActionItem } from "@/components/ui/actions-dropdown";
 
 interface GerenciarTiposProps {
   tipos: TipoFornecedor[];
@@ -104,7 +104,7 @@ export const GerenciarTipos = ({ tipos, setTipos }: GerenciarTiposProps) => {
                       <Badge variant="outline">{tipo.nome}</Badge>
                     </TableCell>
                     <TableCell>
-                      <ActionExpandableTabs actions={getActionsForTipo(tipo)} />
+                      <ActionsDropdown actions={getActionsForTipo(tipo)} />
                     </TableCell>
                   </TableRow>
                 ))}

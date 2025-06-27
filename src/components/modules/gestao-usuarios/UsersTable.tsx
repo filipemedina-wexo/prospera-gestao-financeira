@@ -11,7 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ActionExpandableTabs, ActionItem } from '@/components/ui/action-expandable-tabs';
+import { ActionsDropdown, ActionItem } from '@/components/ui/actions-dropdown';
 
 interface UsersTableProps {
   users: User[];
@@ -102,7 +102,7 @@ export function UsersTable({ users, onEditUser }: UsersTableProps) {
               <TableCell>{getStatusBadge(user.status)}</TableCell>
               <TableCell>{formatLastLogin(user.lastLogin)}</TableCell>
               <TableCell className="text-right">
-                <ActionExpandableTabs actions={getActionsForUser(user)} />
+                <ActionsDropdown actions={getActionsForUser(user)} />
               </TableCell>
             </TableRow>
           ))}

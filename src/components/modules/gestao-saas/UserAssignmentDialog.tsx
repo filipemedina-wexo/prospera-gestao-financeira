@@ -18,12 +18,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Users, 
-  Plus, 
+  Users,
+  Plus,
   Trash2,
   UserPlus,
   Shield
 } from 'lucide-react';
+import { ActionsDropdown, ActionItem } from '@/components/ui/actions-dropdown';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tables } from '@/integrations/supabase/types';
@@ -318,14 +319,14 @@ export function UserAssignmentDialog({ isOpen, onClose, client, onUpdate }: User
                         </div>
                       </div>
                       
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveAssignment(assignment.id)}
-                        disabled={loading}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
+                      <ActionsDropdown
+                        actions={[{
+                          type: 'delete',
+                          label: 'Remover',
+                          onClick: () => handleRemoveAssignment(assignment.id),
+                          variant: 'destructive',
+                          disabled: loading
+                        }]} />
                     </div>
                   ))}
                 </div>

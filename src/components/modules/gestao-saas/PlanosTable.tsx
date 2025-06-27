@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Edit, Trash2 } from "lucide-react";
+import { ActionsDropdown, ActionItem } from "@/components/ui/actions-dropdown";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,31 +87,19 @@ export function PlanosTable({ planos, onEdit }: PlanosTableProps) {
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                <Button variant="ghost" size="icon" onClick={() => onEdit(plano)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Essa ação não pode ser desfeita. Isso irá excluir permanentemente o plano.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => deleteMutation.mutate(plano.id)}>
-                        Excluir
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <ActionsDropdown actions={[
+                  { type: 'edit', label: 'Editar', onClick: () => onEdit(plano) },
+                  {
+                    type: 'delete',
+                    label: 'Excluir',
+                    onClick: () => {
+                      if (window.confirm('Deseja excluir este plano?')) {
+                        deleteMutation.mutate(plano.id);
+                      }
+                    },
+                    variant: 'destructive'
+                  }
+                ]} />
               </TableCell>
             </TableRow>
           )) : (

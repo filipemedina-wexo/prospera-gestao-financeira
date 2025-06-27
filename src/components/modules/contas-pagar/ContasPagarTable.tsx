@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Edit, Trash2, CheckCircle } from "lucide-react";
 import { ContaPagar } from "./types";
-import { ActionExpandableTabs, ActionItem } from "@/components/ui/action-expandable-tabs";
+import { ActionsDropdown, ActionItem } from "@/components/ui/actions-dropdown";
 
 interface ContasPagarTableProps {
   contas: ContaPagar[];
@@ -102,7 +102,7 @@ export function ContasPagarTable({ contas, onAbrirDialogPagamento, onEdit, onDel
                 })}
               </TableCell>
               <TableCell className="text-right">
-                <ActionExpandableTabs actions={getActionsForConta(conta)} />
+                <ActionsDropdown actions={getActionsForConta(conta)} />
               </TableCell>
             </TableRow>
           ))}

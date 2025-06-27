@@ -13,7 +13,7 @@ import { Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Tables } from '@/integrations/supabase/types';
 import { getStatusBadge } from './clienteUtils';
-import { ActionExpandableTabs, ActionItem } from '@/components/ui/action-expandable-tabs';
+import { ActionItem, ActionsDropdown } from '@/components/ui/actions-dropdown';
 
 type SaasClient = Tables<'saas_clients'>;
 
@@ -67,7 +67,7 @@ export function ClientesTable({ clients, onEditClient, onToggleStatus }: Cliente
                 <TableCell>{getStatusBadge(client.status)}</TableCell>
                 <TableCell>{format(new Date(client.created_at), 'dd/MM/yyyy')}</TableCell>
                 <TableCell className="text-right">
-                  <ActionExpandableTabs actions={getActionsForClient(client)} />
+                  <ActionsDropdown actions={getActionsForClient(client)} />
                 </TableCell>
               </TableRow>
             ))}
