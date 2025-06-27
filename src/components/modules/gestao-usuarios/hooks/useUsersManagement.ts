@@ -6,6 +6,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useMultiTenant } from '@/contexts/MultiTenantContext';
 
+interface AuthUser {
+  id: string;
+  email: string;
+}
+
+interface Assignment {
+  user_id: string;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+}
 
 export function useUsersManagement(isActive: boolean) {
   const [users, setUsers] = useState<User[]>([]);
@@ -41,20 +52,22 @@ export function useUsersManagement(isActive: boolean) {
       const { data: authData, error: authError } = await supabase.functions.invoke('list-auth-users', { body: {} });
       if (authError) throw authError;
 
-      const authUsers = (authData as any)?.users as { id: string; email: string }[] || [];
+      const authUsers = (authData as any)?.users as AuthUser[] || [];
 
       const usersList: User[] = await Promise.all(
-        (assignments || []).map(async (assignment) => {
+        (assignments || []).map(async (assignment: Assignment) => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('full_name')
             .eq('id', assignment.user_id)
             .single();
 
+          const authUser = authUsers.find((u: AuthUser) => u.id === assignment.user_id);
+
           return {
             id: assignment.user_id,
             name: profile?.full_name || 'Nome não disponível',
-            email: authUsers.find(u => u.id === assignment.user_id)?.email || 'Email não disponível',
+            email: authUser?.email || 'Email não disponível',
             role: assignment.role as User['role'],
             status: assignment.is_active ? 'active' : 'inactive',
             lastLogin: undefined,
