@@ -73,8 +73,12 @@ const Index = () => {
   };
 
   const handleViewAlertDetails = (alert: Alert) => {
-    console.log('Viewing alert details:', alert);
-    // Here you could navigate to the specific module or show more details
+    if (alert.category === 'contas-pagar') {
+      setActiveMenu('contas-pagar');
+    } else if (alert.category === 'contas-receber') {
+      setActiveMenu('contas-receber');
+    }
+    setShowAlertsPopup(false);
   };
 
   const renderContent = () => {
