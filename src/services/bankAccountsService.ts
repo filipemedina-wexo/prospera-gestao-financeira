@@ -32,7 +32,7 @@ export const bankAccountsService = {
     return (data || []).map(transformBankAccount);
   },
 
-  async create(account: Omit<TablesInsert<'bank_accounts'>, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>): Promise<BankAccount> {
+  async create(account: Omit<TablesInsert<'bank_accounts'>, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Usuário não autenticado.");
 
@@ -51,14 +51,11 @@ export const bankAccountsService = {
       saas_client_id: clientMapping.client_id
     };
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('bank_accounts')
-      .insert(accountData)
-      .select()
-      .single();
-    
+      .insert(accountData);
+
     if (error) throw error;
-    return transformBankAccount(data);
   },
 
   async update(id: string, updates: TablesUpdate<'bank_accounts'>): Promise<BankAccount> {
