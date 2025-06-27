@@ -23,10 +23,14 @@ const transformBankAccount = (dbAccount: Tables<'bank_accounts'>): BankAccount =
 
 export const bankAccountsService = {
   async getAll(): Promise<BankAccount[]> {
+    const clientId = await getCurrentClientId();
+    if (!clientId) throw new Error('Cliente SaaS não encontrado.');
+
     const { data, error } = await supabase
       .from('bank_accounts')
       .select('*')
       .eq('is_active', true)
+      .eq('saas_client_id', clientId)
       .order('name');
     
     if (error) throw error;
@@ -67,10 +71,14 @@ export const bankAccountsService = {
   },
 
   async getBalance(id: string): Promise<number> {
+    const clientId = await getCurrentClientId();
+    if (!clientId) throw new Error('Cliente SaaS não encontrado.');
+
     const { data, error } = await supabase
       .from('bank_accounts')
       .select('balance')
       .eq('id', id)
+      .eq('saas_client_id', clientId)
       .single();
     
     if (error) throw error;

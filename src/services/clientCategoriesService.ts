@@ -42,10 +42,14 @@ const convertToClientAccountCategory = (dbCategory: DatabaseClientAccountCategor
 
 export const clientCategoriesService = {
   async getAll(): Promise<ClientAccountCategory[]> {
+    const clientId = await getCurrentClientId();
+    if (!clientId) throw new Error('Cliente SaaS não encontrado.');
+
     const { data, error } = await supabase
       .from('client_account_categories')
       .select('*')
       .eq('is_active', true)
+      .eq('saas_client_id', clientId)
       .order('name');
 
     if (error) {

@@ -22,9 +22,13 @@ type FinancialClientUpdate = TablesUpdate<'financial_clients'>;
 
 export const financialClientsService = {
   async getAll(): Promise<FinancialClient[]> {
+    const clientId = await getCurrentClientId();
+    if (!clientId) throw new Error('Cliente SaaS não encontrado.');
+
     const { data, error } = await supabase
       .from('financial_clients')
       .select('*')
+      .eq('saas_client_id', clientId)
       .order('name');
 
     if (error) {
