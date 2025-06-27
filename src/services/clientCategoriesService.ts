@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { getCurrentClientId } from '@/utils/getCurrentClientId';
 
 export interface ClientAccountCategory {
   id: string;
@@ -56,14 +57,8 @@ export const clientCategoriesService = {
 
   async create(category: Omit<ClientAccountCategory, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>): Promise<ClientAccountCategory> {
     // Get current client ID
-    const { data: clientMapping } = await supabase
-      .from('saas_user_client_mapping')
-      .select('client_id')
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-      .eq('is_active', true)
-      .single();
-
-    if (!clientMapping) {
+    const clientId = await getCurrentClientId();
+    if (!clientId) {
       throw new Error('Cliente não encontrado');
     }
 
@@ -71,7 +66,7 @@ export const clientCategoriesService = {
       .from('client_account_categories')
       .insert({
         ...category,
-        saas_client_id: clientMapping.client_id
+        saas_client_id: clientId
       })
       .select()
       .single();

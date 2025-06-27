@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { getCurrentClientId } from '@/utils/getCurrentClientId';
 
 export type AccountPayableFromDB = Tables<'accounts_payable'> & {
   financial_clients?: { name: string } | null;
@@ -20,10 +21,10 @@ export const accountsPayableService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Usuário não autenticado.");
     
-    const { data: clientMapping, error: mappingError } = await supabase.from('saas_user_client_mapping').select('client_id').eq('user_id', user.id).single();
-    if (mappingError || !clientMapping) throw new Error('Mapeamento de cliente não encontrado.');
+    const clientId = await getCurrentClientId();
+    if (!clientId) throw new Error('Mapeamento de cliente não encontrado.');
 
-    const payload: TablesInsert<'accounts_payable'> = { ...account, saas_client_id: clientMapping.client_id, status: 'pending' };
+    const payload: TablesInsert<'accounts_payable'> = { ...account, saas_client_id: clientId, status: 'pending' };
 
     const { data, error } = await supabase.from('accounts_payable').insert(payload).select('*, financial_clients ( name )').single();
     if (error) throw error;

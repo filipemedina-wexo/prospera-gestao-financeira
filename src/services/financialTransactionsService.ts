@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { getCurrentClientId } from '@/utils/getCurrentClientId';
 
 export type FinancialTransaction = Tables<'financial_transactions'>;
 
@@ -30,17 +31,12 @@ export const financialTransactionsService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Usuário não autenticado.");
 
-    const { data: clientMapping } = await supabase
-      .from('saas_user_client_mapping')
-      .select('client_id')
-      .eq('user_id', user.id)
-      .single();
-    
-    if (!clientMapping) throw new Error('Cliente não encontrado');
+    const clientId = await getCurrentClientId();
+    if (!clientId) throw new Error('Cliente não encontrado');
 
     const { data, error } = await supabase
       .from('financial_transactions')
-      .insert({ ...transaction, saas_client_id: clientMapping.client_id })
+      .insert({ ...transaction, saas_client_id: clientId })
       .select()
       .single();
     
