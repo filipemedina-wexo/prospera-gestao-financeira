@@ -134,12 +134,15 @@ export function ContasPagar() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div><h2 className="text-2xl font-bold">Contas a Pagar</h2><p className="text-muted-foreground">Gerencie suas obrigações financeiras e evite atrasos</p></div>
-        <Dialog open={showNovaContaDialog} onOpenChange={(isOpen) => { if (!isOpen) setContaParaEditar(null); setShowNovaContaDialog(isOpen); }}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setShowNovaContaDialog(true)}><Plus className="mr-2 h-4 w-4" />Nova Conta</Button>
-          </DialogTrigger>
-          <NovaContaDialog open={showNovaContaDialog} onOpenChange={setShowNovaContaDialog} onSubmit={(values: any) => upsertMutation(values)} contaToEdit={contaParaEditar} />
-        </Dialog>
+        <NovaContaDialog
+          open={showNovaContaDialog}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setContaParaEditar(null);
+            setShowNovaContaDialog(isOpen);
+          }}
+          onSubmit={(values: any) => upsertMutation(values)}
+          contaToEdit={contaParaEditar}
+        />
       </div>
 
       <RegistrarPagamentoDialog
