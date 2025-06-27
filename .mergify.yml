@@ -1,0 +1,9 @@
+pull_request_rules:
+  - name: Auto-merge quando aprovado
+    conditions:
+      - base=main
+      - approved-reviews-by>=1
+      - check-success>=1
+    actions:
+      merge:
+        method: squash
