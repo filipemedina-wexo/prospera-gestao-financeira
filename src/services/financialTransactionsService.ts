@@ -7,9 +7,13 @@ export type FinancialTransaction = Tables<'financial_transactions'>;
 
 export const financialTransactionsService = {
   async getAll(): Promise<FinancialTransaction[]> {
+    const clientId = await getCurrentClientId();
+    if (!clientId) throw new Error('Cliente SaaS não encontrado.');
+
     const { data, error } = await supabase
       .from('financial_transactions')
       .select('*')
+      .eq('saas_client_id', clientId)
       .order('transaction_date', { ascending: false });
     
     if (error) throw error;
@@ -17,10 +21,14 @@ export const financialTransactionsService = {
   },
 
   async getByBankAccount(bankAccountId: string): Promise<FinancialTransaction[]> {
+    const clientId = await getCurrentClientId();
+    if (!clientId) throw new Error('Cliente SaaS não encontrado.');
+
     const { data, error } = await supabase
       .from('financial_transactions')
       .select('*')
       .eq('bank_account_id', bankAccountId)
+      .eq('saas_client_id', clientId)
       .order('transaction_date', { ascending: false });
     
     if (error) throw error;

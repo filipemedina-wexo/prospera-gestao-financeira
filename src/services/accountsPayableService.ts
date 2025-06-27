@@ -8,9 +8,13 @@ export type AccountPayableFromDB = Tables<'accounts_payable'> & {
 
 export const accountsPayableService = {
   async getAll(): Promise<AccountPayableFromDB[]> {
+    const clientId = await getCurrentClientId();
+    if (!clientId) throw new Error('Cliente SaaS não encontrado.');
+
     const { data, error } = await supabase
       .from('accounts_payable')
       .select('*, financial_clients ( name )')
+      .eq('saas_client_id', clientId)
       .order('due_date');
 
     if (error) throw new Error(`Erro ao buscar contas a pagar: ${error.message}`);

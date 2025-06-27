@@ -8,9 +8,13 @@ export type AccountReceivableFromDB = Tables<'accounts_receivable'> & {
 
 export const accountsReceivableService = {
   async getAll(): Promise<AccountReceivableFromDB[]> {
+    const clientId = await getCurrentClientId();
+    if (!clientId) throw new Error('Cliente SaaS não encontrado.');
+
     const { data, error } = await supabase
       .from('accounts_receivable')
       .select('*, financial_clients ( name )')
+      .eq('saas_client_id', clientId)
       .order('due_date');
 
     if (error) throw new Error(`Erro ao buscar contas a receber: ${error.message}`);
