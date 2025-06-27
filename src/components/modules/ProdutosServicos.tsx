@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Package, Plus, Search, Edit, Trash2 } from "lucide-react";
+import { ActionsDropdown, ActionItem } from "@/components/ui/actions-dropdown";
 import { useState } from "react";
 import { ProdutoServico } from "./produtos-servicos/types";
 
@@ -152,12 +153,10 @@ export const ProdutosServicos = ({ produtos }: ProdutosServicosProps) => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <ActionsDropdown actions={[
+                    { type: 'edit', label: 'Editar', onClick: () => console.log('editar', product.id) },
+                    { type: 'delete', label: 'Excluir', onClick: () => console.log('excluir', product.id), variant: 'destructive' }
+                  ]} />
                 </div>
               </div>
             ))}

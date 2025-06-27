@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Departamento, Cargo, Funcionario } from "./types";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
+import { ActionsDropdown, ActionItem } from "@/components/ui/actions-dropdown";
 import { useToast } from "@/hooks/use-toast";
 import { DepartamentoDialog } from "./DepartamentoDialog";
 import { CargoDialog } from "./CargoDialog";
@@ -123,6 +124,16 @@ const Departamentos = ({ departamentos, setDepartamentos, cargos, setCargos, fun
             handleDeleteCargo(deleteTarget.id);
         }
     }
+
+    const getActionsForDepartamento = (d: Departamento): ActionItem[] => [
+        { type: 'edit', label: 'Editar', onClick: () => handleEditDepartamento(d) },
+        { type: 'delete', label: 'Excluir', onClick: () => setDeleteTarget({ type: 'departamento', id: d.id, name: d.nome }), variant: 'destructive' }
+    ];
+
+    const getActionsForCargo = (c: Cargo): ActionItem[] => [
+        { type: 'edit', label: 'Editar', onClick: () => handleEditCargo(c) },
+        { type: 'delete', label: 'Excluir', onClick: () => setDeleteTarget({ type: 'cargo', id: c.id, name: c.nome }), variant: 'destructive' }
+    ];
     
     return (
         <div className="space-y-6">
@@ -149,12 +160,7 @@ const Departamentos = ({ departamentos, setDepartamentos, cargos, setCargos, fun
                                     <TableCell className="font-medium">{d.nome}</TableCell>
                                     <TableCell>{getResponsavelNome(d.responsavelId)}</TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon" onClick={() => handleEditDepartamento(d)}>
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ type: 'departamento', id: d.id, name: d.nome })}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
+                                        <ActionsDropdown actions={getActionsForDepartamento(d)} />
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -186,12 +192,7 @@ const Departamentos = ({ departamentos, setDepartamentos, cargos, setCargos, fun
                                     <TableCell className="font-medium">{c.nome}</TableCell>
                                     <TableCell>{c.descricao}</TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon" onClick={() => handleEditCargo(c)}>
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ type: 'cargo', id: c.id, name: c.nome })}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
+                                        <ActionsDropdown actions={getActionsForCargo(c)} />
                                     </TableCell>
                                 </TableRow>
                             ))}

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { ActionExpandableTabs, ActionItem } from "@/components/ui/action-expandable-tabs";
+import { ActionsDropdown, ActionItem } from "@/components/ui/actions-dropdown";
 
 interface FornecedoresTableProps {
   fornecedores: Fornecedor[];
@@ -63,7 +63,7 @@ export const FornecedoresTable = ({ fornecedores, onEdit, onDelete }: Fornecedor
             </TableCell>
             <TableCell>{format(new Date(fornecedor.dataCadastro), "dd/MM/yyyy")}</TableCell>
             <TableCell>
-              <ActionExpandableTabs actions={getActionsForFornecedor(fornecedor)} />
+              <ActionsDropdown actions={getActionsForFornecedor(fornecedor)} />
             </TableCell>
           </TableRow>
         ))}

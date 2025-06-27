@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
+import { ActionsDropdown, ActionItem } from "@/components/ui/actions-dropdown";
 import { FuncionarioDialog } from "./FuncionarioDialog";
 import { useToast } from "@/hooks/use-toast";
 
@@ -47,6 +48,11 @@ const Funcionarios = ({ funcionarios, setFuncionarios, departamentos, cargos }: 
             });
         }
     };
+
+    const getActionsForFuncionario = (f: Funcionario): ActionItem[] => [
+        { type: 'edit', label: 'Editar', onClick: () => { setSelectedFuncionario(f); setIsDialogOpen(true); } },
+        { type: 'delete', label: 'Excluir', onClick: () => handleDelete(f.id), variant: 'destructive' }
+    ];
     
     return (
         <>
@@ -82,13 +88,8 @@ const Funcionarios = ({ funcionarios, setFuncionarios, departamentos, cargos }: 
                                     <TableCell className="text-center">
                                         <Badge variant={statusVariant[f.status]}>{f.status.charAt(0).toUpperCase() + f.status.slice(1)}</Badge>
                                     </TableCell>
-                                    <TableCell className="text-right space-x-1">
-                                        <Button variant="ghost" size="icon" onClick={() => { setSelectedFuncionario(f); setIsDialogOpen(true); }}>
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(f.id)}>
-                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                        </Button>
+                                    <TableCell className="text-right">
+                                        <ActionsDropdown actions={getActionsForFuncionario(f)} />
                                     </TableCell>
                                 </TableRow>
                             ))}

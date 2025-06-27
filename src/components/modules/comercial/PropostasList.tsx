@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Proposta } from "./types";
-import { Eye } from "lucide-react";
-import { ActionExpandableTabs, ActionItem } from "@/components/ui/action-expandable-tabs";
+import { ActionItem, ActionsDropdown } from "@/components/ui/actions-dropdown";
 
 interface PropostasListProps {
   propostas: Proposta[];
@@ -104,13 +103,7 @@ export function PropostasList({ propostas, onStatusChange }: PropostasListProps)
                 </TableCell>
                 <TableCell>{getStatusBadge(proposta.status)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center justify-end space-x-2">
-                    <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-                      <span className="sr-only">Ver detalhes</span>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <ActionExpandableTabs actions={getActionsForProposta(proposta)} />
-                  </div>
+                  <ActionsDropdown actions={getActionsForProposta(proposta)} />
                 </TableCell>
               </TableRow>
             ))}
