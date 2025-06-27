@@ -153,7 +153,20 @@ export const useClientMapping = () => {
       });
 
     if (error) {
-      throw new Error(`Erro ao associar usuário ao cliente: ${error.message}`);
+      // If the error is due to the unique constraint, update the existing row
+      if (error.message.includes('duplicate key value')) {
+        const { error: updateError } = await supabase
+          .from('saas_user_client_mapping')
+          .update({ client_id: clientId, role })
+          .eq('user_id', user.id)
+          .eq('is_active', true);
+
+        if (updateError) {
+          throw new Error(`Erro ao associar usuário ao cliente: ${updateError.message}`);
+        }
+      } else {
+        throw new Error(`Erro ao associar usuário ao cliente: ${error.message}`);
+      }
     }
 
     setCurrentClientId(clientId);
