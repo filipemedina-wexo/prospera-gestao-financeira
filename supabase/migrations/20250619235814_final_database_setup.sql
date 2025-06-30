@@ -58,8 +58,8 @@ DECLARE
 BEGIN
     -- Atualiza a conta a receber e obtém o valor
     UPDATE public.accounts_receivable
-    SET 
-        status = 'received',
+    SET
+        status = 'received'::account_receivable_status,
         received_date = p_received_date,
         bank_account_id = p_bank_account_id
     WHERE id = p_receivable_id
