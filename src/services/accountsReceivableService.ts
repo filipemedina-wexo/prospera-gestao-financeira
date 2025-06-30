@@ -47,7 +47,6 @@ export const accountsReceivableService = {
   },
 
   async markAsReceived(id: string, receivedDate: string, bankAccountId: string): Promise<void> {
-    // CORREÇÃO APLICADA AQUI
     const { error } = await supabase.rpc('registrar_recebimento', {
       p_receivable_id: id,
       p_received_date: receivedDate,
