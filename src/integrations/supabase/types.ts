@@ -973,7 +973,7 @@ export type Database = {
     }
     Enums: {
       account_payable_status: "pending" | "paid" | "overdue" | "partial"
-      account_receivable_status: "pending" | "received" | "overdue" | "partial"
+      account_receivable_status: "pending" | "received" | "overdue" | "partial" | "paid"
       app_role:
         | "admin"
         | "financeiro"
@@ -1104,7 +1104,7 @@ export const Constants = {
   public: {
     Enums: {
       account_payable_status: ["pending", "paid", "overdue", "partial"],
-      account_receivable_status: ["pending", "received", "overdue", "partial"],
+      account_receivable_status: ["pending", "received", "overdue", "partial", "paid"],
       app_role: ["admin", "financeiro", "comercial", "contador", "super_admin"],
       saas_client_status: ["active", "blocked", "trial", "suspended"],
       saas_plan_type: ["basic", "premium", "enterprise"],
