@@ -36,20 +36,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   useEffect(() => {
-    console.log('Initializing auth context...');
     let mounted = true;
 
     // Set up auth state listener first
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, !!session);
       
       if (!mounted) return;
 
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log('User signed in');
         fetchAndSetUser(session.user);
       } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out');
         setUser(null);
         setTimeout(async () => {
           await logSecurityEvent('USER_LOGOUT', 'auth', true);
@@ -61,7 +57,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Check for existing session
     const initializeSession = () => {
-      console.log('Getting initial session...');
       supabase.auth.getSession().then(({ data: { session }, error }) => {
         if (error) {
           console.error('Error getting session:', error);
@@ -71,7 +66,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (mounted) {
           if (session?.user) {
-            console.log('Found existing session');
             fetchAndSetUser(session.user);
           } else {
             setLoading(false);

@@ -27,7 +27,6 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     retryCount = multiTenantContext.retryCount;
   } catch (error) {
     // Context not ready yet, keep loading state true
-    console.log('MultiTenant context not ready yet, showing loading...');
     tenantLoading = true;
   }
 

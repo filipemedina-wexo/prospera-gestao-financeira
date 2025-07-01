@@ -5,7 +5,6 @@ import { logSecurityEvent } from '@/utils/securityLogger';
 import { SignUpData } from '@/types/auth';
 
 export const loginUser = async (email: string, password: string) => {
-  console.log('Attempting login for:', email);
   
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ 
@@ -20,7 +19,6 @@ export const loginUser = async (email: string, password: string) => {
     } 
     
     if (data.user) {
-      console.log('Login successful');
       return { error: null };
     }
 
@@ -32,7 +30,6 @@ export const loginUser = async (email: string, password: string) => {
 };
 
 export const logoutUser = async () => {
-  console.log('Logging out user');
   
   try {
     await supabase.auth.signOut();
@@ -43,7 +40,6 @@ export const logoutUser = async () => {
 };
 
 export const signUpUser = async ({ email, password, fullName }: SignUpData) => {
-  console.log('Attempting signup for:', email);
   
   try {
     const { data, error } = await supabase.auth.signUp({
@@ -61,7 +57,6 @@ export const signUpUser = async ({ email, password, fullName }: SignUpData) => {
       console.error('Signup error:', error);
       await logSecurityEvent('USER_SIGNUP_FAILED', 'auth', false, error.message);
     } else {
-      console.log('Signup successful - new client will be created automatically');
       await logSecurityEvent('USER_SIGNUP', 'auth', true);
     }
     

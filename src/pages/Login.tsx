@@ -23,7 +23,6 @@ const Login = () => {
   // Handle redirection when user becomes available
   useEffect(() => {
     if (!authLoading && user) {
-      console.log('User authenticated, redirecting to dashboard');
       const from = location.state?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
     }
@@ -35,7 +34,6 @@ const Login = () => {
     
     try {
       if (isSignUp) {
-        console.log('Submitting signup form');
         const { error } = await signUp({ email, password, fullName });
         if (!error) {
           setShowSignupSuccess(true);
@@ -44,14 +42,11 @@ const Login = () => {
             description: "Você será redirecionado para seu painel em instantes.",
           });
           // Note: Navigation will be handled by useEffect when user state updates
-          console.log('Signup successful, waiting for user state update and client creation');
         }
       } else {
-        console.log('Submitting login form');
         const { error } = await login(email, password);
         if (!error) {
           // Navigation will be handled by useEffect when user state updates
-          console.log('Login successful, waiting for user state update');
         }
       }
     } catch (error) {

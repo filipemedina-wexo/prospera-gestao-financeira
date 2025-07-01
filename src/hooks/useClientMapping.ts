@@ -25,14 +25,12 @@ export const useClientMapping = () => {
     if (!mountedRef.current) return;
 
     try {
-      console.log(`Fetching client mapping for user ${userId}, attempt ${attempt + 1}`);
       setLoading(true);
       setError(null);
 
       // Get the current session to ensure we're authenticated
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) {
-        console.log('No active session found');
         setError('Usuário não autenticado');
         setLoading(false);
         return;
@@ -48,7 +46,6 @@ export const useClientMapping = () => {
         
         // If it's an auth error and we have attempts left, retry
         if ((error.code === 'PGRST301' || error.message.includes('JSON object requested')) && attempt < 3) {
-          console.log(`Auth/JSON error, retrying in 1 second... (attempt ${attempt + 1}/3)`);
           setRetryCount(attempt + 1);
           
           setTimeout(() => {
@@ -65,7 +62,6 @@ export const useClientMapping = () => {
       }
 
       if (data) {
-        console.log('Client mapping found:', data);
         setCurrentClientId(data);
         setRetryCount(0);
         setLoading(false);
@@ -76,7 +72,6 @@ export const useClientMapping = () => {
       const maxRetries = 8; // Will retry for roughly 25 seconds total
       if (attempt < maxRetries) {
         const delay = Math.min(1000 * Math.pow(1.5, attempt), 5000); // Cap at 5 seconds
-        console.log(`No client mapping found, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
         
         setRetryCount(attempt + 1);
         

@@ -37,7 +37,7 @@ export function PropostasList({ propostas, onStatusChange }: PropostasListProps)
       {
         type: 'view',
         label: 'Ver detalhes',
-        onClick: () => console.log('Ver proposta', proposta.id),
+        onClick: () => {},
       }
     ];
 
@@ -62,7 +62,7 @@ export function PropostasList({ propostas, onStatusChange }: PropostasListProps)
     actions.push({
       type: 'edit',
       label: 'Editar',
-      onClick: () => console.log('Editar proposta', proposta.id),
+      onClick: () => {},
     });
 
     return actions;
