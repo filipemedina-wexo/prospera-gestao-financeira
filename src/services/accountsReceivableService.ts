@@ -55,7 +55,7 @@ export const accountsReceivableService = {
     
     if (error) {
       console.error("Erro ao registrar recebimento via RPC:", error);
-      throw error;
+      throw new Error(`Erro ao registrar recebimento: ${error.message}`);
     }
   },
 };
