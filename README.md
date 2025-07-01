@@ -38,12 +38,7 @@ npm run dev
 
 ## Variáveis de ambiente
 
-Crie um arquivo `.env` a partir de `.env.example` contendo as seguintes variáveis. Para isso, execute o comando:
-
-```sh
-cp .env.example .env
-```
-Em seguida, defina os valores das variáveis abaixo:
+Crie um arquivo `.env` a partir de `.env.example` contendo as seguintes variáveis:
 
 ```sh
 VITE_SUPABASE_URL=<sua URL do Supabase>
