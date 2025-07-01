@@ -154,8 +154,8 @@ export const ProdutosServicos = ({ produtos }: ProdutosServicosProps) => {
                 </div>
                 <div className="flex items-center gap-2">
                   <ActionsDropdown actions={[
-                    { type: 'edit', label: 'Editar', onClick: () => console.log('editar', product.id) },
-                    { type: 'delete', label: 'Excluir', onClick: () => console.log('excluir', product.id), variant: 'destructive' }
+                    { type: 'edit', label: 'Editar', onClick: () => {} },
+                    { type: 'delete', label: 'Excluir', onClick: () => {}, variant: 'destructive' }
                   ]} />
                 </div>
               </div>

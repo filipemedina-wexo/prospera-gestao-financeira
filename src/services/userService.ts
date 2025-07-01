@@ -6,7 +6,6 @@ import { AppUser } from '@/types/auth';
 import { logSecurityEvent } from '@/utils/securityLogger';
 
 export const fetchUserData = async (supabaseUser: SupabaseUser): Promise<AppUser> => {
-  console.log('Fetching user data for:', supabaseUser.id);
   
   const { data: roleData } = await supabase
     .from('user_roles')
@@ -27,7 +26,6 @@ export const fetchUserData = async (supabaseUser: SupabaseUser): Promise<AppUser
     role: (roleData?.role as ExtendedRole) || null,
   };
   
-  console.log('User data fetched successfully:', appUser);
 
   // Send welcome email if needed
   if (supabaseUser.email_confirmed_at && !profileData?.welcome_email_sent) {
