@@ -17,6 +17,7 @@ import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { accountsReceivableService } from "@/services/accountsReceivableService";
 import { financialClientsService } from "@/services/financialClientsService";
 import { bankAccountsService } from "@/services/bankAccountsService";
+import type { Database } from "@/integrations/supabase/types";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContasReceberTable } from "./contas-receber/ContasReceberTable";
@@ -69,8 +70,17 @@ export function ContasReceber() {
           financial_client_id: conta.clienteId,
           competencia: conta.competencia
       };
+
+      const statusMap: Record<ContaReceber['status'], Database['public']['Enums']['account_receivable_status']> = {
+        pendente: 'pending',
+        recebido: 'received',
+        atrasado: 'overdue',
+        parcial: 'partial'
+      };
+
       if (conta.id) {
-          return accountsReceivableService.update(conta.id, { ...payload, status: conta.status });
+          const status = conta.status ? statusMap[conta.status] : undefined;
+          return accountsReceivableService.update(conta.id, { ...payload, status });
       }
       return accountsReceivableService.create(payload);
     },
@@ -113,7 +123,15 @@ export function ContasReceber() {
 
     const todasContas = (contasDatabase || []).map((conta): ContaReceber => {
         const dataVencimento = parseISO(conta.due_date);
-        let status = (conta.status || 'pendente') as ContaReceber['status'];
+        const statusMap: Record<Database['public']['Enums']['account_receivable_status'], ContaReceber['status']> = {
+          pending: 'pendente',
+          received: 'recebido',
+          overdue: 'atrasado',
+          partial: 'parcial',
+          paid: 'recebido',
+        };
+
+        let status = statusMap[conta.status];
         if (status === 'pendente' && isPast(dataVencimento) && !isToday(dataVencimento)) {
             status = 'atrasado';
         }
