@@ -94,15 +94,17 @@ export function ContasReceber() {
   });
   
   const { mutate: markAsReceivedMutation } = useMutation({
-    mutationFn: (data: { contaId: string; receivedDate: string; bankAccountId: string }) => 
+    mutationFn: (data: { contaId: string; receivedDate: string; bankAccountId: string }) =>
       accountsReceivableService.markAsReceived(data.contaId, data.receivedDate, data.bankAccountId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts-receivable', currentClientId] });
       queryClient.invalidateQueries({ queryKey: ['bank-accounts', currentClientId] });
+      queryClient.invalidateQueries({ queryKey: ['financial-transactions', currentClientId] });
       setShowReceberDialog(false);
       toast({ title: 'Conta marcada como recebida!' });
     },
-    onError: (error: any) => toast({ title: 'Erro', description: error.message, variant: 'destructive' }),
+    onError: (error: any) =>
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' }),
   });
 
   const dadosProcessados = useMemo(() => {
@@ -115,6 +117,7 @@ export function ContasReceber() {
         if (status === 'pendente' && isPast(dataVencimento) && !isToday(dataVencimento)) {
             status = 'atrasado';
         }
+
         return {
             id: conta.id,
             descricao: conta.description,
@@ -125,6 +128,7 @@ export function ContasReceber() {
             clienteId: conta.financial_client_id || '',
             categoria: conta.category || 'Geral',
             competencia: (conta as any).competencia || format(dataVencimento, 'MM/yyyy'),
+            dataRecebimento: conta.received_date ? parseISO(conta.received_date) : undefined,
         };
     });
 
@@ -135,10 +139,25 @@ export function ContasReceber() {
     );
 
     const summary = {
-      totalAReceber: todasContas.filter(c => c.status === 'pendente' || c.status === 'atrasado').reduce((sum, c) => sum + c.valor, 0),
-      totalRecebido: todasContas.filter(c => c.status === 'recebido').reduce((sum, c) => sum + c.valor, 0),
+      totalAReceber: todasContas
+        .filter(c => c.status === 'pendente' || c.status === 'atrasado')
+        .reduce((sum, c) => sum + c.valor, 0),
+      totalRecebido: todasContas
+        .filter(
+          c =>
+            c.status === 'recebido' &&
+            c.dataRecebimento &&
+            c.dataRecebimento.getMonth() === today.getMonth() &&
+            c.dataRecebimento.getFullYear() === today.getFullYear()
+        )
+        .reduce((sum, c) => sum + c.valor, 0),
       contasAtrasadas: todasContas.filter(c => c.status === 'atrasado').length,
-      taxaRecebimento: todasContas.length > 0 ? Math.round((todasContas.filter(c => c.status === 'recebido').length / todasContas.length) * 100) : 0,
+      taxaRecebimento:
+        todasContas.length > 0
+          ? Math.round(
+              (todasContas.filter(c => c.status === 'recebido').length / todasContas.length) * 100
+            )
+          : 0,
     };
     
     return { contasFiltradas, summary };

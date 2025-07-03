@@ -56,13 +56,14 @@ export function Relatorios() {
     } as const;
 
     return {
-      ...c, 
-      dataVencimento: new Date(c.due_date), 
-      valor: c.amount, 
-      descricao: c.description, 
-      categoria: c.category || '', 
+      ...c,
+      dataVencimento: new Date(c.due_date),
+      valor: c.amount,
+      descricao: c.description,
+      categoria: c.category || '',
       fornecedor: '',
-      status: statusMapping[c.status] || 'pendente'
+      status: statusMapping[c.status] || 'pendente',
+      dataPagamento: c.paid_date ? new Date(c.paid_date) : undefined,
     };
   }), [contasPagarData]);
   
@@ -75,13 +76,14 @@ export function Relatorios() {
     } as const;
 
     return {
-      ...c, 
-      dataVencimento: new Date(c.due_date), 
-      valor: c.amount, 
-      descricao: c.description, 
-      categoria: c.category || '', 
+      ...c,
+      dataVencimento: new Date(c.due_date),
+      valor: c.amount,
+      descricao: c.description,
+      categoria: c.category || '',
       cliente: '',
-      status: statusMapping[c.status] || 'pendente'
+      status: statusMapping[c.status] || 'pendente',
+      dataRecebimento: c.received_date ? new Date(c.received_date) : undefined,
     };
   }), [contasReceberData]);
 
