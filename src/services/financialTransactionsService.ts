@@ -14,7 +14,8 @@ export const financialTransactionsService = {
       .from('financial_transactions')
       .select('*')
       .eq('saas_client_id', clientId)
-      .order('transaction_date', { ascending: false });
+      .order('transaction_date', { ascending: false })
+      .order('created_at', { ascending: false });
     
     if (error) throw error;
     return data || [];
@@ -29,7 +30,8 @@ export const financialTransactionsService = {
       .select('*')
       .eq('bank_account_id', bankAccountId)
       .eq('saas_client_id', clientId)
-      .order('transaction_date', { ascending: false });
+      .order('transaction_date', { ascending: false })
+      .order('created_at', { ascending: false });
     
     if (error) throw error;
     return data || [];
