@@ -84,3 +84,24 @@ Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-trick
 ## Variáveis de ambiente do Supabase
 
 Crie um arquivo `supabase/.env` (ou copie `supabase/.env.example`) e defina o valor de `BASE_URL` com a URL do frontend utilizada nos links enviados por email.
+
+## Migrações e geração de tipos
+
+Para aplicar o novo esquema de banco de dados, instale o [Supabase CLI](https://supabase.com/docs/guides/cli) e execute as migrações reestruturadas:
+
+```sh
+cd supabase
+supabase db reset
+```
+
+Após a conclusão das migrações, gere novamente os tipos TypeScript utilizados pelo cliente:
+
+```sh
+supabase gen types typescript --local > ../src/integrations/supabase/types.ts
+```
+
+Em seguida, retorne à raiz do projeto e rode `npm run lint` para validar a sintaxe.
+
+### Autenticação e multi-tenancy
+
+O fluxo de login e o carregamento do cliente ativo continuam inalterados. Nenhuma alteração é necessária no código de autenticação ou multi-tenancy.
