@@ -49,7 +49,7 @@ export function ContasReceber() {
   });
   
   const { data: clientes, isLoading: isLoadingClientes } = useQuery({
-    queryKey: ['financial-clients', currentClientId],
+    queryKey: ['fornecedores', currentClientId],
     queryFn: () => currentClientId ? financialClientsService.getAll() : Promise.resolve([]),
     enabled: !!currentClientId,
   });
@@ -63,11 +63,11 @@ export function ContasReceber() {
   const { mutate: upsertMutation } = useMutation({
     mutationFn: (conta: Partial<ContaReceber>) => {
       const payload: any = {
-          description: conta.descricao!,
-          amount: conta.valor!,
-          due_date: format(conta.dataVencimento!, 'yyyy-MM-dd'),
-          category: conta.categoria,
-          financial_client_id: conta.clienteId,
+          descricao: conta.descricao!,
+          valor: conta.valor!,
+          data_vencimento: format(conta.dataVencimento!, 'yyyy-MM-dd'),
+          categoria: conta.categoria,
+          fornecedor_id: conta.clienteId,
           competencia: conta.competencia
       };
 
@@ -122,7 +122,7 @@ export function ContasReceber() {
     today.setHours(0, 0, 0, 0);
 
     const todasContas = (contasDatabase || []).map((conta): ContaReceber => {
-        const dataVencimento = parseISO(conta.due_date);
+        const dataVencimento = parseISO((conta as any).data_vencimento);
         const statusMap: Record<Database['public']['Enums']['account_receivable_status'], ContaReceber['status']> = {
           pending: 'pendente',
           received: 'recebido',
@@ -138,15 +138,15 @@ export function ContasReceber() {
 
         return {
             id: conta.id,
-            descricao: conta.description,
-            valor: conta.amount,
+            descricao: (conta as any).descricao,
+            valor: (conta as any).valor,
             dataVencimento,
             status,
-            cliente: conta.financial_clients?.name || 'Cliente não vinculado',
-            clienteId: conta.financial_client_id || '',
-            categoria: conta.category || 'Geral',
+            cliente: (conta as any).fornecedores?.razao_social || 'Cliente não vinculado',
+            clienteId: (conta as any).fornecedor_id || '',
+            categoria: (conta as any).categoria || 'Geral',
             competencia: (conta as any).competencia || format(dataVencimento, 'MM/yyyy'),
-            dataRecebimento: conta.received_date ? parseISO(conta.received_date) : undefined,
+            dataRecebimento: (conta as any).data_recebimento ? parseISO((conta as any).data_recebimento) : undefined,
         };
     });
 

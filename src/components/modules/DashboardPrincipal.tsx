@@ -56,7 +56,7 @@ export function DashboardPrincipal({ onAlertsClick }: DashboardPrincipalProps) {
   });
 
   const { data: clientes, isLoading: clientesLoading } = useQuery({
-    queryKey: ['financial-clients', currentClientId],
+    queryKey: ['fornecedores', currentClientId],
     queryFn: () => currentClientId ? financialClientsService.getAll() : Promise.resolve([]),
     enabled: !!currentClientId,
   });
