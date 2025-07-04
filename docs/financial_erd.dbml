@@ -1,0 +1,104 @@
+Table categorias {
+  id serial [pk]
+  nome varchar
+}
+
+Table cargos {
+  id serial [pk]
+  nome varchar
+  descricao text
+}
+
+Table departamentos {
+  id serial [pk]
+  nome varchar
+  responsavel_id int [ref: > colaboradores.id]
+}
+
+Table colaboradores {
+  id serial [pk]
+  nome varchar
+  email varchar [unique]
+  departamento_id int [ref: > departamentos.id]
+  cargo_id int [ref: > cargos.id]
+  data_admissao date
+  salario numeric
+  status varchar
+}
+
+Table clientes {
+  id serial [pk]
+  razao_social varchar
+  nome_fantasia varchar
+  cnpj varchar
+  contato_nome varchar
+  telefone varchar
+  email varchar
+  whatsapp varchar
+  data_aniversario date
+  endereco varchar
+  cidade varchar
+  estado varchar
+  origem varchar
+  observacoes text
+  status varchar
+}
+
+Table fornecedores {
+  id serial [pk]
+  razao_social varchar
+  cnpj varchar
+  email varchar
+  telefone varchar
+  status varchar
+  data_cadastro date
+}
+
+Table produtos_servicos {
+  id serial [pk]
+  nome varchar
+  categoria_id int [ref: > categorias.id]
+  descricao text
+  tipo varchar
+  preco numeric
+  status varchar
+}
+
+Table contas_a_pagar {
+  id serial [pk]
+  fornecedor_id int [ref: > fornecedores.id]
+  categoria_id int [ref: > categorias.id]
+  descricao text
+  valor numeric
+  data_vencimento date
+  status varchar
+  data_pagamento date
+}
+
+Table contas_a_receber {
+  id serial [pk]
+  cliente_id int [ref: > clientes.id]
+  categoria_id int [ref: > categorias.id]
+  descricao text
+  valor numeric
+  data_vencimento date
+  status varchar
+  data_recebimento date
+}
+
+Table relatorios {
+  id serial [pk]
+  tipo varchar
+  periodo_inicio date
+  periodo_fim date
+  dados jsonb
+}
+
+Table usuarios {
+  id serial [pk]
+  nome varchar
+  email varchar [unique]
+  senha_hash varchar
+  tipo_usuario varchar
+  status varchar
+}
