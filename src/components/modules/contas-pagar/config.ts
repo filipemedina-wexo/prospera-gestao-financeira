@@ -8,8 +8,8 @@ export const formSchema = z.object({
     z.number().positive({ message: "O valor deve ser positivo." })
   ),
   dataVencimento: z.date({ required_error: "Data de vencimento é obrigatória." }),
-  fornecedor: z.string().min(1, "Fornecedor é obrigatório."),
-  categoria: z.string({ required_error: "Categoria é obrigatória." }).min(1, "Categoria é obrigatória."),
+  fornecedor_id: z.string().min(1, "Fornecedor é obrigatório."),
+  categoria_id: z.string({ required_error: "Categoria é obrigatória." }).min(1, "Categoria é obrigatória."),
   numeroDocumento: z.string().optional(),
   observacoes: z.string().optional(),
   competencia: z.string().regex(/^(|\d{2}\/\d{4})$/, "Formato inválido (MM/AAAA)").optional(),

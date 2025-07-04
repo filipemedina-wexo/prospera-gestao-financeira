@@ -5,8 +5,9 @@ export interface ContaPagar {
   dataVencimento: Date;
   status: 'pendente' | 'pago' | 'atrasado' | 'parcial';
   fornecedor: string;
-  fornecedorId?: string; // ID do financial_client
+  fornecedor_id?: string; // ID do financial_client
   categoria: string;
+  categoria_id?: string;
   numeroDocumento?: string;
   dataPagamento?: Date;
   formaPagamento?: string;
