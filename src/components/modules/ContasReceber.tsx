@@ -25,13 +25,16 @@ import { NovaContaReceberDialog } from "./contas-receber/NovaContaReceberDialog"
 import { ContasReceberFilters } from "./contas-receber/ContasReceberFilters";
 import { Dialog } from "@/components/ui/dialog";
 import { RegistrarRecebimentoDialog } from "./contas-receber/RegistrarRecebimentoDialog";
+import { useClientCategories } from "@/hooks/useClientCategories";
 
-const categorias = [ "Vendas de Produtos", "Vendas de Serviços", "Receitas Financeiras", "Outras Receitas", "Mensalidades", "Assinaturas" ];
 
 export function ContasReceber() {
   const { toast } = useToast();
   const { currentClientId, loading: clientLoading } = useMultiTenant();
   const queryClient = useQueryClient();
+  const { categories } = useClientCategories();
+  const incomeCategories = categories.filter(c => c.type === 'income');
+  const { categories } = useClientCategories();
   
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
@@ -152,7 +155,7 @@ export function ContasReceber() {
 
     const contasFiltradas = todasContas.filter(conta => 
         (filtroStatus === "todos" || conta.status === filtroStatus) &&
-        (filtroCategoria === "todas" || conta.categoria === filtroCategoria) &&
+        (filtroCategoria === "todas" || conta.categoria_id === filtroCategoria) &&
         (busca === "" || conta.descricao.toLowerCase().includes(busca.toLowerCase()) || (conta.cliente && conta.cliente.toLowerCase().includes(busca.toLowerCase())))
     );
 
@@ -229,7 +232,7 @@ export function ContasReceber() {
           onSubmit={(values) => upsertMutation(values)}
           contaToEdit={contaParaEditar}
           clientes={clientes || []}
-          categorias={categorias}
+          categorias={incomeCategories}
       />
       
       <RegistrarRecebimentoDialog
@@ -267,7 +270,7 @@ export function ContasReceber() {
             busca={busca} setBusca={setBusca}
             filtroStatus={filtroStatus} setFiltroStatus={setFiltroStatus}
             filtroCategoria={filtroCategoria} setFiltroCategoria={setFiltroCategoria}
-            categorias={categorias}
+            categorias={incomeCategories}
           />
         </CardHeader>
         <CardContent>

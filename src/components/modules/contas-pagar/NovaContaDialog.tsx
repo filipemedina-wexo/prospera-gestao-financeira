@@ -44,8 +44,8 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
     defaultValues: {
       descricao: "",
       valor: 0,
-      fornecedor: "",
-      categoria: "",
+      fornecedor_id: "",
+      categoria_id: "",
       dataVencimento: new Date(),
       recorrente: false,
     },
@@ -57,8 +57,8 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
         descricao: contaToEdit.descricao,
         valor: contaToEdit.valor,
         dataVencimento: new Date(contaToEdit.dataVencimento),
-        categoria: contaToEdit.categoria,
-        fornecedor: contaToEdit.fornecedorId,
+        categoria_id: contaToEdit.categoria_id,
+        fornecedor_id: contaToEdit.fornecedor_id,
         recorrente: contaToEdit.recorrente || false,
         frequencia: contaToEdit.frequencia,
         numParcelas: contaToEdit.numParcelas
@@ -68,8 +68,8 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
         descricao: "",
         valor: 0,
         dataVencimento: new Date(),
-        categoria: "",
-        fornecedor: "",
+        categoria_id: "",
+        fornecedor_id: "",
         recorrente: false,
       });
     }
@@ -120,18 +120,18 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
                         <FormMessage />
                     </FormItem>
                     )} />
-                    <FormField control={form.control} name="categoria" render={({ field }) => (
+                <FormField control={form.control} name="categoria_id" render={({ field }) => (
                     <FormItem><FormLabel>Categoria</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                        <SelectContent>{expenseCategories.map((cat) => (<SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>))}</SelectContent>
+                        <SelectContent>{expenseCategories.map((cat) => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}</SelectContent>
                         </Select>
                         <FormMessage />
                     </FormItem>
                     )} />
                 </div>
 
-                <FormField control={form.control} name="fornecedor" render={({ field }) => (
+                <FormField control={form.control} name="fornecedor_id" render={({ field }) => (
                 <FormItem><FormLabel>Fornecedor</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>

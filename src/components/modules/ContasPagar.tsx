@@ -12,6 +12,7 @@ import { NovaContaDialog } from "./contas-pagar/NovaContaDialog";
 import { RegistrarPagamentoDialog } from "./contas-pagar/RegistrarPagamentoDialog";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { accountsPayableService } from "@/services/accountsPayableService";
+import { useClientCategories } from "@/hooks/useClientCategories";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +24,7 @@ export function ContasPagar() {
   const { toast } = useToast();
   const { currentClientId, loading: clientLoading } = useMultiTenant();
   const queryClient = useQueryClient();
+  const { categories } = useClientCategories();
   
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
@@ -96,7 +98,7 @@ export function ContasPagar() {
     });
     const contasFiltradas = todasContas.filter(c => 
         (filtroStatus === 'todos' || c.status === filtroStatus) &&
-        (filtroCategoria === 'todas' || c.categoria === filtroCategoria) &&
+        (filtroCategoria === 'todas' || c.categoria_id === filtroCategoria) &&
         (filtroCompetencia === 'todas' || c.competencia === filtroCompetencia) &&
         (busca === '' || c.descricao.toLowerCase().includes(busca.toLowerCase()) || c.fornecedor.toLowerCase().includes(busca.toLowerCase()))
     );
@@ -152,15 +154,16 @@ export function ContasPagar() {
       />
 
       {isLoading ? <Skeleton className="h-24 w-full" /> : <ContasPagarSummary {...dadosProcessados.summary} />}
-      <ContasPagarFilters 
-        busca={busca} 
-        setBusca={setBusca} 
-        filtroStatus={filtroStatus} 
-        setFiltroStatus={setFiltroStatus} 
-        filtroCategoria={filtroCategoria} 
+      <ContasPagarFilters
+        busca={busca}
+        setBusca={setBusca}
+        filtroStatus={filtroStatus}
+        setFiltroStatus={setFiltroStatus}
+        filtroCategoria={filtroCategoria}
         setFiltroCategoria={setFiltroCategoria}
         filtroCompetencia={filtroCompetencia}
         setFiltroCompetencia={setFiltroCompetencia}
+        categorias={categories.filter(c => c.type === 'expense')}
       />
       {isLoading ? <Skeleton className="h-64 w-full" /> : <ContasPagarTable contas={dadosProcessados.contasFiltradas} onAbrirDialogPagamento={handleAbrirDialogPagamento} onEdit={handleEditConta} onDelete={(id) => setContaParaRemover({id} as ContaPagar)} />}
 

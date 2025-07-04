@@ -1,6 +1,4 @@
--- Migração dos dados das tabelas antigas para o novo modelo
-
--- As tabelas antigas serão renomeadas para manter o histórico
+-- Realiza a cópia de dados do esquema anterior para as novas tabelas
 ALTER TABLE IF EXISTS clientes RENAME TO clientes_old;
 ALTER TABLE IF EXISTS fornecedores RENAME TO fornecedores_old;
 ALTER TABLE IF EXISTS colaboradores RENAME TO colaboradores_old;
@@ -12,9 +10,6 @@ ALTER TABLE IF EXISTS contas_a_pagar RENAME TO contas_a_pagar_old;
 ALTER TABLE IF EXISTS contas_a_receber RENAME TO contas_a_receber_old;
 ALTER TABLE IF EXISTS relatorios RENAME TO relatorios_old;
 ALTER TABLE IF EXISTS usuarios RENAME TO usuarios_old;
-
--- Após executar o script de criação de tabelas (restructured_financial_db.sql),
--- copie os dados das tabelas antigas para as novas
 
 INSERT INTO categorias (id, nome, created_at, updated_at)
 SELECT id, nome, NOW(), NOW() FROM categorias_old;

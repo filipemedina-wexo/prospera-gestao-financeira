@@ -5,8 +5,9 @@ export interface ContaReceber {
   dataVencimento: Date;
   status: 'pendente' | 'recebido' | 'atrasado' | 'parcial';
   cliente: string;
-  clienteId?: string;
+  cliente_id?: string;
   categoria: string;
+  categoria_id?: string;
   numeroFatura?: string;
   dataRecebimento?: Date;
   formaRecebimento?: string;
