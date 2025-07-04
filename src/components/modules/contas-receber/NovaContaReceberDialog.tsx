@@ -73,11 +73,11 @@ export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEd
 
   const clientMutation = useMutation({
     mutationFn: (clientData: Partial<any>) => {
-      const payload = { name: clientData.razaoSocial, document: clientData.cnpj, email: clientData.email, phone: clientData.telefone };
+      const payload = { razao_social: clientData.razaoSocial, cnpj: clientData.cnpj, email: clientData.email, telefone: clientData.telefone };
       return financialClientsService.create(payload);
     },
     onSuccess: (newClient) => {
-      queryClient.invalidateQueries({ queryKey: ['financial-clients'] });
+      queryClient.invalidateQueries({ queryKey: ['fornecedores'] });
       toast({ title: "Cliente criado com sucesso!" });
       form.setValue('cliente_id', newClient.id);
       setShowClientDialog(false);

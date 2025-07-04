@@ -44,13 +44,7 @@ export function ContasPagar() {
 
   const { mutate: upsertMutation } = useMutation({
     mutationFn: (conta: Partial<ContaPagar>) => {
-        const payload: any = {
-          description: conta.descricao!,
-          amount: conta.valor!,
-          due_date: format(conta.dataVencimento!, 'yyyy-MM-dd'),
-          category: conta.categoria_id,
-          financial_client_id: conta.fornecedor_id
-        };
+        const payload: any = { descricao: conta.descricao!, valor: conta.valor!, data_vencimento: format(conta.dataVencimento!, 'yyyy-MM-dd'), categoria: conta.categoria, fornecedor_id: conta.fornecedorId };
         if (conta.id) return accountsPayableService.update(conta.id, {...payload, status: conta.status});
         return accountsPayableService.create(payload);
     },
@@ -89,21 +83,16 @@ export function ContasPagar() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todasContas = (contasDatabase || []).map((conta): ContaPagar => {
-      const dataVencimento = parseISO(conta.due_date);
+      const dataVencimento = parseISO((conta as any).data_vencimento);
       let status = (conta.status || 'pendente') as ContaPagar['status'];
       if (status === 'pendente' && isPast(dataVencimento) && !isToday(dataVencimento)) {
         status = 'atrasado';
       }
       return {
-        id: conta.id,
-        descricao: conta.description,
-        valor: conta.amount,
-        dataVencimento,
-        status,
-        fornecedor: conta.financial_clients?.name || 'Não informado',
-        fornecedor_id: conta.financial_client_id || '',
-        categoria: (conta as any).client_account_categories?.name || conta.category || 'Geral',
-        categoria_id: (conta as any).category_id || conta.category || '',
+        id: conta.id, descricao: (conta as any).descricao, valor: (conta as any).valor, dataVencimento, status,
+        fornecedor: (conta as any).fornecedores?.razao_social || 'Não informado',
+        fornecedorId: (conta as any).fornecedor_id || '',
+        categoria: (conta as any).categoria || 'Geral',
         competencia: format(dataVencimento, 'MM/yyyy'),
       };
     });

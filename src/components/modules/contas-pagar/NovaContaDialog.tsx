@@ -34,7 +34,7 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
   const { categories } = useClientCategories();
   
   const { data: fornecedores } = useQuery({
-    queryKey: ['financial-clients', currentClientId],
+    queryKey: ['fornecedores', currentClientId],
     queryFn: () => currentClientId ? financialClientsService.getAll() : Promise.resolve([]),
     enabled: !!currentClientId,
   });
@@ -135,7 +135,7 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
                 <FormItem><FormLabel>Fornecedor</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                    <SelectContent>{(fornecedores || []).map((f) => (<SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>))}</SelectContent>
+                    <SelectContent>{(fornecedores || []).map((f) => (<SelectItem key={f.id} value={f.id}>{f.razao_social}</SelectItem>))}</SelectContent>
                     </Select>
                     <FormMessage />
                 </FormItem>

@@ -16,7 +16,7 @@ export const alertsService = {
 
       // Alertas de contas a pagar
       contasPagar.forEach(conta => {
-        const dataVencimento = parseISO(conta.due_date);
+        const dataVencimento = parseISO((conta as any).data_vencimento);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -25,9 +25,9 @@ export const alertsService = {
             alerts.push({
               id: `pagar-${conta.id}`,
               title: 'Conta em Atraso',
-              description: `${conta.description} - Venceu em ${format(dataVencimento, 'dd/MM/yyyy')}`,
+              description: `${(conta as any).descricao} - Venceu em ${format(dataVencimento, 'dd/MM/yyyy')}`,
               type: 'Atrasado',
-              amount: conta.amount,
+              amount: (conta as any).valor,
               category: 'contas-pagar',
               dueDate: format(dataVencimento, 'yyyy-MM-dd'),
               resolved: false
@@ -36,9 +36,9 @@ export const alertsService = {
             alerts.push({
               id: `pagar-${conta.id}`,
               title: 'Conta Vence Hoje',
-              description: `${conta.description} - Vence hoje`,
+              description: `${(conta as any).descricao} - Vence hoje`,
               type: 'Vencendo hoje',
-              amount: conta.amount,
+              amount: (conta as any).valor,
               category: 'contas-pagar',
               dueDate: format(dataVencimento, 'yyyy-MM-dd'),
               resolved: false
@@ -49,7 +49,7 @@ export const alertsService = {
 
       // Alertas de contas a receber
       contasReceber.forEach(conta => {
-        const dataVencimento = parseISO(conta.due_date);
+        const dataVencimento = parseISO((conta as any).data_vencimento);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -58,9 +58,9 @@ export const alertsService = {
             alerts.push({
               id: `receber-${conta.id}`,
               title: 'Recebimento em Atraso',
-              description: `${conta.description} - Venceu em ${format(dataVencimento, 'dd/MM/yyyy')}`,
+              description: `${(conta as any).descricao} - Venceu em ${format(dataVencimento, 'dd/MM/yyyy')}`,
               type: 'Atrasado',
-              amount: conta.amount,
+              amount: (conta as any).valor,
               category: 'contas-receber',
               dueDate: format(dataVencimento, 'yyyy-MM-dd'),
               resolved: false
@@ -69,9 +69,9 @@ export const alertsService = {
             alerts.push({
               id: `receber-${conta.id}`,
               title: 'Conta a Receber Vence Hoje',
-              description: `${conta.description} - Vence hoje`,
+              description: `${(conta as any).descricao} - Vence hoje`,
               type: 'Vencendo hoje',
-              amount: conta.amount,
+              amount: (conta as any).valor,
               category: 'contas-receber',
               dueDate: format(dataVencimento, 'yyyy-MM-dd'),
               resolved: false
