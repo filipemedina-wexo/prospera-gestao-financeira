@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
-import { ClientAccountCategory } from "@/services/clientCategoriesService";
+import { categorias } from "./config";
 import { gerarCompetencias } from "@/utils/competencias";
 
 interface ContasPagarFiltersProps {
@@ -15,15 +15,13 @@ interface ContasPagarFiltersProps {
   setFiltroStatus: (value: string) => void;
   filtroCategoria: string;
   setFiltroCategoria: (value: string) => void;
-  categorias: ClientAccountCategory[];
 }
 
 export function ContasPagarFilters({
   busca, setBusca,
   filtroCompetencia, setFiltroCompetencia,
   filtroStatus, setFiltroStatus,
-  filtroCategoria, setFiltroCategoria,
-  categorias
+  filtroCategoria, setFiltroCategoria
 }: ContasPagarFiltersProps) {
   const competencias = gerarCompetencias();
   return (
@@ -75,7 +73,7 @@ export function ContasPagarFilters({
             <SelectContent>
               <SelectItem value="todas">Todas as Categorias</SelectItem>
               {categorias.map(cat => (
-                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
               ))}
             </SelectContent>
           </Select>

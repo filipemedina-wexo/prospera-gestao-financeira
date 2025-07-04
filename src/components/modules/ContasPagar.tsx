@@ -12,7 +12,6 @@ import { NovaContaDialog } from "./contas-pagar/NovaContaDialog";
 import { RegistrarPagamentoDialog } from "./contas-pagar/RegistrarPagamentoDialog";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { accountsPayableService } from "@/services/accountsPayableService";
-import { useClientCategories } from "@/hooks/useClientCategories";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,7 +23,6 @@ export function ContasPagar() {
   const { toast } = useToast();
   const { currentClientId, loading: clientLoading } = useMultiTenant();
   const queryClient = useQueryClient();
-  const { categories } = useClientCategories();
   
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
@@ -44,7 +42,7 @@ export function ContasPagar() {
 
   const { mutate: upsertMutation } = useMutation({
     mutationFn: (conta: Partial<ContaPagar>) => {
-        const payload: any = { descricao: conta.descricao!, valor: conta.valor!, data_vencimento: format(conta.dataVencimento!, 'yyyy-MM-dd'), categoria: conta.categoria, fornecedor_id: conta.fornecedorId };
+        const payload: any = { description: conta.descricao!, amount: conta.valor!, due_date: format(conta.dataVencimento!, 'yyyy-MM-dd'), category: conta.categoria, financial_client_id: conta.fornecedorId };
         if (conta.id) return accountsPayableService.update(conta.id, {...payload, status: conta.status});
         return accountsPayableService.create(payload);
     },
@@ -83,22 +81,22 @@ export function ContasPagar() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todasContas = (contasDatabase || []).map((conta): ContaPagar => {
-      const dataVencimento = parseISO((conta as any).data_vencimento);
+      const dataVencimento = parseISO(conta.due_date);
       let status = (conta.status || 'pendente') as ContaPagar['status'];
       if (status === 'pendente' && isPast(dataVencimento) && !isToday(dataVencimento)) {
         status = 'atrasado';
       }
       return {
-        id: conta.id, descricao: (conta as any).descricao, valor: (conta as any).valor, dataVencimento, status,
-        fornecedor: (conta as any).fornecedores?.razao_social || 'Não informado',
-        fornecedorId: (conta as any).fornecedor_id || '',
-        categoria: (conta as any).categoria || 'Geral',
+        id: conta.id, descricao: conta.description, valor: conta.amount, dataVencimento, status,
+        fornecedor: conta.financial_clients?.name || 'Não informado',
+        fornecedorId: conta.financial_client_id || '',
+        categoria: conta.category || 'Geral',
         competencia: format(dataVencimento, 'MM/yyyy'),
       };
     });
     const contasFiltradas = todasContas.filter(c => 
         (filtroStatus === 'todos' || c.status === filtroStatus) &&
-        (filtroCategoria === 'todas' || c.categoria_id === filtroCategoria) &&
+        (filtroCategoria === 'todas' || c.categoria === filtroCategoria) &&
         (filtroCompetencia === 'todas' || c.competencia === filtroCompetencia) &&
         (busca === '' || c.descricao.toLowerCase().includes(busca.toLowerCase()) || c.fornecedor.toLowerCase().includes(busca.toLowerCase()))
     );
@@ -154,16 +152,15 @@ export function ContasPagar() {
       />
 
       {isLoading ? <Skeleton className="h-24 w-full" /> : <ContasPagarSummary {...dadosProcessados.summary} />}
-      <ContasPagarFilters
-        busca={busca}
-        setBusca={setBusca}
-        filtroStatus={filtroStatus}
-        setFiltroStatus={setFiltroStatus}
-        filtroCategoria={filtroCategoria}
+      <ContasPagarFilters 
+        busca={busca} 
+        setBusca={setBusca} 
+        filtroStatus={filtroStatus} 
+        setFiltroStatus={setFiltroStatus} 
+        filtroCategoria={filtroCategoria} 
         setFiltroCategoria={setFiltroCategoria}
         filtroCompetencia={filtroCompetencia}
         setFiltroCompetencia={setFiltroCompetencia}
-        categorias={categories.filter(c => c.type === 'expense')}
       />
       {isLoading ? <Skeleton className="h-64 w-full" /> : <ContasPagarTable contas={dadosProcessados.contasFiltradas} onAbrirDialogPagamento={handleAbrirDialogPagamento} onEdit={handleEditConta} onDelete={(id) => setContaParaRemover({id} as ContaPagar)} />}
 

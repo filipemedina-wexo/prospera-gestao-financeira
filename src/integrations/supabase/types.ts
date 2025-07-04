@@ -9,59 +9,59 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      contas_a_pagar: {
+      accounts_payable: {
         Row: {
-          valor: number
-          categoria: string | null
+          amount: number
+          category: string | null
           competencia: string | null
           created_at: string
-          descricao: string
-          data_vencimento: string
-          fornecedor_id: string | null
+          description: string
+          due_date: string
+          financial_client_id: string | null
           id: string
-          data_pagamento: string | null
+          paid_date: string | null
           saas_client_id: string
           status: Database["public"]["Enums"]["account_payable_status"]
           updated_at: string
         }
         Insert: {
-          valor: number
-          categoria?: string | null
+          amount: number
+          category?: string | null
           competencia?: string | null
           created_at?: string
-          descricao: string
-          data_vencimento: string
-          fornecedor_id?: string | null
+          description: string
+          due_date: string
+          financial_client_id?: string | null
           id?: string
-          data_pagamento?: string | null
+          paid_date?: string | null
           saas_client_id: string
           status?: Database["public"]["Enums"]["account_payable_status"]
           updated_at?: string
         }
         Update: {
-          valor?: number
-          categoria?: string | null
+          amount?: number
+          category?: string | null
           competencia?: string | null
           created_at?: string
-          descricao?: string
-          data_vencimento?: string
-          fornecedor_id?: string | null
+          description?: string
+          due_date?: string
+          financial_client_id?: string | null
           id?: string
-          data_pagamento?: string | null
+          paid_date?: string | null
           saas_client_id?: string
           status?: Database["public"]["Enums"]["account_payable_status"]
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "contas_a_pagar_fornecedor_id_fkey"
-            columns: ["fornecedor_id"]
+            foreignKeyName: "accounts_payable_financial_client_id_fkey"
+            columns: ["financial_client_id"]
             isOneToOne: false
-            referencedRelation: "fornecedores"
+            referencedRelation: "financial_clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "contas_a_pagar_saas_client_id_fkey"
+            foreignKeyName: "accounts_payable_saas_client_id_fkey"
             columns: ["saas_client_id"]
             isOneToOne: false
             referencedRelation: "saas_clients"
@@ -69,69 +69,69 @@ export type Database = {
           },
         ]
       }
-      contas_a_receber: {
+      accounts_receivable: {
         Row: {
-          valor: number
+          amount: number
           bank_account_id: string | null
-          categoria: string | null
+          category: string | null
           competencia: string | null
           created_at: string
-          descricao: string
-          data_vencimento: string
-          fornecedor_id: string | null
+          description: string
+          due_date: string
+          financial_client_id: string | null
           id: string
-          data_recebimento: string | null
+          received_date: string | null
           saas_client_id: string
           status: Database["public"]["Enums"]["account_receivable_status"]
           updated_at: string
         }
         Insert: {
-          valor: number
+          amount: number
           bank_account_id?: string | null
-          categoria?: string | null
+          category?: string | null
           competencia?: string | null
           created_at?: string
-          descricao: string
-          data_vencimento: string
-          fornecedor_id?: string | null
+          description: string
+          due_date: string
+          financial_client_id?: string | null
           id?: string
-          data_recebimento?: string | null
+          received_date?: string | null
           saas_client_id: string
           status?: Database["public"]["Enums"]["account_receivable_status"]
           updated_at?: string
         }
         Update: {
-          valor?: number
+          amount?: number
           bank_account_id?: string | null
-          categoria?: string | null
+          category?: string | null
           competencia?: string | null
           created_at?: string
-          descricao?: string
-          data_vencimento?: string
-          fornecedor_id?: string | null
+          description?: string
+          due_date?: string
+          financial_client_id?: string | null
           id?: string
-          data_recebimento?: string | null
+          received_date?: string | null
           saas_client_id?: string
           status?: Database["public"]["Enums"]["account_receivable_status"]
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "contas_a_receber_bank_account_id_fkey"
+            foreignKeyName: "accounts_receivable_bank_account_id_fkey"
             columns: ["bank_account_id"]
             isOneToOne: false
             referencedRelation: "bank_accounts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "contas_a_receber_fornecedor_id_fkey"
-            columns: ["fornecedor_id"]
+            foreignKeyName: "accounts_receivable_financial_client_id_fkey"
+            columns: ["financial_client_id"]
             isOneToOne: false
-            referencedRelation: "fornecedores"
+            referencedRelation: "financial_clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "contas_a_receber_saas_client_id_fkey"
+            foreignKeyName: "accounts_receivable_saas_client_id_fkey"
             columns: ["saas_client_id"]
             isOneToOne: false
             referencedRelation: "saas_clients"
@@ -192,7 +192,7 @@ export type Database = {
           },
         ]
       }
-      categorias: {
+      client_account_categories: {
         Row: {
           created_at: string
           id: string
@@ -222,7 +222,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "categorias_saas_client_id_fkey"
+            foreignKeyName: "client_account_categories_saas_client_id_fkey"
             columns: ["saas_client_id"]
             isOneToOne: false
             referencedRelation: "saas_clients"
@@ -312,46 +312,52 @@ export type Database = {
           },
         ]
       }
-      fornecedores: {
+      financial_clients: {
         Row: {
-          razao_social: string
-          cnpj: string | null
-          email: string | null
-          telefone: string | null
-          status: string | null
-          data_cadastro: string | null
+          address: string | null
+          cep: string | null
+          city: string | null
           created_at: string
+          document: string | null
+          email: string | null
           id: string
+          name: string
+          phone: string | null
           saas_client_id: string
+          state: string | null
           updated_at: string
         }
         Insert: {
-          razao_social: string
-          cnpj?: string | null
-          email?: string | null
-          telefone?: string | null
-          status?: string | null
-          data_cadastro?: string | null
+          address?: string | null
+          cep?: string | null
+          city?: string | null
           created_at?: string
+          document?: string | null
+          email?: string | null
           id?: string
+          name: string
+          phone?: string | null
           saas_client_id: string
+          state?: string | null
           updated_at?: string
         }
         Update: {
-          razao_social?: string
-          cnpj?: string | null
-          email?: string | null
-          telefone?: string | null
-          status?: string | null
-          data_cadastro?: string | null
+          address?: string | null
+          cep?: string | null
+          city?: string | null
           created_at?: string
+          document?: string | null
+          email?: string | null
           id?: string
+          name?: string
+          phone?: string | null
           saas_client_id?: string
+          state?: string | null
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "fornecedores_saas_client_id_fkey"
+            foreignKeyName: "financial_clients_saas_client_id_fkey"
             columns: ["saas_client_id"]
             isOneToOne: false
             referencedRelation: "saas_clients"

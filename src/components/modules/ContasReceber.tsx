@@ -25,16 +25,13 @@ import { NovaContaReceberDialog } from "./contas-receber/NovaContaReceberDialog"
 import { ContasReceberFilters } from "./contas-receber/ContasReceberFilters";
 import { Dialog } from "@/components/ui/dialog";
 import { RegistrarRecebimentoDialog } from "./contas-receber/RegistrarRecebimentoDialog";
-import { useClientCategories } from "@/hooks/useClientCategories";
 
+const categorias = [ "Vendas de Produtos", "Vendas de Serviços", "Receitas Financeiras", "Outras Receitas", "Mensalidades", "Assinaturas" ];
 
 export function ContasReceber() {
   const { toast } = useToast();
   const { currentClientId, loading: clientLoading } = useMultiTenant();
   const queryClient = useQueryClient();
-  const { categories } = useClientCategories();
-  const incomeCategories = categories.filter(c => c.type === 'income');
-  const { categories } = useClientCategories();
   
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
@@ -52,7 +49,7 @@ export function ContasReceber() {
   });
   
   const { data: clientes, isLoading: isLoadingClientes } = useQuery({
-    queryKey: ['fornecedores', currentClientId],
+    queryKey: ['financial-clients', currentClientId],
     queryFn: () => currentClientId ? financialClientsService.getAll() : Promise.resolve([]),
     enabled: !!currentClientId,
   });
@@ -66,11 +63,11 @@ export function ContasReceber() {
   const { mutate: upsertMutation } = useMutation({
     mutationFn: (conta: Partial<ContaReceber>) => {
       const payload: any = {
-          descricao: conta.descricao!,
-          valor: conta.valor!,
-          data_vencimento: format(conta.dataVencimento!, 'yyyy-MM-dd'),
-          categoria: conta.categoria,
-          fornecedor_id: conta.clienteId,
+          description: conta.descricao!,
+          amount: conta.valor!,
+          due_date: format(conta.dataVencimento!, 'yyyy-MM-dd'),
+          category: conta.categoria,
+          financial_client_id: conta.clienteId,
           competencia: conta.competencia
       };
 
@@ -125,7 +122,7 @@ export function ContasReceber() {
     today.setHours(0, 0, 0, 0);
 
     const todasContas = (contasDatabase || []).map((conta): ContaReceber => {
-        const dataVencimento = parseISO((conta as any).data_vencimento);
+        const dataVencimento = parseISO(conta.due_date);
         const statusMap: Record<Database['public']['Enums']['account_receivable_status'], ContaReceber['status']> = {
           pending: 'pendente',
           received: 'recebido',
@@ -141,21 +138,21 @@ export function ContasReceber() {
 
         return {
             id: conta.id,
-            descricao: (conta as any).descricao,
-            valor: (conta as any).valor,
+            descricao: conta.description,
+            valor: conta.amount,
             dataVencimento,
             status,
-            cliente: (conta as any).fornecedores?.razao_social || 'Cliente não vinculado',
-            clienteId: (conta as any).fornecedor_id || '',
-            categoria: (conta as any).categoria || 'Geral',
+            cliente: conta.financial_clients?.name || 'Cliente não vinculado',
+            clienteId: conta.financial_client_id || '',
+            categoria: conta.category || 'Geral',
             competencia: (conta as any).competencia || format(dataVencimento, 'MM/yyyy'),
-            dataRecebimento: (conta as any).data_recebimento ? parseISO((conta as any).data_recebimento) : undefined,
+            dataRecebimento: conta.received_date ? parseISO(conta.received_date) : undefined,
         };
     });
 
     const contasFiltradas = todasContas.filter(conta => 
         (filtroStatus === "todos" || conta.status === filtroStatus) &&
-        (filtroCategoria === "todas" || conta.categoria_id === filtroCategoria) &&
+        (filtroCategoria === "todas" || conta.categoria === filtroCategoria) &&
         (busca === "" || conta.descricao.toLowerCase().includes(busca.toLowerCase()) || (conta.cliente && conta.cliente.toLowerCase().includes(busca.toLowerCase())))
     );
 
@@ -232,7 +229,7 @@ export function ContasReceber() {
           onSubmit={(values) => upsertMutation(values)}
           contaToEdit={contaParaEditar}
           clientes={clientes || []}
-          categorias={incomeCategories}
+          categorias={categorias}
       />
       
       <RegistrarRecebimentoDialog
@@ -270,7 +267,7 @@ export function ContasReceber() {
             busca={busca} setBusca={setBusca}
             filtroStatus={filtroStatus} setFiltroStatus={setFiltroStatus}
             filtroCategoria={filtroCategoria} setFiltroCategoria={setFiltroCategoria}
-            categorias={incomeCategories}
+            categorias={categorias}
           />
         </CardHeader>
         <CardContent>

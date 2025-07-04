@@ -5,16 +5,20 @@ import { getCurrentClientId } from '@/utils/getCurrentClientId';
 export interface FinancialClient {
   id: string;
   saas_client_id: string;
-  razao_social: string;
-  cnpj?: string | null;
+  name: string;
   email?: string | null;
-  telefone?: string | null;
+  phone?: string | null;
+  document?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  cep?: string | null;
   created_at: string;
   updated_at: string;
 }
 
-type FinancialClientInsert = TablesInsert<'fornecedores'>;
-type FinancialClientUpdate = TablesUpdate<'fornecedores'>;
+type FinancialClientInsert = TablesInsert<'financial_clients'>;
+type FinancialClientUpdate = TablesUpdate<'financial_clients'>;
 
 export const financialClientsService = {
   async getAll(): Promise<FinancialClient[]> {
@@ -22,10 +26,10 @@ export const financialClientsService = {
     if (!clientId) throw new Error('Cliente SaaS não encontrado.');
 
     const { data, error } = await supabase
-      .from('fornecedores')
+      .from('financial_clients')
       .select('*')
       .eq('saas_client_id', clientId)
-      .order('razao_social');
+      .order('name');
 
     if (error) {
       throw new Error(`Erro ao buscar clientes financeiros: ${error.message}`);
@@ -46,7 +50,7 @@ export const financialClientsService = {
     };
 
     const { data, error } = await supabase
-      .from('fornecedores')
+      .from('financial_clients')
       .insert(payload)
       .select()
       .single();
@@ -61,7 +65,7 @@ export const financialClientsService = {
 
   async update(id: string, updates: FinancialClientUpdate): Promise<FinancialClient> {
     const { data, error } = await supabase
-      .from('fornecedores')
+      .from('financial_clients')
       .update(updates)
       .eq('id', id)
       .select()
@@ -76,7 +80,7 @@ export const financialClientsService = {
 
   async delete(id: string): Promise<void> {
     const { error } = await supabase
-      .from('fornecedores')
+      .from('financial_clients')
       .delete()
       .eq('id', id);
 

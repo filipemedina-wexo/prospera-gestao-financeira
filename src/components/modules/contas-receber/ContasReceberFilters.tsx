@@ -1,7 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
-import { ClientAccountCategory } from "@/services/clientCategoriesService";
 
 interface ContasReceberFiltersProps {
   busca: string;
@@ -10,7 +9,7 @@ interface ContasReceberFiltersProps {
   setFiltroStatus: (value: string) => void;
   filtroCategoria: string;
   setFiltroCategoria: (value: string) => void;
-  categorias: ClientAccountCategory[];
+  categorias: string[];
 }
 
 export function ContasReceberFilters({
@@ -43,7 +42,7 @@ export function ContasReceberFilters({
             <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="Categoria" /></SelectTrigger>
             <SelectContent>
                 <SelectItem value="todas">Todas Categorias</SelectItem>
-                {categorias.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
+                {categorias.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
             </SelectContent>
         </Select>
     </div>

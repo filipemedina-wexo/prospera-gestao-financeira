@@ -46,7 +46,7 @@ export const clientCategoriesService = {
     if (!clientId) throw new Error('Cliente SaaS não encontrado.');
 
     const { data, error } = await supabase
-      .from('categorias')
+      .from('client_account_categories')
       .select('*')
       .eq('is_active', true)
       .eq('saas_client_id', clientId)
@@ -67,7 +67,7 @@ export const clientCategoriesService = {
     }
 
     const { data, error } = await supabase
-      .from('categorias')
+      .from('client_account_categories')
       .insert({
         ...category,
         saas_client_id: clientId
@@ -84,7 +84,7 @@ export const clientCategoriesService = {
 
   async update(id: string, updates: Partial<Omit<ClientAccountCategory, 'id' | 'created_at' | 'updated_at' | 'saas_client_id'>>): Promise<ClientAccountCategory> {
     const { data, error } = await supabase
-      .from('categorias')
+      .from('client_account_categories')
       .update(updates)
       .eq('id', id)
       .select()
@@ -100,7 +100,7 @@ export const clientCategoriesService = {
   async delete(id: string): Promise<void> {
     // Soft delete
     const { error } = await supabase
-      .from('categorias')
+      .from('client_account_categories')
       .update({ is_active: false })
       .eq('id', id);
 

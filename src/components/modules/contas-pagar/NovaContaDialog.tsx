@@ -34,7 +34,7 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
   const { categories } = useClientCategories();
   
   const { data: fornecedores } = useQuery({
-    queryKey: ['fornecedores', currentClientId],
+    queryKey: ['financial-clients', currentClientId],
     queryFn: () => currentClientId ? financialClientsService.getAll() : Promise.resolve([]),
     enabled: !!currentClientId,
   });
@@ -44,8 +44,8 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
     defaultValues: {
       descricao: "",
       valor: 0,
-      fornecedor_id: "",
-      categoria_id: "",
+      fornecedor: "",
+      categoria: "",
       dataVencimento: new Date(),
       recorrente: false,
     },
@@ -57,8 +57,8 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
         descricao: contaToEdit.descricao,
         valor: contaToEdit.valor,
         dataVencimento: new Date(contaToEdit.dataVencimento),
-        categoria_id: contaToEdit.categoria_id,
-        fornecedor_id: contaToEdit.fornecedor_id,
+        categoria: contaToEdit.categoria,
+        fornecedor: contaToEdit.fornecedorId,
         recorrente: contaToEdit.recorrente || false,
         frequencia: contaToEdit.frequencia,
         numParcelas: contaToEdit.numParcelas
@@ -68,8 +68,8 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
         descricao: "",
         valor: 0,
         dataVencimento: new Date(),
-        categoria_id: "",
-        fornecedor_id: "",
+        categoria: "",
+        fornecedor: "",
         recorrente: false,
       });
     }
@@ -120,22 +120,22 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
                         <FormMessage />
                     </FormItem>
                     )} />
-                <FormField control={form.control} name="categoria_id" render={({ field }) => (
+                    <FormField control={form.control} name="categoria" render={({ field }) => (
                     <FormItem><FormLabel>Categoria</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                        <SelectContent>{expenseCategories.map((cat) => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}</SelectContent>
+                        <SelectContent>{expenseCategories.map((cat) => (<SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>))}</SelectContent>
                         </Select>
                         <FormMessage />
                     </FormItem>
                     )} />
                 </div>
 
-                <FormField control={form.control} name="fornecedor_id" render={({ field }) => (
+                <FormField control={form.control} name="fornecedor" render={({ field }) => (
                 <FormItem><FormLabel>Fornecedor</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                    <SelectContent>{(fornecedores || []).map((f) => (<SelectItem key={f.id} value={f.id}>{f.razao_social}</SelectItem>))}</SelectContent>
+                    <SelectContent>{(fornecedores || []).map((f) => (<SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>))}</SelectContent>
                     </Select>
                     <FormMessage />
                 </FormItem>

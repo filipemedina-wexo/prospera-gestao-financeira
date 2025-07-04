@@ -14,7 +14,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ContaReceber } from "./types";
 import { FinancialClient, financialClientsService } from "@/services/financialClientsService";
-import { ClientAccountCategory } from "@/services/clientCategoriesService";
 import { Textarea } from "@/components/ui/textarea";
 import { FinancialClientDialog } from "../fornecedores/FinancialClientDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,8 +23,8 @@ const formSchema = z.object({
   descricao: z.string().min(1, "Descrição é obrigatória."),
   valor: z.coerce.number().positive("O valor deve ser positivo."),
   dataVencimento: z.date({ required_error: "Data de vencimento é obrigatória." }),
-  cliente_id: z.string().min(1, "Selecione um cliente."),
-  categoria_id: z.string().min(1, "Selecione uma categoria."),
+  clienteId: z.string().min(1, "Selecione um cliente."),
+  categoria: z.string().min(1, "Selecione uma categoria."),
   competencia: z.string().regex(/^\d{2}\/\d{4}$/, "Formato inválido (MM/AAAA)").optional(),
   observacoes: z.string().optional(),
 });
@@ -38,7 +37,7 @@ interface NovaContaReceberDialogProps {
   onSubmit: (values: Partial<ContaReceber>) => void;
   contaToEdit?: ContaReceber | null;
   clientes: FinancialClient[];
-  categorias: ClientAccountCategory[];
+  categorias: string[];
 }
 
 export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEdit, clientes, categorias }: NovaContaReceberDialogProps) {
@@ -58,14 +57,14 @@ export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEd
           descricao: contaToEdit.descricao,
           valor: contaToEdit.valor,
           dataVencimento: contaToEdit.dataVencimento,
-          cliente_id: contaToEdit.cliente_id,
-          categoria_id: contaToEdit.categoria_id,
+          clienteId: contaToEdit.clienteId,
+          categoria: contaToEdit.categoria,
           competencia: contaToEdit.competencia,
           observacoes: contaToEdit.observacoes,
         });
       } else {
         form.reset({
-            descricao: "", valor: 0, dataVencimento: new Date(), cliente_id: "", categoria_id: "", competencia: format(new Date(), 'MM/yyyy')
+            descricao: "", valor: 0, dataVencimento: new Date(), clienteId: "", categoria: "", competencia: format(new Date(), 'MM/yyyy')
         });
       }
     }
@@ -73,13 +72,13 @@ export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEd
 
   const clientMutation = useMutation({
     mutationFn: (clientData: Partial<any>) => {
-      const payload = { razao_social: clientData.razaoSocial, cnpj: clientData.cnpj, email: clientData.email, telefone: clientData.telefone };
+      const payload = { name: clientData.razaoSocial, document: clientData.cnpj, email: clientData.email, phone: clientData.telefone };
       return financialClientsService.create(payload);
     },
     onSuccess: (newClient) => {
-      queryClient.invalidateQueries({ queryKey: ['fornecedores'] });
+      queryClient.invalidateQueries({ queryKey: ['financial-clients'] });
       toast({ title: "Cliente criado com sucesso!" });
-      form.setValue('cliente_id', newClient.id);
+      form.setValue('clienteId', newClient.id);
       setShowClientDialog(false);
     },
     onError: (error: Error) => toast({ title: "Erro!", description: error.message, variant: 'destructive' })
@@ -106,7 +105,7 @@ export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEd
                     </FormItem>
                 )} />
               </div>
-              <FormField control={form.control} name="cliente_id" render={({ field }) => (
+              <FormField control={form.control} name="clienteId" render={({ field }) => (
                 <FormItem><FormLabel>Cliente/Devedor *</FormLabel>
                     <div className="flex items-center gap-2">
                         <Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger></FormControl><SelectContent>{(clientes || []).map((cli) => (<SelectItem key={cli.id} value={cli.id}>{cli.name}</SelectItem>))}</SelectContent></Select>
@@ -116,7 +115,7 @@ export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEd
                 </FormItem>
               )} />
               <div className="grid grid-cols-2 gap-4">
-                <FormField control={form.control} name="categoria_id" render={({ field }) => (<FormItem><FormLabel>Categoria *</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl><SelectContent>{categorias.map((cat) => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="categoria" render={({ field }) => (<FormItem><FormLabel>Categoria *</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl><SelectContent>{categorias.map((cat) => (<SelectItem key={cat} value={cat}>{cat}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>)} />
                 <FormField control={form.control} name="competencia" render={({ field }) => (<FormItem><FormLabel>Competência</FormLabel><FormControl><Input placeholder="MM/AAAA" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
               </div>
               <FormField control={form.control} name="observacoes" render={({ field }) => (<FormItem><FormLabel>Observações</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/>

@@ -20,17 +20,17 @@ export const Fornecedores = () => {
   const [searchFilter, setSearchFilter] = useState('');
 
   const { data: fornecedoresData = [], isLoading } = useQuery<FinancialClient[]>({
-    queryKey: ['fornecedores'],
+    queryKey: ['financial_clients'],
     queryFn: financialClientsService.getAll,
   });
 
   const upsertMutation = useMutation({
     mutationFn: (fornecedorData: Fornecedor) => {
-      const payload: Omit<TablesUpdate<'fornecedores'>, 'id' | 'created_at' | 'updated_at'> & { razao_social: string; saas_client_id: string } = {
-        razao_social: fornecedorData.razaoSocial,
-        cnpj: fornecedorData.cnpj,
+      const payload: Omit<TablesUpdate<'financial_clients'>, 'id' | 'created_at' | 'updated_at'> & { name: string; saas_client_id: string } = {
+        name: fornecedorData.razaoSocial,
+        document: fornecedorData.cnpj,
         email: fornecedorData.email,
-        telefone: fornecedorData.telefone,
+        phone: fornecedorData.telefone,
         saas_client_id: '', // This should come from context
       };
       if (fornecedorData.id) {
@@ -39,7 +39,7 @@ export const Fornecedores = () => {
       return financialClientsService.create(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fornecedores'] });
+      queryClient.invalidateQueries({ queryKey: ['financial_clients'] });
       toast({ title: "Sucesso!", description: `Fornecedor salvo com sucesso.` });
       setDialogOpen(false);
     },
@@ -49,7 +49,7 @@ export const Fornecedores = () => {
   const deleteMutation = useMutation({
     mutationFn: financialClientsService.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fornecedores'] });
+      queryClient.invalidateQueries({ queryKey: ['financial_clients'] });
       toast({
         title: 'Fornecedor removido',
         description: 'O fornecedor foi removido com sucesso.',
@@ -79,18 +79,18 @@ export const Fornecedores = () => {
 
   const filteredFornecedores: Fornecedor[] = fornecedoresData.map(f => ({
     id: f.id,
-    razaoSocial: f.razao_social,
-    nomeFantasia: f.razao_social,
-    cnpj: f.cnpj || '',
+    razaoSocial: f.name,
+    nomeFantasia: f.name,
+    cnpj: f.document || '',
     email: f.email || '',
-    telefone: f.telefone || '',
+    telefone: f.phone || '',
     status: 'Ativo' as const,
     tipo: 'Serviço',
     dataCadastro: new Date(f.created_at),
-    cep: '',
-    endereco: '',
-    cidade: '',
-    estado: ''
+    cep: f.cep || '',
+    endereco: f.address || '',
+    cidade: f.city || '',
+    estado: f.state || ''
   })).filter(f => {
     const searchMatch = searchFilter === '' ||
                         f.razaoSocial.toLowerCase().includes(searchFilter.toLowerCase()) ||
