@@ -5,8 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Vendedor } from "./types";
 import { Client } from "../crm/types";
-import { ProdutoServico } from "../produtos-servicos/types";
 import { useToast } from "@/hooks/use-toast";
+import { useProductsServices } from "@/hooks/useProductsServices";
 import { PropostaFormHeader } from "./PropostaFormHeader";
 import { PropostaItens } from "./PropostaItens";
 
@@ -17,7 +17,6 @@ interface NovaPropostaDialogProps {
   vendedores: Vendedor[];
   clients: Client[];
   setClients: React.Dispatch<React.SetStateAction<Client[]>>;
-  produtosServicos: ProdutoServico[];
 }
 
 type FormItem = {
@@ -36,7 +35,8 @@ const initialFormData = {
   itens: [{ produtoId: "", descricao: "", quantidade: 1, valorUnitario: 0 }]
 };
 
-export function NovaPropostaDialog({ open, onOpenChange, onSave, vendedores, clients, setClients, produtosServicos }: NovaPropostaDialogProps) {
+export function NovaPropostaDialog({ open, onOpenChange, onSave, vendedores, clients, setClients }: NovaPropostaDialogProps) {
+  const { products: produtosServicos } = useProductsServices();
   const [showClientDialog, setShowClientDialog] = useState(false);
   const { toast } = useToast();
   const [formData, setFormData] = useState(initialFormData);
@@ -82,8 +82,8 @@ export function NovaPropostaDialog({ open, onOpenChange, onSave, vendedores, cli
       novosItens[index] = {
         ...novosItens[index],
         produtoId: produto.id,
-        descricao: produto.nome,
-        valorUnitario: produto.preco
+        descricao: produto.name,
+        valorUnitario: produto.sale_price || 0
       };
       setFormData({ ...formData, itens: novosItens });
     }

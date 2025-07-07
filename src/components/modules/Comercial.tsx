@@ -5,7 +5,6 @@ import { Plus } from "lucide-react";
 import { Proposta, Vendedor } from "./comercial/types";
 import { useToast } from "@/hooks/use-toast";
 import { Client } from "./crm/types";
-import { ProdutoServico } from "./produtos-servicos/types";
 import { NovaPropostaDialog } from "./comercial/NovaPropostaDialog";
 import { ComercialStats } from "./comercial/ComercialStats";
 import { PropostasList } from "./comercial/PropostasList";
@@ -18,10 +17,9 @@ interface ComercialProps {
   onPropostaAceita: (proposta: Proposta) => void;
   clients: Client[];
   setClients: React.Dispatch<React.SetStateAction<Client[]>>;
-  produtosServicos: ProdutoServico[];
 }
 
-export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceita, clients, setClients, produtosServicos }: ComercialProps) {
+export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceita, clients, setClients }: ComercialProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("propostas");
   const { toast } = useToast();
@@ -104,7 +102,6 @@ export function Comercial({ propostas, setPropostas, vendedores, onPropostaAceit
           vendedores={vendedores}
           clients={clients}
           setClients={setClients}
-          produtosServicos={produtosServicos}
         />
       </div>
 

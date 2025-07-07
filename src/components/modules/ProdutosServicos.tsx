@@ -1,28 +1,41 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Package, Plus, Search, Edit, Trash2 } from "lucide-react";
-import { ActionsDropdown, ActionItem } from "@/components/ui/actions-dropdown";
+import { Package, Plus, Search } from "lucide-react";
+import { ActionsDropdown } from "@/components/ui/actions-dropdown";
 import { useState } from "react";
-import { ProdutoServico } from "./produtos-servicos/types";
+import { useProductsServices } from "@/hooks/useProductsServices";
+import { ProductServiceForm } from "./produtos-servicos/ProductServiceForm";
+import { ProductService } from "@/services/productsServicesService";
+import { Skeleton } from "@/components/ui/skeleton";
 
-interface ProdutosServicosProps {
-  produtos: ProdutoServico[];
-}
-
-export const ProdutosServicos = ({ produtos }: ProdutosServicosProps) => {
+export const ProdutosServicos = () => {
+  const { products, deleteProduct, isLoading, isDeleting } = useProductsServices();
   const [showForm, setShowForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<ProductService | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   
-  const filteredProducts = produtos.filter(product =>
-    product.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.category_id && product.category_id.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const handleEdit = (product: ProductService) => {
+    setEditingProduct(product);
+    setShowForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingProduct(null);
+  };
+
+  const handleDelete = (product: ProductService) => {
+    if (window.confirm(`Tem certeza que deseja remover "${product.name}"?`)) {
+      deleteProduct(product.id);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -38,80 +51,7 @@ export const ProdutosServicos = ({ produtos }: ProdutosServicosProps) => {
       </div>
 
       {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Novo Produto/Serviço</CardTitle>
-            <CardDescription>
-              Adicione um novo produto ou serviço ao catálogo
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome</Label>
-                <Input id="nome" placeholder="Nome do produto/serviço" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tipo">Tipo</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="produto">Produto</SelectItem>
-                    <SelectItem value="servico">Serviço</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="categoria">Categoria</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="consultoria">Consultoria</SelectItem>
-                    <SelectItem value="tecnologia">Tecnologia</SelectItem>
-                    <SelectItem value="educacao">Educação</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="preco">Preço (R$)</Label>
-                <Input id="preco" type="number" placeholder="0,00" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="descricao">Descrição</Label>
-              <Textarea id="descricao" placeholder="Descrição detalhada do produto/serviço" />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status do produto/serviço" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="inativo">Inativo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex gap-2">
-              <Button>Salvar</Button>
-              <Button variant="outline" onClick={() => setShowForm(false)}>
-                Cancelar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ProductServiceForm product={editingProduct} onClose={handleCloseForm} />
       )}
 
       <Card>
@@ -131,44 +71,65 @@ export const ProdutosServicos = ({ produtos }: ProdutosServicosProps) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {filteredProducts.map((product) => (
-              <div key={product.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-medium">{product.nome}</h3>
-                    <Badge variant={product.tipo === "Produto" ? "default" : "secondary"}>
-                      {product.tipo}
-                    </Badge>
-                    <Badge variant={product.status === "Ativo" ? "outline" : "destructive"}>
-                      {product.status}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-1">{product.descricao}</p>
-                  <div className="flex items-center gap-4 text-sm">
-                    <span className="text-muted-foreground">Categoria: {product.categoria}</span>
-                    <span className="font-medium text-green-600">
-                      R$ {product.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ActionsDropdown actions={[
-                    { type: 'edit', label: 'Editar', onClick: () => {} },
-                    { type: 'delete', label: 'Excluir', onClick: () => {}, variant: 'destructive' }
-                  ]} />
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-8">
-              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                {searchTerm ? "Nenhum produto encontrado com esse termo" : "Nenhum produto cadastrado"}
-              </p>
+          {isLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
             </div>
+          ) : (
+            <>
+              <div className="space-y-4">
+                {filteredProducts.map((product) => (
+                  <div key={product.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-medium">{product.name}</h3>
+                        <Badge variant={product.type === "product" ? "default" : "secondary"}>
+                          {product.type === "product" ? "Produto" : "Serviço"}
+                        </Badge>
+                        <Badge variant={product.status === "active" ? "outline" : "destructive"}>
+                          {product.status === "active" ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </div>
+                      {product.description && (
+                        <p className="text-sm text-muted-foreground mb-1">{product.description}</p>
+                      )}
+                      <div className="flex items-center gap-4 text-sm">
+                        {product.sale_price && (
+                          <span className="font-medium text-green-600">
+                            R$ {product.sale_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ActionsDropdown 
+                        actions={[
+                          { type: 'edit', label: 'Editar', onClick: () => handleEdit(product) },
+                          { 
+                            type: 'delete', 
+                            label: 'Excluir', 
+                            onClick: () => handleDelete(product), 
+                            variant: 'destructive',
+                            disabled: isDeleting 
+                          }
+                        ]} 
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {filteredProducts.length === 0 && !isLoading && (
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    {searchTerm ? "Nenhum produto encontrado com esse termo" : "Nenhum produto cadastrado"}
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

@@ -35,7 +35,6 @@ const Index = () => {
     handlePropostaAceita,
     clients,
     setClients,
-    produtosServicos,
   } = useAppData();
 
   const visibleMenuItems = menuItems.filter((item) => hasPermission(item.permission));
@@ -108,11 +107,11 @@ const Index = () => {
             onPropostaAceita={handlePropostaAceita}
             clients={clients}
             setClients={setClients}
-            produtosServicos={produtosServicos}
+            
           />
         );
       case "produtos-servicos":
-        return <ProdutosServicos produtos={produtosServicos} />;
+        return <ProdutosServicos />;
       case "pessoas":
         return (
           <Pessoas 

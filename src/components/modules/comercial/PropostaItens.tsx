@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
-import { ProdutoServico } from "../produtos-servicos/types";
+import { ProductService } from "@/services/productsServicesService";
 
 type FormItem = {
   produtoId: string;
@@ -16,7 +16,7 @@ type FormItem = {
 
 interface PropostaItensProps {
   itens: FormItem[];
-  produtosServicos: ProdutoServico[];
+  produtosServicos: ProductService[];
   adicionarItem: () => void;
   removerItem: (index: number) => void;
   atualizarItem: (index: number, campo: keyof FormItem, valor: any) => void;
@@ -50,9 +50,9 @@ export function PropostaItens({
                 <SelectValue placeholder="Selecione um produto/serviço" />
               </SelectTrigger>
               <SelectContent>
-                {produtosServicos.filter(p => p.status === 'Ativo').map(produto => (
+                {produtosServicos.filter(p => p.status === 'active').map(produto => (
                   <SelectItem key={produto.id} value={produto.id}>
-                    {produto.nome}
+                    {produto.name}
                   </SelectItem>
                 ))}
               </SelectContent>
