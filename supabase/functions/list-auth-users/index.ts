@@ -13,12 +13,21 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  );
-
   try {
+    // Validate environment variables
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error('Missing required environment variables');
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+
+    const supabaseClient = createClient(supabaseUrl, serviceRoleKey);
+
     const { data, error } = await supabaseClient.auth.admin.listUsers();
 
     if (error) {

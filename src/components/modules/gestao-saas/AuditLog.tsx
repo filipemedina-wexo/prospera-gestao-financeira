@@ -60,14 +60,23 @@ export function AuditLog({ clientId }: AuditLogProps) {
 
       const { data, error } = await query;
       if (error) throw error;
-      setLogs((data || []).map(log => ({
-        ...log,
+      
+      // Properly map the data to match our interface
+      const mappedLogs: AuditLogEntry[] = (data || []).map(log => ({
+        id: log.id,
+        user_id: log.user_id,
+        action: log.action,
+        resource_type: log.resource_type,
+        resource_id: log.resource_id,
+        success: log.success,
+        error_message: log.error_message,
+        metadata: log.metadata,
         ip_address: log.ip_address as string | null,
-        user_agent: log.user_agent as string | null,
-        resource_id: log.resource_id as string | null,
-        error_message: log.error_message as string | null,
-        user_id: log.user_id as string | null
-      })));
+        user_agent: log.user_agent,
+        created_at: log.created_at
+      }));
+      
+      setLogs(mappedLogs);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       toast({
