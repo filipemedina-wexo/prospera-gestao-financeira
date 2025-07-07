@@ -18,13 +18,23 @@ export type Database = {
         Row: {
           amount: number
           category: string | null
+          category_id: string | null
+          client_id: string | null
           competencia: string | null
           created_at: string
           description: string
+          document_number: string | null
           due_date: string
           financial_client_id: string | null
           id: string
+          is_recurring: boolean | null
+          notes: string | null
           paid_date: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          recurrence_count: number | null
+          recurrence_frequency: string | null
+          recurrence_group_id: string | null
           saas_client_id: string
           status: Database["public"]["Enums"]["account_payable_status"]
           updated_at: string
@@ -32,13 +42,23 @@ export type Database = {
         Insert: {
           amount: number
           category?: string | null
+          category_id?: string | null
+          client_id?: string | null
           competencia?: string | null
           created_at?: string
           description: string
+          document_number?: string | null
           due_date: string
           financial_client_id?: string | null
           id?: string
+          is_recurring?: boolean | null
+          notes?: string | null
           paid_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          recurrence_count?: number | null
+          recurrence_frequency?: string | null
+          recurrence_group_id?: string | null
           saas_client_id: string
           status?: Database["public"]["Enums"]["account_payable_status"]
           updated_at?: string
@@ -46,18 +66,42 @@ export type Database = {
         Update: {
           amount?: number
           category?: string | null
+          category_id?: string | null
+          client_id?: string | null
           competencia?: string | null
           created_at?: string
           description?: string
+          document_number?: string | null
           due_date?: string
           financial_client_id?: string | null
           id?: string
+          is_recurring?: boolean | null
+          notes?: string | null
           paid_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          recurrence_count?: number | null
+          recurrence_frequency?: string | null
+          recurrence_group_id?: string | null
           saas_client_id?: string
           status?: Database["public"]["Enums"]["account_payable_status"]
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "accounts_payable_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_payable_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "accounts_payable_financial_client_id_fkey"
             columns: ["financial_client_id"]
@@ -79,13 +123,23 @@ export type Database = {
           amount: number
           bank_account_id: string | null
           category: string | null
+          category_id: string | null
+          client_id: string | null
           competencia: string | null
           created_at: string
           description: string
           due_date: string
           financial_client_id: string | null
           id: string
+          invoice_number: string | null
+          is_recurring: boolean | null
+          notes: string | null
+          payment_method: string | null
+          payment_reference: string | null
           received_date: string | null
+          recurrence_count: number | null
+          recurrence_frequency: string | null
+          recurrence_group_id: string | null
           saas_client_id: string
           status: Database["public"]["Enums"]["account_receivable_status"]
           updated_at: string
@@ -94,13 +148,23 @@ export type Database = {
           amount: number
           bank_account_id?: string | null
           category?: string | null
+          category_id?: string | null
+          client_id?: string | null
           competencia?: string | null
           created_at?: string
           description: string
           due_date: string
           financial_client_id?: string | null
           id?: string
+          invoice_number?: string | null
+          is_recurring?: boolean | null
+          notes?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
           received_date?: string | null
+          recurrence_count?: number | null
+          recurrence_frequency?: string | null
+          recurrence_group_id?: string | null
           saas_client_id: string
           status?: Database["public"]["Enums"]["account_receivable_status"]
           updated_at?: string
@@ -109,13 +173,23 @@ export type Database = {
           amount?: number
           bank_account_id?: string | null
           category?: string | null
+          category_id?: string | null
+          client_id?: string | null
           competencia?: string | null
           created_at?: string
           description?: string
           due_date?: string
           financial_client_id?: string | null
           id?: string
+          invoice_number?: string | null
+          is_recurring?: boolean | null
+          notes?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
           received_date?: string | null
+          recurrence_count?: number | null
+          recurrence_frequency?: string | null
+          recurrence_group_id?: string | null
           saas_client_id?: string
           status?: Database["public"]["Enums"]["account_receivable_status"]
           updated_at?: string
@@ -126,6 +200,20 @@ export type Database = {
             columns: ["bank_account_id"]
             isOneToOne: false
             referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_receivable_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_receivable_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
@@ -491,6 +579,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "departments_manager_fk"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "departments_saas_client_id_fkey"
             columns: ["saas_client_id"]
