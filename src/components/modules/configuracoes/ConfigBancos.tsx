@@ -25,8 +25,13 @@ export const ConfigBancos = () => {
   });
 
   const upsertMutation = useMutation({
-    mutationFn: (conta: any) =>
-      conta.id ? bankAccountsService.update(conta.id, conta) : bankAccountsService.create(conta),
+    mutationFn: async (conta: any): Promise<void> => {
+      if (conta.id) {
+        await bankAccountsService.update(conta.id, conta);
+      } else {
+        await bankAccountsService.create(conta);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bank-accounts", currentClientId] });
       setShowDialog(false);

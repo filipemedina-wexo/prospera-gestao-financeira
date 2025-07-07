@@ -21,19 +21,16 @@ import { useToast } from '@/hooks/use-toast';
 
 interface AuditLogEntry {
   id: string;
-  client_id: string;
-  user_id: string;
+  user_id: string | null;
   action: string;
   resource_type: string;
-  resource_id?: string;
-  old_values?: any;
-  new_values?: any;
-  ip_address?: string;
-  user_agent?: string;
+  resource_id?: string | null;
+  success: boolean;
+  error_message?: string | null;
+  metadata?: any;
+  ip_address?: string | null;
+  user_agent?: string | null;
   created_at: string;
-  client_name?: string;
-  user_name?: string;
-  severity: 'info' | 'warning' | 'error' | 'success';
 }
 
 interface AuditLogProps {
@@ -44,7 +41,7 @@ export function AuditLog({ clientId }: AuditLogProps) {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const { toast } = useToast();
 
 
@@ -61,13 +58,16 @@ export function AuditLog({ clientId }: AuditLogProps) {
         .order('created_at', { ascending: false })
         .limit(100);
 
-      if (clientId) {
-        query = query.eq('client_id', clientId);
-      }
-
       const { data, error } = await query;
       if (error) throw error;
-      setLogs(data || []);
+      setLogs((data || []).map(log => ({
+        ...log,
+        ip_address: log.ip_address as string | null,
+        user_agent: log.user_agent as string | null,
+        resource_id: log.resource_id as string | null,
+        error_message: log.error_message as string | null,
+        user_id: log.user_id as string | null
+      })));
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       toast({
@@ -80,29 +80,20 @@ export function AuditLog({ clientId }: AuditLogProps) {
     }
   };
 
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'warning':
-        return <AlertCircle className="h-4 w-4 text-yellow-600" />;
-      case 'error':
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      default:
-        return <Info className="h-4 w-4 text-blue-600" />;
+  const getStatusIcon = (success: boolean) => {
+    if (success) {
+      return <CheckCircle className="h-4 w-4 text-green-600" />;
+    } else {
+      return <XCircle className="h-4 w-4 text-red-600" />;
     }
   };
 
-  const getSeverityBadge = (severity: string) => {
-    const config = {
-      success: { label: 'Sucesso', variant: 'default' as const },
-      warning: { label: 'Atenção', variant: 'secondary' as const },
-      error: { label: 'Erro', variant: 'destructive' as const },
-      info: { label: 'Info', variant: 'outline' as const }
-    };
-
-    const { label, variant } = config[severity as keyof typeof config] || config.info;
-    return <Badge variant={variant}>{label}</Badge>;
+  const getStatusBadge = (success: boolean) => {
+    if (success) {
+      return <Badge variant="default">Sucesso</Badge>;
+    } else {
+      return <Badge variant="destructive">Erro</Badge>;
+    }
   };
 
   const getActionDescription = (action: string) => {
@@ -122,12 +113,13 @@ export function AuditLog({ clientId }: AuditLogProps) {
   const filteredLogs = logs.filter(log => {
     const matchesSearch = searchTerm === '' || 
       log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.client_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      log.resource_type.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesSeverity = selectedSeverity === 'all' || log.severity === selectedSeverity;
+    const matchesStatus = selectedStatus === 'all' || 
+      (selectedStatus === 'success' && log.success) ||
+      (selectedStatus === 'error' && !log.success);
     
-    return matchesSearch && matchesSeverity;
+    return matchesSearch && matchesStatus;
   });
 
   return (
@@ -157,37 +149,23 @@ export function AuditLog({ clientId }: AuditLogProps) {
             
             <div className="flex gap-2">
               <Button
-                variant={selectedSeverity === 'all' ? 'default' : 'outline'}
+                variant={selectedStatus === 'all' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setSelectedSeverity('all')}
+                onClick={() => setSelectedStatus('all')}
               >
                 Todos
               </Button>
               <Button
-                variant={selectedSeverity === 'info' ? 'default' : 'outline'}
+                variant={selectedStatus === 'success' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setSelectedSeverity('info')}
-              >
-                Info
-              </Button>
-              <Button
-                variant={selectedSeverity === 'success' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedSeverity('success')}
+                onClick={() => setSelectedStatus('success')}
               >
                 Sucesso
               </Button>
               <Button
-                variant={selectedSeverity === 'warning' ? 'default' : 'outline'}
+                variant={selectedStatus === 'error' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setSelectedSeverity('warning')}
-              >
-                Atenção
-              </Button>
-              <Button
-                variant={selectedSeverity === 'error' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedSeverity('error')}
+                onClick={() => setSelectedStatus('error')}
               >
                 Erro
               </Button>
@@ -214,14 +192,14 @@ export function AuditLog({ clientId }: AuditLogProps) {
               {filteredLogs.map((log) => (
                 <div key={log.id} className="flex items-start space-x-4 p-4 border rounded-lg">
                   <div className="flex-shrink-0 mt-1">
-                    {getSeverityIcon(log.severity)}
+                    {getStatusIcon(log.success)}
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
                         <h4 className="font-medium">{getActionDescription(log.action)}</h4>
-                        {getSeverityBadge(log.severity)}
+                        {getStatusBadge(log.success)}
                       </div>
                       <span className="text-xs text-muted-foreground">
                         {new Date(log.created_at).toLocaleString('pt-BR')}
@@ -232,31 +210,23 @@ export function AuditLog({ clientId }: AuditLogProps) {
                       <div className="flex items-center space-x-4">
                         <span className="flex items-center space-x-1">
                           <User className="h-3 w-3" />
-                          <span>{log.user_name}</span>
+                          <span>Usuário: {log.user_id}</span>
                         </span>
-                        {!clientId && (
-                          <span className="flex items-center space-x-1">
-                            <Building className="h-3 w-3" />
-                            <span>{log.client_name}</span>
-                          </span>
-                        )}
+                        <span>Recurso: {log.resource_type}</span>
                         {log.ip_address && (
                           <span className="text-xs">IP: {log.ip_address}</span>
                         )}
                       </div>
                       
-                      {(log.old_values || log.new_values) && (
+                      {log.error_message && (
+                        <div className="mt-2 p-2 bg-destructive/10 rounded text-xs text-destructive">
+                          <span className="font-medium">Erro:</span> {log.error_message}
+                        </div>
+                      )}
+                      
+                      {log.metadata && (
                         <div className="mt-2 p-2 bg-muted rounded text-xs">
-                          {log.old_values && (
-                            <div>
-                              <span className="font-medium">Valores antigos:</span> {JSON.stringify(log.old_values)}
-                            </div>
-                          )}
-                          {log.new_values && (
-                            <div>
-                              <span className="font-medium">Valores novos:</span> {JSON.stringify(log.new_values)}
-                            </div>
-                          )}
+                          <span className="font-medium">Metadados:</span> {JSON.stringify(log.metadata)}
                         </div>
                       )}
                     </div>
