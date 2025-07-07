@@ -127,8 +127,7 @@ export function ContasReceber() {
           pending: 'pendente',
           received: 'recebido',
           overdue: 'atrasado',
-          partial: 'parcial',
-          paid: 'recebido',
+          partial: 'parcial'
         };
 
         let status = statusMap[conta.status];

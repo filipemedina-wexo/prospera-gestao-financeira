@@ -42,8 +42,25 @@ export function ContasPagar() {
 
   const { mutate: upsertMutation } = useMutation({
     mutationFn: (conta: Partial<ContaPagar>) => {
-        const payload: any = { description: conta.descricao!, amount: conta.valor!, due_date: format(conta.dataVencimento!, 'yyyy-MM-dd'), category: conta.categoria, financial_client_id: conta.fornecedorId };
-        if (conta.id) return accountsPayableService.update(conta.id, {...payload, status: conta.status});
+        const frontendToDbStatusMap: Record<ContaPagar['status'], string> = {
+          pendente: 'pending',
+          pago: 'paid',
+          atrasado: 'overdue', 
+          parcial: 'partial'
+        };
+        
+        const payload: any = { 
+          description: conta.descricao!, 
+          amount: conta.valor!, 
+          due_date: format(conta.dataVencimento!, 'yyyy-MM-dd'), 
+          category: conta.categoria, 
+          financial_client_id: conta.fornecedorId 
+        };
+        
+        if (conta.id) {
+          const dbStatus = conta.status ? frontendToDbStatusMap[conta.status] : undefined;
+          return accountsPayableService.update(conta.id, {...payload, status: dbStatus});
+        }
         return accountsPayableService.create(payload);
     },
     onSuccess: () => {
@@ -82,7 +99,15 @@ export function ContasPagar() {
     today.setHours(0, 0, 0, 0);
     const todasContas = (contasDatabase || []).map((conta): ContaPagar => {
       const dataVencimento = parseISO(conta.due_date);
-      let status = (conta.status || 'pendente') as ContaPagar['status'];
+      // Map database status to frontend status
+      const statusMap: Record<string, ContaPagar['status']> = {
+        pending: 'pendente',
+        paid: 'pago', 
+        overdue: 'atrasado',
+        partial: 'parcial'
+      };
+      
+      let status = statusMap[conta.status] || 'pendente';
       if (status === 'pendente' && isPast(dataVencimento) && !isToday(dataVencimento)) {
         status = 'atrasado';
       }

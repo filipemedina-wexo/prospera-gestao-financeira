@@ -1536,11 +1536,17 @@ export type Database = {
         Returns: undefined
       }
       registrar_recebimento: {
-        Args: {
-          p_receivable_id: string
-          p_bank_account_id: string
-          p_received_date: string
-        }
+        Args:
+          | {
+              p_receivable_id: string
+              p_bank_account_id: string
+              p_received_date: string
+            }
+          | {
+              p_receivable_id: string
+              p_received_date: string
+              p_bank_account_id: string
+            }
         Returns: undefined
       }
       user_belongs_to_client: {
