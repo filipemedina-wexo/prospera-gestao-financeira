@@ -1531,6 +1531,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      migrate_financial_clients_to_clients: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       registrar_recebimento: {
         Args: {
           p_receivable_id: string
