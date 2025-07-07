@@ -197,6 +197,47 @@ export type Database = {
           },
         ]
       }
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          saas_client_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          saas_client_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          saas_client_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_account_categories: {
         Row: {
           created_at: string
@@ -317,6 +358,242 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          address: string | null
+          anniversary_date: string | null
+          birth_date: string | null
+          city: string | null
+          client_code: string | null
+          client_type: string
+          company_name: string
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          country: string | null
+          created_at: string
+          credit_limit: number | null
+          document_number: string | null
+          id: string
+          is_active: boolean
+          municipal_registration: string | null
+          notes: string | null
+          payment_terms: number | null
+          saas_client_id: string
+          state: string | null
+          state_registration: string | null
+          status: string
+          trade_name: string | null
+          updated_at: string
+          website: string | null
+          whatsapp: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          anniversary_date?: string | null
+          birth_date?: string | null
+          city?: string | null
+          client_code?: string | null
+          client_type?: string
+          company_name: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          document_number?: string | null
+          id?: string
+          is_active?: boolean
+          municipal_registration?: string | null
+          notes?: string | null
+          payment_terms?: number | null
+          saas_client_id: string
+          state?: string | null
+          state_registration?: string | null
+          status?: string
+          trade_name?: string | null
+          updated_at?: string
+          website?: string | null
+          whatsapp?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          anniversary_date?: string | null
+          birth_date?: string | null
+          city?: string | null
+          client_code?: string | null
+          client_type?: string
+          company_name?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          document_number?: string | null
+          id?: string
+          is_active?: boolean
+          municipal_registration?: string | null
+          notes?: string | null
+          payment_terms?: number | null
+          saas_client_id?: string
+          state?: string | null
+          state_registration?: string | null
+          status?: string
+          trade_name?: string | null
+          updated_at?: string
+          website?: string | null
+          whatsapp?: string | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departments: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          manager_id: string | null
+          name: string
+          saas_client_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          manager_id?: string | null
+          name: string
+          saas_client_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          manager_id?: string | null
+          name?: string
+          saas_client_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          city: string | null
+          created_at: string
+          department_id: string | null
+          document_number: string | null
+          email: string | null
+          employee_number: string | null
+          full_name: string
+          hire_date: string
+          id: string
+          is_active: boolean
+          phone: string | null
+          position_id: string | null
+          saas_client_id: string
+          salary: number | null
+          state: string | null
+          status: string
+          termination_date: string | null
+          updated_at: string
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          city?: string | null
+          created_at?: string
+          department_id?: string | null
+          document_number?: string | null
+          email?: string | null
+          employee_number?: string | null
+          full_name: string
+          hire_date: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          position_id?: string | null
+          saas_client_id: string
+          salary?: number | null
+          state?: string | null
+          status?: string
+          termination_date?: string | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          city?: string | null
+          created_at?: string
+          department_id?: string | null
+          document_number?: string | null
+          email?: string | null
+          employee_number?: string | null
+          full_name?: string
+          hire_date?: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          position_id?: string | null
+          saas_client_id?: string
+          salary?: number | null
+          state?: string | null
+          status?: string
+          termination_date?: string | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_clients: {
         Row: {
           address: string | null
@@ -423,6 +700,131 @@ export type Database = {
           },
         ]
       }
+      positions: {
+        Row: {
+          base_salary: number | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          saas_client_id: string
+          updated_at: string
+        }
+        Insert: {
+          base_salary?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          saas_client_id: string
+          updated_at?: string
+        }
+        Update: {
+          base_salary?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          saas_client_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "positions_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products_services: {
+        Row: {
+          barcode: string | null
+          category_id: string | null
+          code: string | null
+          cost_price: number | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          maximum_stock: number | null
+          minimum_stock: number | null
+          name: string
+          ncm_code: string | null
+          saas_client_id: string
+          sale_price: number | null
+          status: string
+          stock_quantity: number | null
+          tax_rate: number | null
+          type: string
+          unit_of_measure: string | null
+          updated_at: string
+        }
+        Insert: {
+          barcode?: string | null
+          category_id?: string | null
+          code?: string | null
+          cost_price?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          maximum_stock?: number | null
+          minimum_stock?: number | null
+          name: string
+          ncm_code?: string | null
+          saas_client_id: string
+          sale_price?: number | null
+          status?: string
+          stock_quantity?: number | null
+          tax_rate?: number | null
+          type: string
+          unit_of_measure?: string | null
+          updated_at?: string
+        }
+        Update: {
+          barcode?: string | null
+          category_id?: string | null
+          code?: string | null
+          cost_price?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          maximum_stock?: number | null
+          minimum_stock?: number | null
+          name?: string
+          ncm_code?: string | null
+          saas_client_id?: string
+          sale_price?: number | null
+          status?: string
+          stock_quantity?: number | null
+          tax_rate?: number | null
+          type?: string
+          unit_of_measure?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_services_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_services_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -449,6 +851,77 @@ export type Database = {
           welcome_email_sent?: boolean
         }
         Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          data: Json | null
+          description: string | null
+          error_message: string | null
+          file_path: string | null
+          generated_by: string | null
+          id: string
+          is_scheduled: boolean | null
+          name: string
+          next_run_date: string | null
+          parameters: Json | null
+          period_end: string | null
+          period_start: string | null
+          saas_client_id: string
+          schedule_frequency: string | null
+          status: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          description?: string | null
+          error_message?: string | null
+          file_path?: string | null
+          generated_by?: string | null
+          id?: string
+          is_scheduled?: boolean | null
+          name: string
+          next_run_date?: string | null
+          parameters?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          saas_client_id: string
+          schedule_frequency?: string | null
+          status?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          description?: string | null
+          error_message?: string | null
+          file_path?: string | null
+          generated_by?: string | null
+          id?: string
+          is_scheduled?: boolean | null
+          name?: string
+          next_run_date?: string | null
+          parameters?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          saas_client_id?: string
+          schedule_frequency?: string | null
+          status?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_saas_client_id_fkey"
+            columns: ["saas_client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saas_analytics: {
         Row: {
