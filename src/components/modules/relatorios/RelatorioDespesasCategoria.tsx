@@ -15,40 +15,100 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import { ContaPagar } from "../contas-pagar/types";
+import { useMemo } from "react";
+import { parseISO } from "date-fns";
 
-// Mock Data
-const despesas = [
-  { id: 'd-001', data: new Date(2025, 4, 28), descricao: 'Assinatura Software CRM', categoria: 'Software', valor: 450.00 },
-  { id: 'd-002', data: new Date(2025, 5, 2), descricao: 'Almoço com cliente', categoria: 'Alimentação', valor: 180.50 },
-  { id: 'd-003', data: new Date(2025, 5, 5), descricao: 'Passagens aéreas - Reunião SP', categoria: 'Viagem', valor: 1250.75 },
-  { id: 'd-004', data: new Date(2025, 5, 5), descricao: 'Hospedagem Hotel - Reunião SP', categoria: 'Viagem', valor: 890.00 },
-  { id: 'd-005', data: new Date(2025, 5, 7), descricao: 'Campanha Google Ads', categoria: 'Marketing', valor: 2500.00 },
-  { id: 'd-006', data: new Date(2025, 5, 10), descricao: 'Material de escritório', categoria: 'Escritório', valor: 320.00 },
-  { id: 'd-007', data: new Date(2025, 5, 12), descricao: 'Conta de luz - Escritório', categoria: 'Infraestrutura', valor: 650.40 },
-  { id: 'd-008', data: new Date(2025, 5, 12), descricao: 'Conta de internet', categoria: 'Infraestrutura', valor: 299.90 },
-  { id: 'd-009', data: new Date(2025, 5, 14), descricao: 'Manutenção Servidor', categoria: 'Software', valor: 900.00 },
-  { id: 'd-010', data: new Date(2025, 5, 15), descricao: 'Uber - Deslocamento cliente', categoria: 'Transporte', valor: 75.80 },
-];
+interface RelatorioDespesasCategoriaProps {
+  contasAPagar: ContaPagar[];
+  isLoading?: boolean;
+}
 
-// Calculations
-const totalDespesas = despesas.reduce((acc, item) => acc + item.valor, 0);
-const gastoMedio = totalDespesas / despesas.length;
+export function RelatorioDespesasCategoria({ contasAPagar, isLoading }: RelatorioDespesasCategoriaProps) {
+  const dadosProcessados = useMemo(() => {
+    // Filtra apenas as contas pagas
+    const despesasPagas = contasAPagar.filter(conta => conta.status === 'pago');
+    
+    if (despesasPagas.length === 0) {
+      return {
+        despesas: [],
+        totalDespesas: 0,
+        gastoMedio: 0,
+        despesasPorCategoria: {},
+        categoriaComMaiorGasto: '',
+        pieChartData: [],
+        barChartData: []
+      };
+    }
 
-const despesasPorCategoria = despesas.reduce((acc, despesa) => {
-  const { categoria, valor } = despesa;
-  if (!acc[categoria]) {
-    acc[categoria] = 0;
+    // Mapear dados para o formato esperado
+    const despesas = despesasPagas.map(conta => ({
+      id: conta.id,
+      data: conta.dataPagamento || conta.dataVencimento,
+      descricao: conta.descricao,
+      categoria: conta.categoria || 'Outras',
+      valor: conta.valor
+    }));
+
+    const totalDespesas = despesas.reduce((acc, item) => acc + item.valor, 0);
+    const gastoMedio = totalDespesas / despesas.length;
+
+    const despesasPorCategoria = despesas.reduce((acc, despesa) => {
+      const { categoria, valor } = despesa;
+      if (!acc[categoria]) {
+        acc[categoria] = 0;
+      }
+      acc[categoria] += valor;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const [categoriaComMaiorGasto] = Object.entries(despesasPorCategoria).sort(([, a], [, b]) => b - a)[0] || ['', 0];
+
+    const pieChartData = Object.entries(despesasPorCategoria).map(([name, value]) => ({ name, value }));
+    const barChartData = Object.entries(despesasPorCategoria)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a,b) => b.value - a.value);
+
+    return {
+      despesas,
+      totalDespesas,
+      gastoMedio,
+      despesasPorCategoria,
+      categoriaComMaiorGasto,
+      pieChartData,
+      barChartData
+    };
+  }, [contasAPagar]);
+
+  const { despesas, totalDespesas, gastoMedio, categoriaComMaiorGasto, pieChartData, barChartData } = dadosProcessados;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <p className="text-muted-foreground">Carregando dados...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
-  acc[categoria] += valor;
-  return acc;
-}, {} as Record<string, number>);
 
-const [categoriaComMaiorGasto] = Object.entries(despesasPorCategoria).sort(([, a], [, b]) => b - a)[0];
-
-const pieChartData = Object.entries(despesasPorCategoria).map(([name, value]) => ({ name, value }));
-const barChartData = Object.entries(despesasPorCategoria)
-    .map(([name, value]) => ({ name, value }))
-    .sort((a,b) => b.value - a.value);
+  if (despesas.length === 0) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <p className="text-muted-foreground">Aguardando dados relevantes para gerar informações</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF4242'];
 
@@ -62,7 +122,6 @@ const categoryColorMapping: { [key: string]: string } = {
   Transporte: "bg-yellow-100 text-yellow-800 border-yellow-200"
 };
 
-export function RelatorioDespesasCategoria() {
   return (
     <div className="space-y-6">
       <Card>

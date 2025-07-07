@@ -3,13 +3,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Proposta, Vendedor } from "@/components/modules/comercial/types";
 import { Client } from "@/components/modules/crm/types";
 import { ProdutoServico } from "@/components/modules/produtos-servicos/types";
-import {
-  initialPropostas,
-  initialVendedores,
-  initialClients,
-  initialProdutosServicos,
-} from "@/data/mocks";
 import { ContaReceber } from "@/components/modules/contas-receber/types";
+
+// Mock data definitions moved here since external files were removed
+const initialPropostas: Proposta[] = [];
+const initialVendedores: Vendedor[] = [];
+const initialClients: Client[] = [];
+const initialProdutosServicos: ProdutoServico[] = [];
 
 // Este hook agora gerencia apenas os dados que são verdadeiramente estáticos/mockados.
 export const useAppData = () => {

@@ -113,12 +113,18 @@ export function Relatorios() {
     }
   }, [contasAReceber, contasAPagar]);
   
-  const dadosVendas = {
-    totalVendas: 38200.00,
-    metaMensal: 50000.00,
-    percentualMeta: 76,
-    vendasPorVendedor: [],
-  };
+  // Dados de vendas calculados a partir das contas recebidas
+  const dadosVendas = useMemo(() => {
+    const contasRecebidas = contasAReceber.filter(c => c.status === 'recebido');
+    const totalVendas = contasRecebidas.reduce((sum, c) => sum + c.valor, 0);
+    
+    return {
+      totalVendas,
+      metaMensal: 50000.00, // Meta fixa por enquanto
+      percentualMeta: totalVendas > 0 ? Math.round((totalVendas / 50000.00) * 100) : 0,
+      vendasPorVendedor: [], // Sem dados de vendedores por enquanto
+    };
+  }, [contasAReceber]);
 
   const relatoriosDisponiveis = [
     { id: "fluxo-caixa", nome: "Fluxo de Caixa", icon: DollarSign },
@@ -141,7 +147,7 @@ export function Relatorios() {
       case "vendas": return <RelatorioVendas dados={dadosVendas} />;
       case "contas-pagar": return <RelatorioContasPagar contas={contasAPagar} />;
       case "contas-receber": return <RelatorioContasReceber contas={contasAReceber} />;
-      case "despesas-categoria": return <RelatorioDespesasCategoria />;
+      case "despesas-categoria": return <RelatorioDespesasCategoria contasAPagar={contasAPagar} isLoading={isLoadingPagar} />;
       case "inadimplencia": return <RelatorioInadimplencia contasAReceber={contasAReceber} isLoading={isLoadingReceber} />;
       default: return <RelatorioFluxoCaixa dados={dadosFluxoCaixa} />;
     }

@@ -13,6 +13,20 @@ interface RelatorioVendasProps {
 }
 
 export function RelatorioVendas({ dados }: RelatorioVendasProps) {
+  if (dados.totalVendas === 0 && dados.vendasPorVendedor.length === 0) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <p className="text-muted-foreground">Aguardando dados relevantes para gerar informações</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -68,8 +82,13 @@ export function RelatorioVendas({ dados }: RelatorioVendasProps) {
           <CardDescription>Vendas individuais vs. metas</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {dados.vendasPorVendedor.map((vendedor, index) => {
+          {dados.vendasPorVendedor.length === 0 ? (
+            <div className="text-center py-4">
+              <p className="text-muted-foreground">Nenhum vendedor com vendas registradas</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {dados.vendasPorVendedor.map((vendedor, index) => {
               const percentualMeta = (vendedor.vendas / vendedor.meta) * 100;
               return (
                 <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
@@ -96,8 +115,9 @@ export function RelatorioVendas({ dados }: RelatorioVendasProps) {
                   </div>
                 </div>
               )
-            })}
-          </div>
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
