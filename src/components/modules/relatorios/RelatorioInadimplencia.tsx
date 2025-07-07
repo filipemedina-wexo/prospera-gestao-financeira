@@ -4,41 +4,204 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, TrendingDown, History } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { useMemo } from "react";
+import { ContaReceber } from "../contas-receber/types";
 
-// Mock Data
-const inadimplenciaAtual = [
-  { clienteId: "cli-003", clienteNome: "Empresa DEF", valor: 299.90, dataVencimento: new Date(2025, 5, 10), diasAtraso: 5 },
-  { clienteId: "cli-007", clienteNome: "Construtora GHI", valor: 15000.00, dataVencimento: new Date(2025, 4, 25), diasAtraso: 21 },
-  { clienteId: "cli-012", clienteNome: "Consultoria JKL", valor: 1250.50, dataVencimento: new Date(2025, 5, 1), diasAtraso: 14 },
-];
+type RelatorioInadimplenciaProps = {
+  contasAReceber: ContaReceber[];
+  isLoading?: boolean;
+};
 
-const historicoAtrasos = [
-  { clienteId: "cli-001", clienteNome: "Cliente XYZ", valor: 5800.00, dataVencimento: new Date(2025, 4, 15), dataPagamento: new Date(2025, 4, 20), diasAtraso: 5 },
-  { clienteId: "cli-008", clienteNome: "Agência MNO", valor: 450.00, dataVencimento: new Date(2025, 3, 30), dataPagamento: new Date(2025, 4, 10), diasAtraso: 10 },
-  { clienteId: "cli-003", clienteNome: "Empresa DEF", valor: 299.90, dataVencimento: new Date(2025, 4, 10), dataPagamento: new Date(2025, 4, 12), diasAtraso: 2 },
-];
+export function RelatorioInadimplencia({ contasAReceber, isLoading = false }: RelatorioInadimplenciaProps) {
+  const dadosInadimplencia = useMemo(() => {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
 
-const clientesRisco = [
-  { clienteId: "cli-007", clienteNome: "Construtora GHI", risco: "Alto", motivo: "Atraso recorrente, valor elevado" },
-  { clienteId: "cli-003", clienteNome: "Empresa DEF", risco: "Médio", motivo: "Atrasos frequentes, valores menores" },
-  { clienteId: "cli-015", clienteNome: "Startup PQR", risco: "Baixo", motivo: "Novo cliente, monitorar primeiros pagamentos" },
-];
+    // Contas atualmente em atraso
+    const inadimplenciaAtual = contasAReceber
+      .filter(conta => {
+        const vencimento = new Date(conta.dataVencimento);
+        vencimento.setHours(0, 0, 0, 0);
+        return conta.status === 'pendente' && vencimento < hoje;
+      })
+      .map(conta => {
+        const vencimento = new Date(conta.dataVencimento);
+        vencimento.setHours(0, 0, 0, 0);
+        const diasAtraso = Math.floor((hoje.getTime() - vencimento.getTime()) / (1000 * 60 * 60 * 24));
+        return {
+          clienteId: conta.id,
+          clienteNome: conta.cliente || 'Cliente não informado',
+          valor: conta.valor,
+          dataVencimento: conta.dataVencimento,
+          diasAtraso
+        };
+      })
+      .sort((a, b) => b.diasAtraso - a.diasAtraso);
 
-const totalInadimplente = inadimplenciaAtual.reduce((acc, item) => acc + item.valor, 0);
-const avgDiasAtraso = inadimplenciaAtual.length > 0
-  ? Math.round(inadimplenciaAtual.reduce((acc, item) => acc + item.diasAtraso, 0) / inadimplenciaAtual.length)
-  : 0;
+    // Histórico de pagamentos em atraso
+    const historicoAtrasos = contasAReceber
+      .filter(conta => conta.status === 'recebido' && conta.dataRecebimento)
+      .map(conta => {
+        if (!conta.dataRecebimento) return null;
+        const vencimento = new Date(conta.dataVencimento);
+        const recebimento = new Date(conta.dataRecebimento);
+        vencimento.setHours(0, 0, 0, 0);
+        recebimento.setHours(0, 0, 0, 0);
+        
+        if (recebimento <= vencimento) return null; // Não estava em atraso
+        
+        const diasAtraso = Math.floor((recebimento.getTime() - vencimento.getTime()) / (1000 * 60 * 60 * 24));
+        return {
+          clienteId: conta.id,
+          clienteNome: conta.cliente || 'Cliente não informado',
+          valor: conta.valor,
+          dataVencimento: conta.dataVencimento,
+          dataPagamento: conta.dataRecebimento,
+          diasAtraso
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => (b?.diasAtraso || 0) - (a?.diasAtraso || 0));
 
-const chartData = [
-  { month: "Jan", overdue: 4300 },
-  { month: "Fev", overdue: 3200 },
-  { month: "Mar", overdue: 5100 },
-  { month: "Abr", overdue: 6050 },
-  { month: "Mai", overdue: 5500 },
-  { month: "Jun", overdue: totalInadimplente },
-];
+    // Análise de risco por cliente
+    const clientesAnalise = contasAReceber.reduce((acc, conta) => {
+      const cliente = conta.cliente || 'Cliente não informado';
+      if (!acc[cliente]) {
+        acc[cliente] = {
+          totalContas: 0,
+          contasAtrasadas: 0,
+          valorTotal: 0,
+          valorAtrasado: 0,
+          maiorAtraso: 0
+        };
+      }
+      
+      acc[cliente].totalContas++;
+      acc[cliente].valorTotal += conta.valor;
+      
+      const vencimento = new Date(conta.dataVencimento);
+      vencimento.setHours(0, 0, 0, 0);
+      
+      if (conta.status === 'pendente' && vencimento < hoje) {
+        acc[cliente].contasAtrasadas++;
+        acc[cliente].valorAtrasado += conta.valor;
+        const diasAtraso = Math.floor((hoje.getTime() - vencimento.getTime()) / (1000 * 60 * 60 * 24));
+        acc[cliente].maiorAtraso = Math.max(acc[cliente].maiorAtraso, diasAtraso);
+      }
+      
+      return acc;
+    }, {} as Record<string, any>);
 
-export function RelatorioInadimplencia() {
+    const clientesRisco = Object.entries(clientesAnalise)
+      .map(([nome, dados]: [string, any]) => {
+        const percentualAtraso = dados.totalContas > 0 ? (dados.contasAtrasadas / dados.totalContas) * 100 : 0;
+        const valorMedio = dados.valorTotal / dados.totalContas;
+        
+        let risco = 'Baixo';
+        let motivo = 'Histórico regular de pagamentos';
+        
+        if (percentualAtraso > 50 || dados.maiorAtraso > 30 || dados.valorAtrasado > 10000) {
+          risco = 'Alto';
+          motivo = 'Atraso recorrente, valor elevado';
+        } else if (percentualAtraso > 20 || dados.maiorAtraso > 10 || dados.valorAtrasado > 5000) {
+          risco = 'Médio';
+          motivo = 'Atrasos frequentes';
+        }
+        
+        return {
+          clienteId: nome,
+          clienteNome: nome,
+          risco,
+          motivo,
+          percentualAtraso
+        };
+      })
+      .sort((a, b) => {
+        const ordemRisco = { 'Alto': 3, 'Médio': 2, 'Baixo': 1 };
+        return ordemRisco[b.risco as keyof typeof ordemRisco] - ordemRisco[a.risco as keyof typeof ordemRisco];
+      });
+
+    // Dados para o gráfico (últimos 6 meses)
+    const chartData = [];
+    for (let i = 5; i >= 0; i--) {
+      const data = new Date();
+      data.setMonth(data.getMonth() - i);
+      const mesAno = data.toLocaleString('pt-BR', { month: 'short' }).replace('.', '');
+      
+      const valorAtrasado = contasAReceber
+        .filter(conta => {
+          const vencimento = new Date(conta.dataVencimento);
+          return vencimento.getMonth() === data.getMonth() && 
+                 vencimento.getFullYear() === data.getFullYear() &&
+                 conta.status === 'pendente';
+        })
+        .reduce((sum, conta) => sum + conta.valor, 0);
+      
+      chartData.push({
+        month: mesAno,
+        overdue: valorAtrasado
+      });
+    }
+
+    const totalInadimplente = inadimplenciaAtual.reduce((acc, item) => acc + item.valor, 0);
+    const avgDiasAtraso = inadimplenciaAtual.length > 0
+      ? Math.round(inadimplenciaAtual.reduce((acc, item) => acc + item.diasAtraso, 0) / inadimplenciaAtual.length)
+      : 0;
+
+    return {
+      inadimplenciaAtual,
+      historicoAtrasos,
+      clientesRisco,
+      chartData,
+      totalInadimplente,
+      avgDiasAtraso
+    };
+  }, [contasAReceber]);
+
+  // Verificar se há dados suficientes
+  const hasData = contasAReceber.length > 0;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Relatório de Inadimplência</CardTitle>
+            <CardDescription>Carregando dados...</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center h-48">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Relatório de Inadimplência</CardTitle>
+            <CardDescription>Análise de contas em atraso e histórico de pagamentos.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center h-48 text-center">
+              <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">Aguardando dados relevantes</h3>
+              <p className="text-muted-foreground">
+                Aguardando dados relevantes para gerar informações sobre inadimplência.
+                <br />
+                Cadastre contas a receber para visualizar este relatório.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   const getRiskBadge = (risco: string) => {
     switch (risco.toLowerCase()) {
       case 'alto':
@@ -68,10 +231,10 @@ export function RelatorioInadimplencia() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-destructive">
-                  R$ {totalInadimplente.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {dadosInadimplencia.totalInadimplente.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  de {inadimplenciaAtual.length} clientes
+                  de {dadosInadimplencia.inadimplenciaAtual.length} clientes
                 </p>
               </CardContent>
             </Card>
@@ -82,7 +245,7 @@ export function RelatorioInadimplencia() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {inadimplenciaAtual.length}
+                  {dadosInadimplencia.inadimplenciaAtual.length}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   com contas vencidas atualmente
@@ -96,7 +259,7 @@ export function RelatorioInadimplencia() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {avgDiasAtraso} dias
+                  {dadosInadimplencia.avgDiasAtraso} dias
                 </div>
                 <p className="text-xs text-muted-foreground">
                   em média por conta
@@ -123,7 +286,7 @@ export function RelatorioInadimplencia() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {inadimplenciaAtual.map((item) => (
+                {dadosInadimplencia.inadimplenciaAtual.map((item) => (
                   <TableRow key={item.clienteId}>
                     <TableCell className="font-medium">{item.clienteNome}</TableCell>
                     <TableCell>
@@ -146,7 +309,7 @@ export function RelatorioInadimplencia() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={chartData}>
+              <BarChart data={dadosInadimplencia.chartData}>
                 <XAxis dataKey="month" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `R$${(value as number)/1000}k`} />
                 <Tooltip
@@ -177,7 +340,7 @@ export function RelatorioInadimplencia() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clientesRisco.map((cliente) => (
+              {dadosInadimplencia.clientesRisco.map((cliente) => (
                 <TableRow key={cliente.clienteId}>
                   <TableCell className="font-medium">{cliente.clienteNome}</TableCell>
                   <TableCell>{getRiskBadge(cliente.risco)}</TableCell>
@@ -205,7 +368,7 @@ export function RelatorioInadimplencia() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {historicoAtrasos.map((item) => (
+              {dadosInadimplencia.historicoAtrasos.map((item) => (
                 <TableRow key={item.clienteId + item.dataVencimento.toISOString()}>
                   <TableCell className="font-medium">{item.clienteNome}</TableCell>
                   <TableCell>
@@ -215,7 +378,7 @@ export function RelatorioInadimplencia() {
                     R$ {item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {item.dataPagamento.toLocaleDateString('pt-BR')}
+                    {item.dataPagamento?.toLocaleDateString('pt-BR')}
                   </TableCell>
                 </TableRow>
               ))}

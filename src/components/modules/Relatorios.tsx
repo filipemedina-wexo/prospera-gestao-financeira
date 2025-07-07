@@ -142,7 +142,7 @@ export function Relatorios() {
       case "contas-pagar": return <RelatorioContasPagar contas={contasAPagar} />;
       case "contas-receber": return <RelatorioContasReceber contas={contasAReceber} />;
       case "despesas-categoria": return <RelatorioDespesasCategoria />;
-      case "inadimplencia": return <RelatorioInadimplencia />;
+      case "inadimplencia": return <RelatorioInadimplencia contasAReceber={contasAReceber} isLoading={isLoadingReceber} />;
       default: return <RelatorioFluxoCaixa dados={dadosFluxoCaixa} />;
     }
   };
