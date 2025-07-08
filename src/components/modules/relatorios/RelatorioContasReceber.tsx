@@ -24,6 +24,33 @@ interface RelatorioContasReceberProps {
 }
 
 export function RelatorioContasReceber({ contas = [] }: RelatorioContasReceberProps) {
+  // Verificar se há dados suficientes
+  const hasData = contas.length > 0;
+
+  if (!hasData) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Relatório de Contas a Receber</CardTitle>
+            <CardDescription>Análise detalhada de contas a receber.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center h-48 text-center">
+              <DollarSign className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">Aguardando dados relevantes</h3>
+              <p className="text-muted-foreground">
+                Aguardando dados relevantes para gerar informações sobre contas a receber.
+                <br />
+                Cadastre contas a receber para visualizar este relatório.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const totalRecebido = contas.filter(c => c.status === 'recebido').reduce((acc, item) => acc + item.valor, 0);
   const totalPendente = contas.filter(c => c.status === 'pendente').reduce((acc, item) => acc + item.valor, 0);
   const totalAtrasado = contas.filter(c => c.status === 'atrasado').reduce((acc, item) => acc + item.valor, 0);

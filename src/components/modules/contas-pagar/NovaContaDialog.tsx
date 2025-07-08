@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plus } from "lucide-react";
+import { CalendarIcon, Plus, Tags } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,6 +20,7 @@ import { useQuery } from "@tanstack/react-query";
 import { financialClientsService } from "@/services/financialClientsService";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { ContaPagar } from "./types";
+import { useToast } from "@/hooks/use-toast";
 
 interface NovaContaDialogProps {
   open: boolean;
@@ -30,8 +31,12 @@ interface NovaContaDialogProps {
 
 export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: NovaContaDialogProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const { currentClientId } = useMultiTenant();
-  const { categories } = useClientCategories();
+  const { categories, createCategory } = useClientCategories();
+  const { toast } = useToast();
   
   const { data: fornecedores } = useQuery({
     queryKey: ['financial-clients', currentClientId],
@@ -50,6 +55,34 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
       recorrente: false,
     },
   });
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    
+    setIsCreatingCategory(true);
+    try {
+      await createCategory({ 
+        name: newCategoryName.trim(), 
+        type: 'expense', 
+        is_active: true 
+      });
+      form.setValue('categoria', newCategoryName.trim());
+      setNewCategoryName("");
+      setShowCategoryDialog(false);
+      toast({
+        title: "Categoria criada com sucesso!",
+        description: `A categoria "${newCategoryName.trim()}" foi adicionada.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao criar categoria",
+        description: "Não foi possível criar a categoria. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
 
   useEffect(() => {
     if (open && contaToEdit) {
@@ -122,10 +155,21 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
                     )} />
                     <FormField control={form.control} name="categoria" render={({ field }) => (
                     <FormItem><FormLabel>Categoria</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                        <SelectContent>{expenseCategories.map((cat) => (<SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>))}</SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2">
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
+                                <SelectContent>{expenseCategories.map((cat) => (<SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>))}</SelectContent>
+                            </Select>
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="icon"
+                                onClick={() => setShowCategoryDialog(true)}
+                                title="Adicionar nova categoria"
+                            >
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </div>
                         <FormMessage />
                     </FormItem>
                     )} />
@@ -164,6 +208,57 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
             </form>
         </Form>
       </DialogContent>
+
+      {/* Dialog para adicionar nova categoria */}
+      <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Tags className="h-5 w-5" />
+              Nova Categoria de Despesa
+            </DialogTitle>
+            <DialogDescription>
+              Adicione uma nova categoria para classificar suas despesas.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-category">Nome da Categoria</Label>
+              <Input
+                id="new-category"
+                placeholder="Ex: Tecnologia, Marketing..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCreateCategory();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setShowCategoryDialog(false);
+                  setNewCategoryName("");
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="button" 
+                onClick={handleCreateCategory}
+                disabled={!newCategoryName.trim() || isCreatingCategory}
+              >
+                {isCreatingCategory ? "Criando..." : "Adicionar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

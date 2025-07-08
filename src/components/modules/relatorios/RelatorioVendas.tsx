@@ -17,9 +17,19 @@ export function RelatorioVendas({ dados }: RelatorioVendasProps) {
     return (
       <div className="space-y-6">
         <Card>
-          <CardContent className="flex items-center justify-center py-8">
-            <div className="text-center">
-              <p className="text-muted-foreground">Aguardando dados relevantes para gerar informações</p>
+          <CardHeader>
+            <CardTitle>Relatório de Vendas</CardTitle>
+            <CardDescription>Análise de vendas e performance comercial.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center h-48 text-center">
+              <TrendingUp className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">Aguardando dados relevantes</h3>
+              <p className="text-muted-foreground">
+                Aguardando dados relevantes para gerar informações sobre vendas.
+                <br />
+                Cadastre contas a receber para visualizar este relatório.
+              </p>
             </div>
           </CardContent>
         </Card>

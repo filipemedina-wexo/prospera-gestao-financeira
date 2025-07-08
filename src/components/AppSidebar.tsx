@@ -16,6 +16,7 @@ import { menuItems } from "@/config/menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useMultiTenant } from "@/contexts/MultiTenantContext";
 
 interface AppSidebarProps {
   onMenuChange?: (menuId: string) => void;
@@ -23,9 +24,16 @@ interface AppSidebarProps {
 
 export function AppSidebar({ onMenuChange }: AppSidebarProps) {
   const { hasPermission, user, logout } = useAuth();
+  const { isSupperAdmin } = useMultiTenant();
   const navigate = useNavigate();
 
-  const visibleMenuItems = menuItems.filter((item) => hasPermission(item.permission));
+  const visibleMenuItems = menuItems.filter((item) => {
+    // Esconder "Admin SaaS" para usuários que não são super_admin
+    if (item.id === 'admin-saas' && !isSupperAdmin) {
+      return false;
+    }
+    return hasPermission(item.permission);
+  });
 
   const [activeMenu, setActiveMenu] = useState(
     visibleMenuItems.length > 0 ? visibleMenuItems[0].id : ""
@@ -46,11 +54,11 @@ export function AppSidebar({ onMenuChange }: AppSidebarProps) {
       <SidebarHeader className="p-6 border-b">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
-            <TrendingUp className="h-5 w-5 text-white" />
+            <img src="/lovable-uploads/e74bcf1e-064a-4644-ba53-dcaf30996434.png" alt="Prospera" className="w-6 h-6" />
           </div>
           <div className="group-data-[collapsible=icon]:hidden">
             <h1 className="font-bold text-lg">Prospera</h1>
-            <p className="text-sm text-muted-foreground">Gestão Inteligente</p>
+            <p className="text-sm text-muted-foreground">Gestão Financeira</p>
           </div>
         </div>
       </SidebarHeader>

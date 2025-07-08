@@ -23,6 +23,33 @@ interface RelatorioContasPagarProps {
 }
 
 export function RelatorioContasPagar({ contas }: RelatorioContasPagarProps) {
+  // Verificar se há dados suficientes
+  const hasData = contas.length > 0;
+
+  if (!hasData) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Relatório de Contas a Pagar</CardTitle>
+            <CardDescription>Análise detalhada de contas a pagar.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center h-48 text-center">
+              <CreditCard className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">Aguardando dados relevantes</h3>
+              <p className="text-muted-foreground">
+                Aguardando dados relevantes para gerar informações sobre contas a pagar.
+                <br />
+                Cadastre contas a pagar para visualizar este relatório.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Calculations
   const totalPago = contas.filter(c => c.status === 'pago').reduce((acc, item) => acc + item.valor, 0);
   const totalPendente = contas.filter(c => c.status === 'pendente').reduce((acc, item) => acc + item.valor, 0);

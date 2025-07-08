@@ -13,6 +13,33 @@ interface RelatorioFluxoCaixaProps {
 }
 
 export function RelatorioFluxoCaixa({ dados }: RelatorioFluxoCaixaProps) {
+  // Verificar se há dados suficientes
+  const hasData = dados.totalEntradas > 0 || dados.totalSaidas > 0;
+
+  if (!hasData) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Relatório de Fluxo de Caixa</CardTitle>
+            <CardDescription>Análise de entradas e saídas financeiras.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center h-48 text-center">
+              <DollarSign className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">Aguardando dados relevantes</h3>
+              <p className="text-muted-foreground">
+                Aguardando dados relevantes para gerar informações sobre fluxo de caixa.
+                <br />
+                Cadastre contas a pagar e receber para visualizar este relatório.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
