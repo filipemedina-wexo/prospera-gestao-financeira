@@ -30,10 +30,11 @@ import {
 } from "@/components/ui/select";
 import { Departamento, Funcionario } from "./types";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const departamentoSchema = z.object({
   nome: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres." }),
-  responsavelId: z.string({ required_error: "Por favor, selecione um responsável." }).min(1, { message: "Por favor, selecione um responsável." }),
+  responsavelId: z.string().optional(),
 });
 
 export type DepartamentoFormValues = z.infer<typeof departamentoSchema>;
@@ -48,6 +49,8 @@ interface DepartamentoDialogProps {
 
 export function DepartamentoDialog({ isOpen, setIsOpen, onSave, departamento, funcionarios }: DepartamentoDialogProps) {
   const { toast } = useToast();
+  const [allowNullResponsavel, setAllowNullResponsavel] = useState(false);
+  
   const form = useForm<DepartamentoFormValues>({
     resolver: zodResolver(departamentoSchema),
     defaultValues: {
@@ -74,7 +77,7 @@ export function DepartamentoDialog({ isOpen, setIsOpen, onSave, departamento, fu
     const newDepartamento: Departamento = {
       id: departamento ? departamento.id : `dep-${Date.now()}`,
       nome: data.nome,
-      responsavelId: data.responsavelId,
+      responsavelId: data.responsavelId || '',
     };
     onSave(newDepartamento);
     toast({
@@ -115,10 +118,11 @@ export function DepartamentoDialog({ isOpen, setIsOpen, onSave, departamento, fu
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o responsável" />
+                        <SelectValue placeholder="Selecione o responsável (opcional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="">Nenhum responsável</SelectItem>
                       {funcionarios.map((func) => (
                         <SelectItem key={func.id} value={func.id}>
                           {func.nome}

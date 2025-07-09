@@ -402,6 +402,41 @@ export type Database = {
           },
         ]
       }
+      client_modules: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          module_name: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          module_name: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          module_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_modules_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "saas_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_onboarding: {
         Row: {
           admin_user_created: boolean

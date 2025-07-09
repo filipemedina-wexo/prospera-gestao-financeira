@@ -10,6 +10,7 @@ import { ActionItem, ActionsDropdown } from "@/components/ui/actions-dropdown";
 interface PropostasListProps {
   propostas: Proposta[];
   onStatusChange: (propostaId: string, newStatus: Proposta['status']) => void;
+  onEditProposta: (proposta: Proposta) => void;
 }
 
 const getStatusBadge = (status: string) => {
@@ -31,7 +32,7 @@ const getStatusBadge = (status: string) => {
   );
 };
 
-export function PropostasList({ propostas, onStatusChange }: PropostasListProps) {
+export function PropostasList({ propostas, onStatusChange, onEditProposta }: PropostasListProps) {
   const getActionsForProposta = (proposta: Proposta): ActionItem[] => {
     const actions: ActionItem[] = [
       {
@@ -62,7 +63,7 @@ export function PropostasList({ propostas, onStatusChange }: PropostasListProps)
     actions.push({
       type: 'edit',
       label: 'Editar',
-      onClick: () => {},
+      onClick: () => onEditProposta(proposta),
     });
 
     return actions;

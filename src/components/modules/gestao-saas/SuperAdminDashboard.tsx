@@ -25,6 +25,7 @@ import { ClientOnboardingWizard } from './ClientOnboardingWizard';
 import { ClientDetailsModal } from './ClientDetailsModal';
 import { UserAssignmentDialog } from './UserAssignmentDialog';
 import { PaymentHistoryView } from './PaymentHistoryView';
+import { ClientModulesDialog } from './ClientModulesDialog';
 import { UsersManagement } from '../gestao-usuarios/UsersManagement';
 import { ClientSelector } from '@/components/ClientSelector';
 
@@ -67,6 +68,7 @@ export function SuperAdminDashboard() {
   const [showClientDetails, setShowClientDetails] = useState(false);
   const [showUserAssignment, setShowUserAssignment] = useState(false);
   const [showPaymentHistory, setShowPaymentHistory] = useState(false);
+  const [showModulesDialog, setShowModulesDialog] = useState(false);
   const [activeTab, setActiveTab] = useState('clients');
   const { toast } = useToast();
 
@@ -205,6 +207,9 @@ export function SuperAdminDashboard() {
         break;
       case 'payments':
         setShowPaymentHistory(true);
+        break;
+      case 'modules':
+        setShowModulesDialog(true);
         break;
     }
   };
@@ -408,6 +413,13 @@ export function SuperAdminDashboard() {
                         <Button 
                           variant="ghost" 
                           size="sm"
+                          onClick={() => handleClientAction(client, 'modules')}
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
                           onClick={() => handleInitializeClient(client)}
                         >
                           <Database className="h-4 w-4" />
@@ -490,6 +502,13 @@ export function SuperAdminDashboard() {
             isOpen={showPaymentHistory}
             onClose={() => setShowPaymentHistory(false)}
             client={selectedClient}
+          />
+
+          <ClientModulesDialog
+            isOpen={showModulesDialog}
+            onClose={() => setShowModulesDialog(false)}
+            client={selectedClient}
+            onUpdate={fetchDashboardData}
           />
         </>
       )}
