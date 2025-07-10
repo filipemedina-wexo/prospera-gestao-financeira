@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +15,7 @@ import { format } from 'date-fns';
 import { Tables } from '@/integrations/supabase/types';
 import { getStatusBadge } from './clienteUtils';
 import { ActionItem, ActionsDropdown } from '@/components/ui/actions-dropdown';
+import { UserAssignmentDialog } from './UserAssignmentDialog';
 
 type SaasClient = Tables<'saas_clients'>;
 
@@ -24,11 +26,29 @@ interface ClientesTableProps {
 }
 
 export function ClientesTable({ clients, onEditClient, onToggleStatus }: ClientesTableProps) {
+  const [selectedClientForUsers, setSelectedClientForUsers] = useState<SaasClient | null>(null);
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
+
+  const handleManageUsers = (client: SaasClient) => {
+    setSelectedClientForUsers(client);
+    setIsUserDialogOpen(true);
+  };
+
+  const handleCloseUserDialog = () => {
+    setIsUserDialogOpen(false);
+    setSelectedClientForUsers(null);
+  };
+
   const getActionsForClient = (client: SaasClient): ActionItem[] => [
     {
       type: 'edit',
       label: 'Editar',
       onClick: () => onEditClient(client),
+    },
+    {
+      type: 'custom',
+      label: 'Gerenciar Usuários',
+      onClick: () => handleManageUsers(client),
     },
     {
       type: client.status === 'active' ? 'block' : 'activate',
@@ -39,6 +59,7 @@ export function ClientesTable({ clients, onEditClient, onToggleStatus }: Cliente
   ];
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -75,5 +96,18 @@ export function ClientesTable({ clients, onEditClient, onToggleStatus }: Cliente
         </Table>
       </CardContent>
     </Card>
+
+    {/* User Assignment Dialog */}
+    {selectedClientForUsers && (
+      <UserAssignmentDialog
+        isOpen={isUserDialogOpen}
+        onClose={handleCloseUserDialog}
+        client={selectedClientForUsers}
+        onUpdate={() => {
+          // Optional: refresh clients list if needed
+        }}
+      />
+    )}
+  </>
   );
 }
