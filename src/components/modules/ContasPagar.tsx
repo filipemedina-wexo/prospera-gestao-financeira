@@ -57,9 +57,10 @@ export function ContasPagar() {
           financial_client_id: conta.fornecedorId 
         };
         
-        if (conta.id) {
+        // Use contaParaEditar state to determine if it's an update operation
+        if (contaParaEditar?.id) {
           const dbStatus = conta.status ? frontendToDbStatusMap[conta.status] : undefined;
-          return accountsPayableService.update(conta.id, {...payload, status: dbStatus});
+          return accountsPayableService.update(contaParaEditar.id, {...payload, status: dbStatus});
         }
         return accountsPayableService.create(payload);
     },
