@@ -179,23 +179,42 @@ const ComercialRefactored = ({ onPropostaAceita }: ComercialProps) => {
       </Card>
 
       <NovaPropostaDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
         onSave={handleSaveProposta}
         clients={clients}
         vendedores={legacyVendedores}
+        setClients={() => {}} // Not used in refactored version
       />
 
       <EditarPropostaDialog
-        isOpen={isEditDialogOpen}
-        onClose={() => {
-          setIsEditDialogOpen(false);
-          setPropostaParaEditar(null);
+        open={isEditDialogOpen}
+        onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+          if (!open) setPropostaParaEditar(null);
         }}
         onSave={handleSaveEditedProposta}
-        proposta={propostaParaEditar}
+        proposta={propostaParaEditar ? {
+          id: propostaParaEditar.id,
+          titulo: propostaParaEditar.title,
+          cliente: propostaParaEditar.client?.company_name || 'Cliente não identificado',
+          vendedor: propostaParaEditar.seller?.name || 'Vendedor não identificado',
+          valorTotal: propostaParaEditar.total_value,
+          dataCriacao: new Date(propostaParaEditar.created_at),
+          dataValidade: propostaParaEditar.expires_at ? new Date(propostaParaEditar.expires_at) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          status: propostaParaEditar.status as any,
+          itens: propostaParaEditar.items?.map(item => ({
+            id: item.id,
+            descricao: item.description,
+            quantidade: item.quantity,
+            valorUnitario: item.unit_price,
+            valorTotal: item.total_price
+          })) || [],
+          observacoes: propostaParaEditar.notes
+        } : null}
         clients={clients}
         vendedores={legacyVendedores}
+        setClients={() => {}} // Not used in refactored version
       />
 
       <Tabs defaultValue="propostas" className="w-full">
@@ -212,7 +231,7 @@ const ComercialRefactored = ({ onPropostaAceita }: ComercialProps) => {
           />
         </TabsContent>
         <TabsContent value="comissoes">
-          <ComissoesList vendedores={legacyVendedores} propostas={legacyPropostas} />
+          <ComissoesList vendedores={legacyVendedores} />
         </TabsContent>
       </Tabs>
     </div>

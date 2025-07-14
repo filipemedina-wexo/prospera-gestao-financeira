@@ -33,7 +33,7 @@ const getStatusBadge = (status: string) => {
 };
 
 export function PropostasList({ propostas, onStatusChange, onEditProposta }: PropostasListProps) {
-  const getActionsForProposta = (proposta: Proposal): ActionItem[] => {
+  const getActionsForProposta = (proposta: Proposta): ActionItem[] => {
     const actions: ActionItem[] = [
       {
         type: 'view',
