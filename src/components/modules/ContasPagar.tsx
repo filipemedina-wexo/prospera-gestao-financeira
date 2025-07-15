@@ -5,6 +5,7 @@ import { format, isToday, isPast, parseISO } from "date-fns";
 import { z } from "zod";
 import { ContaPagar } from "./contas-pagar/types";
 import { formSchema } from "./contas-pagar/config";
+import { mapFrontendPayableToDatabase, mapDatabasePayableToFrontend } from "@/utils/statusMappings";
 import { ContasPagarSummary } from "./contas-pagar/ContasPagarSummary";
 import { ContasPagarFilters } from "./contas-pagar/ContasPagarFilters";
 import { ContasPagarTable } from "./contas-pagar/ContasPagarTable";
@@ -42,13 +43,6 @@ export function ContasPagar() {
 
   const { mutate: upsertMutation } = useMutation({
     mutationFn: (conta: Partial<ContaPagar>) => {
-        const frontendToDbStatusMap: Record<ContaPagar['status'], string> = {
-          pendente: 'pending',
-          pago: 'paid',
-          atrasado: 'overdue', 
-          parcial: 'partial'
-        };
-        
         const payload: any = { 
           description: conta.descricao!, 
           amount: conta.valor!, 
@@ -59,7 +53,7 @@ export function ContasPagar() {
         
         // Use contaParaEditar state to determine if it's an update operation
         if (contaParaEditar?.id) {
-          const dbStatus = conta.status ? frontendToDbStatusMap[conta.status] : undefined;
+          const dbStatus = conta.status ? mapFrontendPayableToDatabase(conta.status) : undefined;
           return accountsPayableService.update(contaParaEditar.id, {...payload, status: dbStatus});
         }
         return accountsPayableService.create(payload);
@@ -100,15 +94,8 @@ export function ContasPagar() {
     today.setHours(0, 0, 0, 0);
     const todasContas = (contasDatabase || []).map((conta): ContaPagar => {
       const dataVencimento = parseISO(conta.due_date);
-      // Map database status to frontend status
-      const statusMap: Record<string, ContaPagar['status']> = {
-        pending: 'pendente',
-        paid: 'pago', 
-        overdue: 'atrasado',
-        partial: 'parcial'
-      };
-      
-      let status = statusMap[conta.status] || 'pendente';
+      // Map database status to frontend status using utility function
+      let status = mapDatabasePayableToFrontend(conta.status);
       if (status === 'pendente' && isPast(dataVencimento) && !isToday(dataVencimento)) {
         status = 'atrasado';
       }

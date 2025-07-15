@@ -12,6 +12,7 @@ import { useState, useMemo } from "react";
 import { format, isToday, isPast, parseISO } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ContaReceber } from "./contas-receber/types";
+import { mapFrontendReceivableToDatabase, mapDatabaseReceivableToFrontend } from "@/utils/statusMappings";
 import { useToast } from "@/hooks/use-toast";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { accountsReceivableService } from "@/services/accountsReceivableService";
@@ -71,15 +72,8 @@ export function ContasReceber() {
           competencia: conta.competencia
       };
 
-      const statusMap: Record<ContaReceber['status'], Database['public']['Enums']['account_receivable_status']> = {
-        pendente: 'pending',
-        recebido: 'received',
-        atrasado: 'overdue',
-        parcial: 'partial'
-      };
-
       if (conta.id) {
-          const status = conta.status ? statusMap[conta.status] : undefined;
+          const status = conta.status ? mapFrontendReceivableToDatabase(conta.status) : undefined;
           return accountsReceivableService.update(conta.id, { ...payload, status });
       }
       return accountsReceivableService.create(payload);
@@ -123,15 +117,7 @@ export function ContasReceber() {
 
     const todasContas = (contasDatabase || []).map((conta): ContaReceber => {
         const dataVencimento = parseISO(conta.due_date);
-        const statusMap: Record<Database['public']['Enums']['account_receivable_status'], ContaReceber['status']> = {
-          pending: 'pendente',
-          received: 'recebido',
-          overdue: 'atrasado',
-          partial: 'parcial',
-          paid: 'recebido' // Map paid to recebido for compatibility
-        };
-
-        let status = statusMap[conta.status];
+        let status = mapDatabaseReceivableToFrontend(conta.status);
         if (status === 'pendente' && isPast(dataVencimento) && !isToday(dataVencimento)) {
             status = 'atrasado';
         }

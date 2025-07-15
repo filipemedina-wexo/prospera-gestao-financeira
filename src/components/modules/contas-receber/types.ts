@@ -13,3 +13,14 @@ export interface ContaReceber {
   observacoes?: string;
   competencia?: string;
 }
+
+// Status mapping for accounts_receivable
+export const ACCOUNTS_RECEIVABLE_STATUS = {
+  PENDING: 'pending',
+  RECEIVED: 'received',
+  OVERDUE: 'overdue',
+  PARTIAL: 'partial',
+  PAID: 'paid'
+} as const;
+
+export type AccountReceivableStatus = typeof ACCOUNTS_RECEIVABLE_STATUS[keyof typeof ACCOUNTS_RECEIVABLE_STATUS];

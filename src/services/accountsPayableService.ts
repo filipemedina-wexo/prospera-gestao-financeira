@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { getCurrentClientId } from '@/utils/getCurrentClientId';
+import { logStatusOperation } from '@/utils/statusLogger';
 
 export type AccountPayableFromDB = Tables<'accounts_payable'> & {
   clients?: { company_name: string } | null;
@@ -36,6 +37,9 @@ export const accountsPayableService = {
   },
 
   async update(id: string, updates: TablesUpdate<'accounts_payable'>): Promise<AccountPayableFromDB> {
+    if (updates.status) {
+      logStatusOperation('accounts_payable', 'update', id, updates.status, updates);
+    }
     const { data, error } = await supabase.from('accounts_payable').update(updates).eq('id', id).select('*, clients ( company_name )').single();
     if (error) throw error;
     return data;
@@ -47,6 +51,7 @@ export const accountsPayableService = {
   },
 
   async markAsPaid(id: string, paidDate: string): Promise<AccountPayableFromDB> {
+    logStatusOperation('accounts_payable', 'markAsPaid', id, 'paid', { paidDate });
     return this.update(id, {
       status: 'paid',
       paid_date: paidDate,

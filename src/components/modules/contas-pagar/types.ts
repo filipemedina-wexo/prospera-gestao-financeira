@@ -17,3 +17,13 @@ export interface ContaPagar {
   parcelaAtual?: number;
   idGrupoRecorrencia?: string;
 }
+
+// Status mapping for accounts_payable
+export const ACCOUNTS_PAYABLE_STATUS = {
+  PENDING: 'pending',
+  PAID: 'paid',
+  OVERDUE: 'overdue',
+  PARTIAL: 'partial'
+} as const;
+
+export type AccountPayableStatus = typeof ACCOUNTS_PAYABLE_STATUS[keyof typeof ACCOUNTS_PAYABLE_STATUS];
