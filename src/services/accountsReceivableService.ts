@@ -47,6 +47,14 @@ export const accountsReceivableService = {
   },
 
   async markAsReceived(id: string, receivedDate: string, bankAccountId: string): Promise<void> {
+    // Import validation functions
+    const { validateReceivablePayment } = await import('@/utils/statusValidation');
+    
+    // Validate input parameters
+    if (!validateReceivablePayment(id, receivedDate, bankAccountId)) {
+      throw new Error('Dados inválidos para registro de recebimento');
+    }
+    
     const { error } = await supabase.rpc('registrar_recebimento', {
       p_receivable_id: id,
       p_received_date: receivedDate,

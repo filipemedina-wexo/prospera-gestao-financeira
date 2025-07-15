@@ -1741,6 +1741,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      registrar_pagamento: {
+        Args: { p_payable_id: string; p_paid_date: string }
+        Returns: undefined
+      }
       registrar_recebimento: {
         Args: {
           p_receivable_id: string
