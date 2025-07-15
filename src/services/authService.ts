@@ -42,25 +42,32 @@ export const logoutUser = async () => {
 export const signUpUser = async ({ email, password, fullName }: SignUpData) => {
   
   try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+    // Use atomic onboarding edge function instead of direct signup
+    const { data, error } = await supabase.functions.invoke('atomic-onboarding', {
+      body: {
+        email,
+        password,
+        fullName,
+        companyName: fullName, // Use fullName as fallback for companyName
+        contactName: fullName,
+        contactEmail: email,
       },
     });
 
     if (error) {
-      console.error('Signup error:', error);
+      console.error('Atomic onboarding error:', error);
       await logSecurityEvent('USER_SIGNUP_FAILED', 'auth', false, error.message);
-    } else {
-      await logSecurityEvent('USER_SIGNUP', 'auth', true);
-    }
+      return { data: null, error: error as AuthError };
+    } 
     
-    return { data, error };
+    if (data?.success) {
+      await logSecurityEvent('USER_SIGNUP', 'auth', true);
+      return { data: data.user, error: null };
+    } else {
+      const errorMessage = data?.message || 'Falha no onboarding';
+      await logSecurityEvent('USER_SIGNUP_FAILED', 'auth', false, errorMessage);
+      return { data: null, error: { message: errorMessage } as AuthError };
+    }
   } catch (error) {
     console.error('Unexpected signup error:', error);
     return { data: null, error: error as AuthError };
