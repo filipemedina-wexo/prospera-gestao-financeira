@@ -8,6 +8,7 @@ import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
 import LandingPage from "@/pages/LandingPage";
+import SignupPage from "@/pages/SignupPage";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MultiTenantProvider } from "@/contexts/MultiTenantContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -25,6 +26,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignupPage />} />
               <Route
                 path="/dashboard"
                 element={

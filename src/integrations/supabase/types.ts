@@ -1757,6 +1757,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      validate_financial_consistency: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          table_name: string
+          account_id: string
+          status: string
+          has_transaction: boolean
+          should_have_transaction: boolean
+          is_consistent: boolean
+        }[]
+      }
     }
     Enums: {
       account_payable_status: "pending" | "paid" | "overdue" | "partial"

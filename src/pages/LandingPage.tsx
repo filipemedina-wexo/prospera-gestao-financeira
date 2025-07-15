@@ -31,7 +31,7 @@ const LandingPage = () => {
             <Link to="/login">
               <Button variant="outline">Entrar</Button>
             </Link>
-            <Link to="/login">
+            <Link to="/signup">
               <Button>Começar Grátis</Button>
             </Link>
           </div>
@@ -51,7 +51,7 @@ const LandingPage = () => {
             Controle contas a pagar e receber, fluxo de caixa, relatórios e muito mais.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/login">
+            <Link to="/signup">
               <Button size="lg" className="text-lg px-8 py-3">
                 Começar Gratuitamente
               </Button>
@@ -244,7 +244,7 @@ const LandingPage = () => {
                     <span>Suporte por email</span>
                   </li>
                 </ul>
-                <Link to="/login" className="block mt-6">
+                <Link to="/signup" className="block mt-6">
                   <Button className="w-full">Começar Grátis</Button>
                 </Link>
               </CardContent>
@@ -288,7 +288,7 @@ const LandingPage = () => {
                     <span>Suporte prioritário</span>
                   </li>
                 </ul>
-                <Link to="/login" className="block mt-6">
+                <Link to="/signup" className="block mt-6">
                   <Button className="w-full">Começar Grátis</Button>
                 </Link>
               </CardContent>
@@ -326,7 +326,7 @@ const LandingPage = () => {
                     <span>Suporte 24/7</span>
                   </li>
                 </ul>
-                <Link to="/login" className="block mt-6">
+                <Link to="/signup" className="block mt-6">
                   <Button className="w-full" variant="outline">Falar com Vendas</Button>
                 </Link>
               </CardContent>
