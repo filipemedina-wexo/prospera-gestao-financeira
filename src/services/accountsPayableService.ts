@@ -3,7 +3,7 @@ import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/type
 import { getCurrentClientId } from '@/utils/getCurrentClientId';
 
 export type AccountPayableFromDB = Tables<'accounts_payable'> & {
-  financial_clients?: { name: string } | null;
+  clients?: { company_name: string } | null;
 };
 
 export const accountsPayableService = {
@@ -13,7 +13,7 @@ export const accountsPayableService = {
 
     const { data, error } = await supabase
       .from('accounts_payable')
-      .select('*, financial_clients ( name )')
+      .select('*, clients ( company_name )')
       .eq('saas_client_id', clientId)
       .order('due_date');
 
@@ -30,13 +30,13 @@ export const accountsPayableService = {
 
     const payload: TablesInsert<'accounts_payable'> = { ...account, saas_client_id: clientId, status: 'pending' };
 
-    const { data, error } = await supabase.from('accounts_payable').insert(payload).select('*, financial_clients ( name )').single();
+    const { data, error } = await supabase.from('accounts_payable').insert(payload).select('*, clients ( company_name )').single();
     if (error) throw error;
     return data;
   },
 
   async update(id: string, updates: TablesUpdate<'accounts_payable'>): Promise<AccountPayableFromDB> {
-    const { data, error } = await supabase.from('accounts_payable').update(updates).eq('id', id).select('*, financial_clients ( name )').single();
+    const { data, error } = await supabase.from('accounts_payable').update(updates).eq('id', id).select('*, clients ( company_name )').single();
     if (error) throw error;
     return data;
   },

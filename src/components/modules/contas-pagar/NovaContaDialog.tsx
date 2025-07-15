@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { formSchema, opcoesFrequencia } from "./config";
 import { useClientCategories } from "@/hooks/useClientCategories";
 import { useQuery } from "@tanstack/react-query";
-import { financialClientsService } from "@/services/financialClientsService";
+import { clientsService } from "@/services/clientsService";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { ContaPagar } from "./types";
 import { useToast } from "@/hooks/use-toast";
@@ -39,8 +39,8 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
   const { toast } = useToast();
   
   const { data: fornecedores } = useQuery({
-    queryKey: ['financial-clients', currentClientId],
-    queryFn: () => currentClientId ? financialClientsService.getAll() : Promise.resolve([]),
+    queryKey: ['clients', currentClientId],
+    queryFn: () => currentClientId ? clientsService.getAll() : Promise.resolve([]),
     enabled: !!currentClientId,
   });
 
@@ -179,7 +179,7 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
                 <FormItem><FormLabel>Fornecedor</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                    <SelectContent>{(fornecedores || []).map((f) => (<SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>))}</SelectContent>
+                    <SelectContent>{(fornecedores || []).map((f) => (<SelectItem key={f.id} value={f.id}>{f.company_name}</SelectItem>))}</SelectContent>
                     </Select>
                     <FormMessage />
                 </FormItem>

@@ -54,7 +54,7 @@ export function ContasPagar() {
           amount: conta.valor!, 
           due_date: format(conta.dataVencimento!, 'yyyy-MM-dd'), 
           category: conta.categoria, 
-          financial_client_id: conta.fornecedorId 
+          client_id: conta.fornecedorId 
         };
         
         // Use contaParaEditar state to determine if it's an update operation
@@ -114,8 +114,8 @@ export function ContasPagar() {
       }
       return {
         id: conta.id, descricao: conta.description, valor: conta.amount, dataVencimento, status,
-        fornecedor: conta.financial_clients?.name || 'Não informado',
-        fornecedorId: conta.financial_client_id || '',
+        fornecedor: conta.clients?.company_name || 'Não informado',
+        fornecedorId: conta.client_id || '',
         categoria: conta.category || 'Geral',
         competencia: format(dataVencimento, 'MM/yyyy'),
       };
