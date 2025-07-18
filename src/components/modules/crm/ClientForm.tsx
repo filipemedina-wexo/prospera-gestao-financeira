@@ -6,6 +6,8 @@ import { Form } from "@/components/ui/form";
 import { useEffect } from "react";
 import type { Client } from "./types";
 import { ClientFormFields } from "./form/ClientFormFields";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface ClientFormProps {
   open: boolean;
@@ -31,6 +33,8 @@ export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormP
       origem: "",
       observacoes: "",
       dataAniversario: undefined,
+      // Novo campo para tipo de cliente
+      segment: 'standard',
     }
   });
 
@@ -53,6 +57,7 @@ export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormP
         origem: "",
         observacoes: "",
         dataAniversario: undefined,
+        segment: 'standard',
       });
     }
   }, [initialValues, open, form]);
@@ -83,6 +88,33 @@ export function ClientForm({ open, onClose, initialValues, onSave }: ClientFormP
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <ClientFormFields control={form.control} />
+            
+            {/* Campo para definir se é cliente, fornecedor ou ambos */}
+            <div className="space-y-2">
+              <Label htmlFor="clientType">Tipo de Relacionamento</Label>
+              <Select 
+                value={form.watch('segment') === 'premium' ? 'both' : 'customer'} 
+                onValueChange={(value) => {
+                  if (value === 'both') {
+                    form.setValue('segment', 'premium');
+                  } else if (value === 'supplier') {
+                    form.setValue('segment', 'basic');
+                  } else {
+                    form.setValue('segment', 'standard');
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="customer">Cliente</SelectItem>
+                  <SelectItem value="supplier">Fornecedor</SelectItem>
+                  <SelectItem value="both">Cliente e Fornecedor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <DialogFooter>
               <Button type="submit" variant="default">Salvar</Button>
               <Button type="button" variant="outline" onClick={onClose}>

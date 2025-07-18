@@ -1,16 +1,73 @@
 
-import { useState } from "react";
-import { Fornecedor } from "./fornecedores/types";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { FornecedoresTable } from "./fornecedores/FornecedoresTable";
-import { FinancialClientDialog } from "./fornecedores/FinancialClientDialog";
+import { SupplierDialog } from "./fornecedores/SupplierDialog";
 import { Briefcase, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { financialClientsService, FinancialClient } from "@/services/financialClientsService";
-import { TablesUpdate } from "@/integrations/supabase/types";
+import { clientsService, Client } from "@/services/clientsService";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// Interface para compatibilidade com o código existente
+export interface Fornecedor {
+  id: string;
+  razaoSocial: string;
+  nomeFantasia?: string;
+  cnpj: string;
+  email: string;
+  telefone: string;
+  status: 'Ativo' | 'Inativo';
+  tipo: string;
+  chavePix?: string;
+  endereco?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  nomeContato?: string;
+  observacoes?: string;
+  dataCadastro: Date;
+  condicaoPagamento?: string;
+  proximoPagamento?: Date;
+  valorProximoPagamento?: number;
+}
+
+// Função para converter Client para Fornecedor
+const clientToFornecedor = (client: Client): Fornecedor => ({
+  id: client.id,
+  razaoSocial: client.company_name,
+  nomeFantasia: client.trade_name || '',
+  cnpj: client.document_number || '',
+  email: client.contact_email || '',
+  telefone: client.contact_phone || '',
+  status: client.is_active ? 'Ativo' : 'Inativo',
+  tipo: 'Fornecedor',
+  endereco: client.address || '',
+  cidade: client.city || '',
+  estado: client.state || '',
+  cep: client.zip_code || '',
+  nomeContato: client.contact_name || '',
+  observacoes: client.notes || '',
+  dataCadastro: new Date(client.created_at),
+});
+
+// Função para converter Fornecedor para Client
+const fornecedorToClient = (fornecedor: Fornecedor): Partial<Client> => ({
+  company_name: fornecedor.razaoSocial,
+  trade_name: fornecedor.nomeFantasia,
+  document_number: fornecedor.cnpj,
+  contact_email: fornecedor.email,
+  contact_phone: fornecedor.telefone,
+  address: fornecedor.endereco,
+  city: fornecedor.cidade,
+  state: fornecedor.estado,
+  zip_code: fornecedor.cep,
+  contact_name: fornecedor.nomeContato,
+  notes: fornecedor.observacoes,
+  is_active: fornecedor.status === 'Ativo',
+  client_type: 'supplier',
+});
 
 export const Fornecedores = () => {
   const { toast } = useToast();
@@ -19,27 +76,41 @@ export const Fornecedores = () => {
   const [selectedFornecedor, setSelectedFornecedor] = useState<Partial<Fornecedor> | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
 
-  const { data: fornecedoresData = [], isLoading } = useQuery<FinancialClient[]>({
-    queryKey: ['financial_clients'],
-    queryFn: financialClientsService.getAll,
+  // Primeiro, tenta migrar dados se necessário
+  useEffect(() => {
+    const migrateData = async () => {
+      try {
+        await clientsService.migrateFromFinancialClients();
+      } catch (error) {
+        console.error('Erro na migração:', error);
+      }
+    };
+    migrateData();
+  }, []);
+
+  const { data: suppliersData = [], isLoading } = useQuery<Client[]>({
+    queryKey: ['suppliers'],
+    queryFn: clientsService.getAllSuppliers,
   });
 
   const upsertMutation = useMutation({
     mutationFn: (fornecedorData: Fornecedor) => {
-      const payload: Omit<TablesUpdate<'financial_clients'>, 'id' | 'created_at' | 'updated_at'> & { name: string; saas_client_id: string } = {
-        name: fornecedorData.razaoSocial,
-        document: fornecedorData.cnpj,
-        email: fornecedorData.email,
-        phone: fornecedorData.telefone,
-        saas_client_id: '', // This should come from context
-      };
+      const clientData = fornecedorToClient(fornecedorData);
+      
       if (fornecedorData.id) {
-        return financialClientsService.update(fornecedorData.id, payload);
+        return clientsService.update(fornecedorData.id, clientData);
       }
-      return financialClientsService.create(payload);
+      return clientsService.create({
+        ...clientData,
+        saas_client_id: '', // Will be set by the service
+        is_active: true,
+        status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as Omit<Client, 'id' | 'created_at' | 'updated_at'>);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['financial_clients'] });
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       toast({ title: "Sucesso!", description: `Fornecedor salvo com sucesso.` });
       setDialogOpen(false);
     },
@@ -47,9 +118,9 @@ export const Fornecedores = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: financialClientsService.delete,
+    mutationFn: clientsService.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['financial_clients'] });
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       toast({
         title: 'Fornecedor removido',
         description: 'O fornecedor foi removido com sucesso.',
@@ -77,26 +148,14 @@ export const Fornecedores = () => {
     deleteMutation.mutate(id);
   };
 
-  const filteredFornecedores: Fornecedor[] = fornecedoresData.map(f => ({
-    id: f.id,
-    razaoSocial: f.name,
-    nomeFantasia: f.name,
-    cnpj: f.document || '',
-    email: f.email || '',
-    telefone: f.phone || '',
-    status: 'Ativo' as const,
-    tipo: 'Serviço',
-    dataCadastro: new Date(f.created_at),
-    cep: f.cep || '',
-    endereco: f.address || '',
-    cidade: f.city || '',
-    estado: f.state || ''
-  })).filter(f => {
-    const searchMatch = searchFilter === '' ||
-                        f.razaoSocial.toLowerCase().includes(searchFilter.toLowerCase()) ||
-                        f.cnpj.includes(searchFilter);
-    return searchMatch;
-  });
+  const filteredFornecedores: Fornecedor[] = suppliersData
+    .map(clientToFornecedor)
+    .filter(f => {
+      const searchMatch = searchFilter === '' ||
+                          f.razaoSocial.toLowerCase().includes(searchFilter.toLowerCase()) ||
+                          f.cnpj.includes(searchFilter);
+      return searchMatch;
+    });
 
   const handleSave = (data: Fornecedor) => {
     if (selectedFornecedor?.id) {
@@ -111,7 +170,7 @@ export const Fornecedores = () => {
         email: data.email || '',
         telefone: data.telefone || '',
         status: data.status || 'Ativo',
-        tipo: data.tipo || 'Serviço',
+        tipo: data.tipo || 'Fornecedor',
         dataCadastro: new Date(),
         cep: data.cep || '',
         endereco: data.endereco || '',
@@ -147,11 +206,11 @@ export const Fornecedores = () => {
         <FornecedoresTable fornecedores={filteredFornecedores} onEdit={handleEdit} onDelete={handleDelete} />
       )}
 
-      <FinancialClientDialog
+      <SupplierDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onSave={handleSave}
-        client={selectedFornecedor}
+        supplier={selectedFornecedor}
         title={selectedFornecedor ? "Editar Fornecedor" : "Novo Fornecedor"}
       />
     </div>
