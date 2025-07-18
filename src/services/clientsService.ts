@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { getCurrentClientId } from '@/utils/getCurrentClientId';
@@ -16,6 +17,21 @@ export const clientsService = {
       .order('company_name');
 
     if (error) throw new Error(`Erro ao buscar clientes: ${error.message}`);
+    return data || [];
+  },
+
+  async getAllSuppliers(): Promise<Client[]> {
+    const clientId = await getCurrentClientId();
+    if (!clientId) throw new Error('Cliente SaaS não encontrado.');
+
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('saas_client_id', clientId)
+      .in('client_type', ['supplier', 'both'])
+      .order('company_name');
+
+    if (error) throw new Error(`Erro ao buscar fornecedores: ${error.message}`);
     return data || [];
   },
 

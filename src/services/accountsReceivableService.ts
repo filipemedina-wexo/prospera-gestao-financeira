@@ -1,6 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { getCurrentClientId } from '@/utils/getCurrentClientId';
+import { validateReceivablePayment } from '@/utils/statusValidation';
 
 export type AccountReceivableFromDB = Tables<'accounts_receivable'> & {
   financial_clients?: { name: string } | null;
@@ -28,16 +30,27 @@ export const accountsReceivableService = {
     const clientId = await getCurrentClientId();
     if (!clientId) throw new Error('Mapeamento de cliente não encontrado.');
 
+    console.log('Creating receivable with data:', account);
+
     const payload: TablesInsert<'accounts_receivable'> = { ...account, saas_client_id: clientId, status: 'pending' };
 
     const { data, error } = await supabase.from('accounts_receivable').insert(payload).select('*, financial_clients ( name )').single();
-    if (error) { console.error("Supabase error details:", error); throw new Error(`Erro ao criar conta a receber: ${error.message}`); }
+    if (error) { 
+      console.error("Supabase error details:", error); 
+      throw new Error(`Erro ao criar conta a receber: ${error.message}`); 
+    }
+    console.log('Successfully created receivable:', data);
     return data;
   },
 
   async update(id: string, updates: TablesUpdate<'accounts_receivable'>): Promise<AccountReceivableFromDB> {
+    console.log('Updating receivable with id:', id, 'data:', updates);
     const { data, error } = await supabase.from('accounts_receivable').update(updates).eq('id', id).select('*, financial_clients ( name )').single();
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating receivable:', error);
+      throw error;
+    }
+    console.log('Successfully updated receivable:', data);
     return data;
   },
 
@@ -47,8 +60,7 @@ export const accountsReceivableService = {
   },
 
   async markAsReceived(id: string, receivedDate: string, bankAccountId: string): Promise<void> {
-    // Import validation functions
-    const { validateReceivablePayment } = await import('@/utils/statusValidation');
+    console.log('Marking receivable as received:', { id, receivedDate, bankAccountId });
     
     // Validate input parameters
     if (!validateReceivablePayment(id, receivedDate, bankAccountId)) {
@@ -65,5 +77,7 @@ export const accountsReceivableService = {
       console.error("Erro ao registrar recebimento via RPC:", error);
       throw new Error(`Erro ao registrar recebimento: ${error.message}`);
     }
+    
+    console.log('Successfully marked receivable as received');
   },
 };

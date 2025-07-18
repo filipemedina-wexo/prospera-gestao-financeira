@@ -13,6 +13,7 @@ import { NovaContaDialog } from "./contas-pagar/NovaContaDialog";
 import { RegistrarPagamentoDialog } from "./contas-pagar/RegistrarPagamentoDialog";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { accountsPayableService } from "@/services/accountsPayableService";
+import { clientsService } from "@/services/clientsService";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,6 +39,12 @@ export function ContasPagar() {
   const { data: contasDatabase, isLoading } = useQuery({
     queryKey: ['accounts-payable', currentClientId],
     queryFn: () => currentClientId ? accountsPayableService.getAll() : Promise.resolve([]),
+    enabled: !!currentClientId && !clientLoading,
+  });
+
+  const { data: fornecedores } = useQuery({
+    queryKey: ['suppliers', currentClientId],
+    queryFn: () => currentClientId ? clientsService.getAllSuppliers() : Promise.resolve([]),
     enabled: !!currentClientId && !clientLoading,
   });
 
@@ -92,6 +99,11 @@ export function ContasPagar() {
   const dadosProcessados = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const fornecedoresMap = (fornecedores || []).reduce((acc, f) => {
+      acc[f.id] = f.company_name;
+      return acc;
+    }, {} as Record<string, string>);
+
     const todasContas = (contasDatabase || []).map((conta): ContaPagar => {
       const dataVencimento = parseISO(conta.due_date);
       // Map database status to frontend status using utility function
@@ -100,8 +112,12 @@ export function ContasPagar() {
         status = 'atrasado';
       }
       return {
-        id: conta.id, descricao: conta.description, valor: conta.amount, dataVencimento, status,
-        fornecedor: conta.clients?.company_name || 'Não informado',
+        id: conta.id, 
+        descricao: conta.description, 
+        valor: conta.amount, 
+        dataVencimento, 
+        status,
+        fornecedor: fornecedoresMap[conta.client_id || ''] || 'Fornecedor não encontrado',
         fornecedorId: conta.client_id || '',
         categoria: conta.category || 'Geral',
         competencia: format(dataVencimento, 'MM/yyyy'),
@@ -119,7 +135,7 @@ export function ContasPagar() {
       contasPagas: todasContas.filter(c => c.status === 'pago').length,
     };
     return { contasFiltradas, summary };
-  }, [contasDatabase, filtroStatus, filtroCategoria, filtroCompetencia, busca]);
+  }, [contasDatabase, fornecedores, filtroStatus, filtroCategoria, filtroCompetencia, busca]);
 
   const handleEditConta = (conta: ContaPagar) => {
     setContaParaEditar(conta);

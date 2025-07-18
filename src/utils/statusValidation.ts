@@ -1,3 +1,4 @@
+
 /**
  * Validation utilities for account statuses
  * This helps ensure data integrity and provides debugging information
@@ -58,6 +59,8 @@ export const validateStatusConversion = (
  * Validates bank account ID to prevent null/undefined values
  */
 export const validateBankAccountId = (bankAccountId: string | null | undefined, operation: string): boolean => {
+  console.log(`[Bank Account Validation] Checking bank account ID for ${operation}: ${bankAccountId}`);
+  
   if (!bankAccountId || bankAccountId.trim() === '') {
     console.error(`[Bank Account Validation] Invalid bank account ID for ${operation}: ${bankAccountId}`);
     return false;
@@ -78,6 +81,8 @@ export const validateBankAccountId = (bankAccountId: string | null | undefined, 
  * Validates date to ensure it's not null and is a valid date
  */
 export const validateDate = (date: string | Date | null | undefined, fieldName: string): boolean => {
+  console.log(`[Date Validation] Checking ${fieldName}: ${date}`);
+  
   if (!date) {
     console.error(`[Date Validation] ${fieldName} is required but was: ${date}`);
     return false;
@@ -102,6 +107,12 @@ export const validateReceivablePayment = (
   receivedDate: string | Date | null | undefined,
   bankAccountId: string | null | undefined
 ): boolean => {
+  console.log('[Receivable Payment Validation] Starting validation', {
+    receivableId,
+    receivedDate,
+    bankAccountId
+  });
+
   const validations = [
     validateDate(receivedDate, 'received_date'),
     validateBankAccountId(bankAccountId, 'receivable payment'),
@@ -134,6 +145,11 @@ export const validatePayablePayment = (
   payableId: string | null | undefined,
   paidDate: string | Date | null | undefined
 ): boolean => {
+  console.log('[Payable Payment Validation] Starting validation', {
+    payableId,
+    paidDate
+  });
+
   const validations = [
     validateDate(paidDate, 'paid_date'),
     !!payableId // Basic check for payable ID

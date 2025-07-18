@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -39,8 +40,8 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
   const { toast } = useToast();
   
   const { data: fornecedores } = useQuery({
-    queryKey: ['clients', currentClientId],
-    queryFn: () => currentClientId ? clientsService.getAll() : Promise.resolve([]),
+    queryKey: ['suppliers', currentClientId],
+    queryFn: () => currentClientId ? clientsService.getAllSuppliers() : Promise.resolve([]),
     enabled: !!currentClientId,
   });
 
@@ -179,7 +180,19 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
                 <FormItem><FormLabel>Fornecedor</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                    <SelectContent>{(fornecedores || []).map((f) => (<SelectItem key={f.id} value={f.id}>{f.company_name}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                        {(fornecedores || []).length === 0 ? (
+                            <SelectItem value="no-suppliers" disabled>
+                                Nenhum fornecedor cadastrado
+                            </SelectItem>
+                        ) : (
+                            (fornecedores || []).map((f) => (
+                                <SelectItem key={f.id} value={f.id}>
+                                    {f.company_name}
+                                </SelectItem>
+                            ))
+                        )}
+                    </SelectContent>
                     </Select>
                     <FormMessage />
                 </FormItem>
