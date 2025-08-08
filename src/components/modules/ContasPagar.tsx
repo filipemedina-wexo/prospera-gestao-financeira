@@ -71,7 +71,10 @@ export function ContasPagar() {
       setContaParaEditar(null);
       toast({ title: `Conta ${contaParaEditar ? 'atualizada' : 'criada'} com sucesso!` });
     },
-    onError: (error: any) => toast({ title: "Erro", description: error.message, variant: "destructive" })
+    onError: (error: any) => {
+      console.error("Erro ao criar/atualizar conta:", error);
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    }
   });
   
   const { mutate: deleteMutation } = useMutation({
@@ -81,19 +84,26 @@ export function ContasPagar() {
       setContaParaRemover(null);
       toast({ title: "Conta removida com sucesso!" });
     },
-    onError: (error: any) => toast({ title: "Erro ao remover", description: error.message, variant: "destructive" })
+    onError: (error: any) => {
+      console.error("Erro ao remover conta:", error);
+      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+    }
   });
 
   const { mutate: markAsPaidMutation } = useMutation({
-    mutationFn: (data: { contaId: string; paidDate: string }) => 
-      accountsPayableService.markAsPaid(data.contaId, data.paidDate),
+    mutationFn: (data: { contaId: string; paidDate: string; bankAccountId: string }) =>
+      accountsPayableService.markAsPaid(data.contaId, data.paidDate, data.bankAccountId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });
+      queryClient.invalidateQueries({ queryKey: ['bank-accounts', currentClientId] });
       setShowPagamentoDialog(false);
       setContaParaPagar(null);
       toast({ title: 'Pagamento registrado com sucesso!' });
     },
-    onError: (error: any) => toast({ title: 'Erro', description: error.message, variant: 'destructive' }),
+    onError: (error: any) => {
+      console.error("Erro ao registrar pagamento:", error);
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    },
   });
 
   const dadosProcessados = useMemo(() => {
@@ -151,11 +161,12 @@ export function ContasPagar() {
     setShowPagamentoDialog(true);
   };
 
-  const handleConfirmarPagamento = (dataPagamento: Date) => {
+  const handleConfirmarPagamento = (data: { dataPagamento: Date; bankAccountId: string }) => {
     if (!contaParaPagar) return;
     markAsPaidMutation({
       contaId: contaParaPagar.id,
-      paidDate: format(dataPagamento, 'yyyy-MM-dd')
+      paidDate: format(data.dataPagamento, 'yyyy-MM-dd'),
+      bankAccountId: data.bankAccountId,
     });
   };
 

@@ -13,7 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useMultiTenant } from "@/contexts/MultiTenantContext";
+import { bankAccountsService } from "@/services/bankAccountsService";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -21,23 +25,34 @@ import { useEffect, useState } from "react";
 interface RegistrarPagamentoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (dataPagamento: Date) => void;
+  onConfirm: (data: { dataPagamento: Date; bankAccountId: string }) => void;
 }
 
 export function RegistrarPagamentoDialog({ open, onOpenChange, onConfirm }: RegistrarPagamentoDialogProps) {
   const [dataPagamento, setDataPagamento] = useState<Date | undefined>(new Date());
+  const [bankAccountId, setBankAccountId] = useState<string | undefined>();
+  const { currentClientId } = useMultiTenant();
+
+  const { data: bankAccounts, isLoading: isLoadingBankAccounts } = useQuery({
+    queryKey: ['bank-accounts', currentClientId],
+    queryFn: () => bankAccountsService.getAll(),
+    enabled: !!currentClientId,
+  });
 
   useEffect(() => {
     if (open) {
       setDataPagamento(new Date());
+      setBankAccountId(undefined);
     }
   }, [open]);
 
   const handleConfirm = () => {
-    if (dataPagamento) {
-      onConfirm(dataPagamento);
+    if (dataPagamento && bankAccountId) {
+      onConfirm({ dataPagamento, bankAccountId });
     }
   };
+
+  const isConfirmDisabled = !dataPagamento || !bankAccountId || isLoadingBankAccounts;
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -45,41 +60,64 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, onConfirm }: Regi
         <AlertDialogHeader>
           <AlertDialogTitle>Registrar Pagamento</AlertDialogTitle>
           <AlertDialogDescription>
-            Selecione a data de pagamento para registrar a quitação desta conta.
+            Selecione a data e a conta de pagamento para quitar esta despesa.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <div className="py-4">
-          <Label htmlFor="dataPagamento">Data de Pagamento *</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "justify-start text-left font-normal w-full mt-2",
-                  !dataPagamento && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dataPagamento ? (
-                  format(dataPagamento, "dd/MM/yyyy")
+        <div className="py-4 space-y-4">
+          <div>
+            <Label htmlFor="dataPagamento">Data de Pagamento *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal w-full mt-2",
+                    !dataPagamento && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dataPagamento ? (
+                    format(dataPagamento, "dd/MM/yyyy")
+                  ) : (
+                    "Selecione a data"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={dataPagamento}
+                  onSelect={setDataPagamento}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <Label htmlFor="bankAccount">Conta de Pagamento *</Label>
+            <Select onValueChange={setBankAccountId} value={bankAccountId}>
+              <SelectTrigger id="bankAccount" className="w-full mt-2">
+                <SelectValue placeholder={isLoadingBankAccounts ? "Carregando..." : "Selecione a conta"} />
+              </SelectTrigger>
+              <SelectContent>
+                {isLoadingBankAccounts ? (
+                  <SelectItem value="loading" disabled>Carregando...</SelectItem>
                 ) : (
-                  "Selecione a data"
+                  bankAccounts?.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.name}
+                    </SelectItem>
+                  ))
                 )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={dataPagamento}
-                onSelect={setDataPagamento}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} disabled={!dataPagamento}>Confirmar Pagamento</AlertDialogAction>
+          <AlertDialogAction onClick={handleConfirm} disabled={isConfirmDisabled}>
+            Confirmar Pagamento
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
