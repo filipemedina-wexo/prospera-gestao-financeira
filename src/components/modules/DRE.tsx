@@ -16,7 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { accountsPayableService } from "@/services/accountsPayableService";
 import { accountsReceivableService } from "@/services/accountsReceivableService";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
-import { subMonths, format, getYear } from "date-fns";
+import { subMonths, format, getYear, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from "../ui/skeleton";
 
@@ -37,10 +37,38 @@ export function DRE() {
   });
 
   const dadosDRE = useMemo(() => {
-    const contasPagar = contasPagarData || [];
-    const contasReceber = contasReceberData || [];
+    const now = new Date();
+    let inicio: Date, fim: Date;
 
-    const receitas = contasReceber.reduce((acc, conta) => {
+    switch (periodoSelecionado) {
+      case "mes-anterior":
+        inicio = startOfMonth(subMonths(now, 1));
+        fim = endOfMonth(subMonths(now, 1));
+        break;
+      case "ano-atual":
+        inicio = startOfYear(now);
+        fim = endOfYear(now);
+        break;
+      case "ano-anterior":
+        inicio = startOfYear(subMonths(now, 12));
+        fim = endOfYear(subMonths(now, 12));
+        break;
+      case "mes-atual":
+      default:
+        inicio = startOfMonth(now);
+        fim = endOfMonth(now);
+        break;
+    }
+
+    const contasPagarFiltradas = (contasPagarData || []).filter(c =>
+      c.status === 'paid' && c.paid_date && isWithinInterval(new Date(c.paid_date), { start: inicio, end: fim })
+    );
+
+    const contasReceberFiltradas = (contasReceberData || []).filter(c =>
+      c.status === 'received' && c.received_date && isWithinInterval(new Date(c.received_date), { start: inicio, end: fim })
+    );
+
+    const receitas = contasReceberFiltradas.reduce((acc, conta) => {
         const categoria = conta.category?.toLowerCase() || '';
         if (categoria.includes('venda')) acc.bruta += conta.amount;
         else if (categoria.includes('financeira')) acc.financeiras += conta.amount;
@@ -48,7 +76,7 @@ export function DRE() {
         return acc;
     }, { bruta: 0, financeiras: 0, deducoes: 0 });
 
-    const despesas = contasPagar.reduce((acc, conta) => {
+    const despesas = contasPagarFiltradas.reduce((acc, conta) => {
         const categoria = conta.category?.toLowerCase() || '';
         if (categoria.includes('custo')) acc.custo_mercadorias += conta.amount;
         else if (categoria.includes('venda')) acc.despesas_vendas += conta.amount;
@@ -86,7 +114,7 @@ export function DRE() {
         { label: "= Lucro/Prejuízo do Período", valor: lucroLiquido, tipo: 'resultado_final', destaque: true },
       ]
     };
-  }, [contasPagarData, contasReceberData]);
+  }, [contasPagarData, contasReceberData, periodoSelecionado]);
 
   const formatCurrency = (valor: number) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const getPeriodoLabel = (periodo: string) => {
@@ -118,8 +146,24 @@ export function DRE() {
   return (
     <div className="space-y-6">
         <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2"><FileText /> DRE - {getPeriodoLabel(periodoSelecionado)}</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div className="space-y-1">
+                    <CardTitle className="flex items-center gap-2"><FileText /> DRE - Demonstrativo de Resultados</CardTitle>
+                    <CardDescription>Regime de Caixa - {getPeriodoLabel(periodoSelecionado)}</CardDescription>
+                </div>
+                <div className="w-48">
+                <Select value={periodoSelecionado} onValueChange={setPeriodoSelecionado}>
+                    <SelectTrigger>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="mes-atual">Mês Atual</SelectItem>
+                        <SelectItem value="mes-anterior">Mês Anterior</SelectItem>
+                        <SelectItem value="ano-atual">Ano Atual</SelectItem>
+                        <SelectItem value="ano-anterior">Ano Anterior</SelectItem>
+                    </SelectContent>
+                </Select>
+                </div>
             </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
