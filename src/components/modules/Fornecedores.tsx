@@ -10,28 +10,8 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { clientsService, Client } from "@/services/clientsService";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Interface para compatibilidade com o código existente
-export interface Fornecedor {
-  id: string;
-  razaoSocial: string;
-  nomeFantasia?: string;
-  cnpj: string;
-  email: string;
-  telefone: string;
-  status: 'Ativo' | 'Inativo';
-  tipo: string;
-  chavePix?: string;
-  endereco?: string;
-  cidade?: string;
-  estado?: string;
-  cep?: string;
-  nomeContato?: string;
-  observacoes?: string;
-  dataCadastro: Date;
-  condicaoPagamento?: string;
-  proximoPagamento?: Date;
-  valorProximoPagamento?: number;
-}
+// Interface centralizada para Fornecedor
+import type { Fornecedor } from "./fornecedores/types";
 
 // Função para converter Client para Fornecedor
 const clientToFornecedor = (client: Client): Fornecedor => ({
