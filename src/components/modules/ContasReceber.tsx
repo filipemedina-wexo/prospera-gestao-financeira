@@ -73,8 +73,9 @@ export function ContasReceber() {
       };
 
       if (conta.id) {
-          const status = conta.status ? mapFrontendReceivableToDatabase(conta.status) : undefined;
-          return accountsReceivableService.update(conta.id, { ...payload, status });
+          // Não permitir a alteração de status através do formulário de edição geral.
+          // A alteração de status deve ser feita apenas por ações específicas (Registrar Recebimento).
+          return accountsReceivableService.update(conta.id, payload);
       }
       return accountsReceivableService.create(payload);
     },

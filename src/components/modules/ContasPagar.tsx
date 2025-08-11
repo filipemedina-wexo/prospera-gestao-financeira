@@ -55,13 +55,15 @@ export function ContasPagar() {
           amount: conta.valor!, 
           due_date: format(conta.dataVencimento!, 'yyyy-MM-dd'), 
           category: conta.categoria, 
-          client_id: conta.fornecedorId 
+          // Correção: O campo do formulário é 'fornecedor', que contém o ID.
+          client_id: conta.fornecedor
         };
         
         // Use contaParaEditar state to determine if it's an update operation
         if (contaParaEditar?.id) {
-          const dbStatus = conta.status ? mapFrontendPayableToDatabase(conta.status) : undefined;
-          return accountsPayableService.update(contaParaEditar.id, {...payload, status: dbStatus});
+          // Não permitir a alteração de status através do formulário de edição geral.
+          // A alteração de status deve ser feita apenas por ações específicas (Registrar Pagamento).
+          return accountsPayableService.update(contaParaEditar.id, payload);
         }
         return accountsPayableService.create(payload);
     },
