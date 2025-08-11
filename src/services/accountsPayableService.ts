@@ -50,20 +50,21 @@ export const accountsPayableService = {
     if (error) throw error;
   },
 
-  async markAsPaid(id: string, paidDate: string): Promise<void> {
+  async markAsPaid(id: string, paidDate: string, bankAccountId: string): Promise<void> {
     // Import validation functions
     const { validatePayablePayment } = await import('@/utils/statusValidation');
     
     // Validate input parameters
-    if (!validatePayablePayment(id, paidDate)) {
+    if (!validatePayablePayment(id, paidDate, bankAccountId)) {
       throw new Error('Dados inválidos para registro de pagamento');
     }
     
-    logStatusOperation('accounts_payable', 'markAsPaid', id, 'paid', { paidDate });
+    logStatusOperation('accounts_payable', 'markAsPaid', id, 'paid', { paidDate, bankAccountId });
     
     const { error } = await supabase.rpc('registrar_pagamento', {
       p_payable_id: id,
-      p_paid_date: paidDate
+      p_paid_date: paidDate,
+      p_bank_account_id: bankAccountId
     });
     
     if (error) {

@@ -143,15 +143,18 @@ export const validateReceivablePayment = (
  */
 export const validatePayablePayment = (
   payableId: string | null | undefined,
-  paidDate: string | Date | null | undefined
+  paidDate: string | Date | null | undefined,
+  bankAccountId: string | null | undefined
 ): boolean => {
   console.log('[Payable Payment Validation] Starting validation', {
     payableId,
-    paidDate
+    paidDate,
+    bankAccountId
   });
 
   const validations = [
     validateDate(paidDate, 'paid_date'),
+    validateBankAccountId(bankAccountId, 'payable payment'),
     !!payableId // Basic check for payable ID
   ];
   
@@ -160,12 +163,14 @@ export const validatePayablePayment = (
   if (!isValid) {
     console.error('[Payable Payment Validation] Validation failed', {
       payableId,
-      paidDate
+      paidDate,
+      bankAccountId
     });
   } else {
     console.log('[Payable Payment Validation] All validations passed', {
       payableId,
-      paidDate
+      paidDate,
+      bankAccountId
     });
   }
   
