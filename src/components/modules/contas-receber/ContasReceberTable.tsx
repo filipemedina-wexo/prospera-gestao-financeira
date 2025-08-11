@@ -52,7 +52,7 @@ export function ContasReceberTable({ contas, onEdit, onDelete, onReceber }: Cont
       {
         type: 'delete',
         label: 'Excluir',
-        onClick: () a => onDelete(conta),
+        onClick: () => onDelete(conta),
         variant: 'destructive'
       }
     ];

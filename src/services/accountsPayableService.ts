@@ -63,8 +63,7 @@ export const accountsPayableService = {
     
     const { error } = await supabase.rpc('registrar_pagamento', {
       p_payable_id: id,
-      p_paid_date: paidDate,
-      p_bank_account_id: bankAccountId
+      p_paid_date: paidDate
     });
     
     if (error) {
