@@ -2,12 +2,11 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertCircle, CheckCircle, Clock, DollarSign, Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ContaReceber } from "./types";
 import { cn } from "@/lib/utils";
-
+import { ActionsDropdown, ActionItem } from "@/components/ui/actions-dropdown";
 interface ContasReceberTableProps {
   contas: ContaReceber[];
   onEdit: (conta: ContaReceber) => void;
@@ -36,6 +35,29 @@ const getStatusBadge = (status?: ContaReceber['status']) => {
 };
 
 export function ContasReceberTable({ contas, onEdit, onDelete, onReceber }: ContasReceberTableProps) {
+  const getActionsForConta = (conta: ContaReceber): ActionItem[] => {
+    return [
+      {
+        type: 'edit',
+        label: 'Editar',
+        onClick: () => onEdit(conta),
+      },
+      {
+        type: 'register',
+        label: 'Registrar Recebimento',
+        onClick: () => onReceber(conta),
+        disabled: conta.status === 'recebido',
+        variant: 'success'
+      },
+      {
+        type: 'delete',
+        label: 'Excluir',
+        onClick: () a => onDelete(conta),
+        variant: 'destructive'
+      }
+    ];
+  };
+
   return (
     <Table>
         <TableHeader>
@@ -62,18 +84,7 @@ export function ContasReceberTable({ contas, onEdit, onDelete, onReceber }: Cont
                     <TableCell>{format(conta.dataVencimento, "dd/MM/yyyy")}</TableCell>
                     <TableCell>{getStatusBadge(conta.status)}</TableCell>
                     <TableCell className="text-right">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => onEdit(conta)}><Edit className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
-                                {conta.status !== 'recebido' && (
-                                    <DropdownMenuItem onClick={() => onReceber(conta)}><CheckCircle className="mr-2 h-4 w-4" />Marcar como Recebido</DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem className="text-red-500" onClick={() => onDelete(conta)}><Trash2 className="mr-2 h-4 w-4" />Excluir</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                      <ActionsDropdown actions={getActionsForConta(conta)} />
                     </TableCell>
                 </TableRow>
                 ))

@@ -38,31 +38,26 @@ export function ContasPagarTable({ contas, onAbrirDialogPagamento, onEdit, onDel
   };
 
   const getActionsForConta = (conta: ContaPagar): ActionItem[] => {
-    const actions: ActionItem[] = [
+    return [
       {
         type: 'edit',
         label: 'Editar',
         onClick: () => onEdit(conta),
-      }
-    ];
-
-    if (conta.status === 'pendente' || conta.status === 'atrasado') {
-      actions.push({
+      },
+      {
         type: 'register',
         label: 'Registrar Pagamento',
         onClick: () => onAbrirDialogPagamento(conta),
+        disabled: conta.status === 'pago',
         variant: 'success'
-      });
-    }
-
-    actions.push({
-      type: 'delete',
-      label: 'Excluir',
-      onClick: () => onDelete(conta.id),
-      variant: 'destructive'
-    });
-
-    return actions;
+      },
+      {
+        type: 'delete',
+        label: 'Excluir',
+        onClick: () => onDelete(conta.id),
+        variant: 'destructive'
+      }
+    ];
   };
 
   if (contas.length === 0) {
