@@ -87,32 +87,6 @@ export function Relatorios() {
     };
   }), [contasReceberData]);
 
-  // Calcula os dados para o Relatório de Fluxo de Caixa
-  const dadosFluxoCaixa = useMemo(() => {
-    const totalEntradas = contasAReceber.filter(c => c.status === 'recebido').reduce((sum, c) => sum + c.valor, 0);
-    const totalSaidas = contasAPagar.filter(c => c.status === 'pago').reduce((sum, c) => sum + c.valor, 0);
-
-    const entradasPorCategoria = contasAReceber.filter(c => c.status === 'recebido').reduce((acc, c) => {
-        const cat = c.categoria || 'Outras';
-        acc[cat] = (acc[cat] || 0) + c.valor;
-        return acc;
-    }, {} as Record<string, number>);
-
-    const saidasPorCategoria = contasAPagar.filter(c => c.status === 'pago').reduce((acc, c) => {
-        const cat = c.categoria || 'Outras';
-        acc[cat] = (acc[cat] || 0) + c.valor;
-        return acc;
-    }, {} as Record<string, number>);
-
-    return {
-      totalEntradas,
-      totalSaidas,
-      saldoLiquido: totalEntradas - totalSaidas,
-      entradasPorCategoria: Object.entries(entradasPorCategoria).map(([categoria, valor]) => ({ categoria, valor, percentual: totalEntradas > 0 ? (valor / totalEntradas) * 100 : 0 })),
-      saidasPorCategoria: Object.entries(saidasPorCategoria).map(([categoria, valor]) => ({ categoria, valor, percentual: totalSaidas > 0 ? (valor / totalSaidas) * 100 : 0 })),
-    }
-  }, [contasAReceber, contasAPagar]);
-  
   // Dados de vendas calculados a partir das contas recebidas
   const dadosVendas = useMemo(() => {
     const contasRecebidas = contasAReceber.filter(c => c.status === 'recebido');
@@ -143,13 +117,13 @@ export function Relatorios() {
     
     switch (tipoRelatorio) {
       case "extrato": return <RelatorioExtrato extratoPeriodoInicio={extratoPeriodoInicio} extratoPeriodoFim={extratoPeriodoFim} setExtratoPeriodoInicio={setExtratoPeriodoInicio} setExtratoPeriodoFim={setExtratoPeriodoFim} contasAReceber={contasAReceber} contasAPagar={contasAPagar} />;
-      case "fluxo-caixa": return <RelatorioFluxoCaixa dados={dadosFluxoCaixa} />;
+      case "fluxo-caixa": return <RelatorioFluxoCaixa />;
       case "vendas": return <RelatorioVendas dados={dadosVendas} />;
       case "contas-pagar": return <RelatorioContasPagar contas={contasAPagar} />;
       case "contas-receber": return <RelatorioContasReceber contas={contasAReceber} />;
       case "despesas-categoria": return <RelatorioDespesasCategoria contasAPagar={contasAPagar} isLoading={isLoadingPagar} />;
       case "inadimplencia": return <RelatorioInadimplencia contasAReceber={contasAReceber} isLoading={isLoadingReceber} />;
-      default: return <RelatorioFluxoCaixa dados={dadosFluxoCaixa} />;
+      default: return <RelatorioFluxoCaixa />;
     }
   };
 
