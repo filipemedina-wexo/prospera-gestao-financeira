@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { parseSupabaseError } from "@/utils/parseSupabaseError";
 
 export function ContasPagar() {
   const { toast } = useToast();
@@ -35,6 +36,7 @@ export function ContasPagar() {
   const [contaParaEditar, setContaParaEditar] = useState<ContaPagar | null>(null);
   const [contaParaRemover, setContaParaRemover] = useState<ContaPagar | null>(null);
   const [contaParaPagar, setContaParaPagar] = useState<ContaPagar | null>(null);
+  const [backendErrors, setBackendErrors] = useState<Record<string, string>>({});
 
   const { data: contasDatabase, isLoading } = useQuery({
     queryKey: ['accounts-payable', currentClientId],
@@ -71,11 +73,17 @@ export function ContasPagar() {
       queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });
       setShowNovaContaDialog(false);
       setContaParaEditar(null);
+      setBackendErrors({});
       toast({ title: `Conta ${contaParaEditar ? 'atualizada' : 'criada'} com sucesso!` });
     },
     onError: (error: any) => {
       console.error("Erro ao criar/atualizar conta:", error);
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      const fieldErrors = parseSupabaseError(error);
+      if (Object.keys(fieldErrors).length) {
+        setBackendErrors(fieldErrors);
+      } else {
+        toast({ title: "Erro", description: error.message, variant: "destructive" });
+      }
     }
   });
   
@@ -180,11 +188,15 @@ export function ContasPagar() {
         <NovaContaDialog
           open={showNovaContaDialog}
           onOpenChange={(isOpen) => {
-            if (!isOpen) setContaParaEditar(null);
+            if (!isOpen) {
+              setContaParaEditar(null);
+              setBackendErrors({});
+            }
             setShowNovaContaDialog(isOpen);
           }}
           onSubmit={(values: any) => upsertMutation(values)}
           contaToEdit={contaParaEditar}
+          backendErrors={backendErrors}
         />
       </div>
 
