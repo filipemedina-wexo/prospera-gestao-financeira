@@ -1753,6 +1753,22 @@ export type Database = {
         }
         Returns: undefined
       }
+      pay_payable: {
+        Args: {
+          p_payable_id: string
+          p_account_id: string
+          p_paid_at?: string
+        }
+        Returns: Database['public']['Tables']['accounts_payable']['Row']
+      }
+      receive_receivable: {
+        Args: {
+          p_receivable_id: string
+          p_account_id: string
+          p_received_at?: string
+        }
+        Returns: Database['public']['Tables']['accounts_receivable']['Row']
+      }
       user_belongs_to_client: {
         Args: { client_uuid: string }
         Returns: boolean

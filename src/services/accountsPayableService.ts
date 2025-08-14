@@ -60,10 +60,11 @@ export const accountsPayableService = {
     }
     
     logStatusOperation('accounts_payable', 'markAsPaid', id, 'paid', { paidDate, bankAccountId });
-    
-    const { error } = await supabase.rpc('registrar_pagamento', {
+
+    const { error } = await supabase.rpc('pay_payable', {
       p_payable_id: id,
-      p_paid_date: paidDate
+      p_account_id: bankAccountId,
+      p_paid_at: paidDate
     });
     
     if (error) {
