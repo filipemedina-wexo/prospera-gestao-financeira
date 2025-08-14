@@ -26,6 +26,7 @@ import { NovaContaReceberDialog } from "./contas-receber/NovaContaReceberDialog"
 import { ContasReceberFilters } from "./contas-receber/ContasReceberFilters";
 import { Dialog } from "@/components/ui/dialog";
 import { RegistrarRecebimentoDialog } from "./contas-receber/RegistrarRecebimentoDialog";
+import { parseSupabaseError } from "@/utils/parseSupabaseError";
 
 const categorias = [ "Vendas de Produtos", "Vendas de Serviços", "Receitas Financeiras", "Outras Receitas", "Mensalidades", "Assinaturas" ];
 
@@ -42,6 +43,7 @@ export function ContasReceber() {
   const [contaParaEditar, setContaParaEditar] = useState<ContaReceber | null>(null);
   const [contaParaRemover, setContaParaRemover] = useState<ContaReceber | null>(null);
   const [contaParaReceber, setContaParaReceber] = useState<ContaReceber | null>(null);
+  const [backendErrors, setBackendErrors] = useState<Record<string, string>>({});
 
   const { data: contasDatabase, isLoading: isLoadingContas } = useQuery({
     queryKey: ['accounts-receivable', currentClientId],
@@ -83,9 +85,17 @@ export function ContasReceber() {
         queryClient.invalidateQueries({ queryKey: ['accounts-receivable', currentClientId] });
         setShowFormDialog(false);
         setContaParaEditar(null);
+        setBackendErrors({});
         toast({ title: `Conta ${contaParaEditar ? 'atualizada' : 'criada'} com sucesso!` });
     },
-    onError: (error: any) => toast({ title: 'Erro', description: error.message, variant: 'destructive' }),
+    onError: (error: any) => {
+        const fieldErrors = parseSupabaseError(error);
+        if (Object.keys(fieldErrors).length) {
+            setBackendErrors(fieldErrors);
+        } else {
+            toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+        }
+    },
   });
   
   const { mutate: deleteMutation } = useMutation({
@@ -213,11 +223,18 @@ export function ContasReceber() {
 
       <NovaContaReceberDialog
           open={showFormDialog}
-          onOpenChange={setShowFormDialog}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setContaParaEditar(null);
+              setBackendErrors({});
+            }
+            setShowFormDialog(isOpen);
+          }}
           onSubmit={(values) => upsertMutation(values)}
           contaToEdit={contaParaEditar}
           clientes={clientes || []}
           categorias={categorias}
+          backendErrors={backendErrors}
       />
       
       <RegistrarRecebimentoDialog

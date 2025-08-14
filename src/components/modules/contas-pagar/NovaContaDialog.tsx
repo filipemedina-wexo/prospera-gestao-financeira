@@ -28,9 +28,10 @@ interface NovaContaDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
   contaToEdit?: ContaPagar | null;
+  backendErrors?: Record<string, string>;
 }
 
-export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: NovaContaDialogProps) {
+export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit, backendErrors }: NovaContaDialogProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -56,6 +57,14 @@ export function NovaContaDialog({ open, onOpenChange, onSubmit, contaToEdit }: N
       recorrente: false,
     },
   });
+
+  useEffect(() => {
+    if (backendErrors) {
+      Object.entries(backendErrors).forEach(([field, message]) => {
+        form.setError(field as any, { type: 'server', message });
+      });
+    }
+  }, [backendErrors, form]);
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) return;

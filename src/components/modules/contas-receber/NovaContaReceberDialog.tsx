@@ -38,9 +38,10 @@ interface NovaContaReceberDialogProps {
   contaToEdit?: ContaReceber | null;
   clientes: FinancialClient[];
   categorias: string[];
+  backendErrors?: Record<string, string>;
 }
 
-export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEdit, clientes, categorias }: NovaContaReceberDialogProps) {
+export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEdit, clientes, categorias, backendErrors }: NovaContaReceberDialogProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [showClientDialog, setShowClientDialog] = useState(false);
   const queryClient = useQueryClient();
@@ -49,6 +50,14 @@ export function NovaContaReceberDialog({ open, onOpenChange, onSubmit, contaToEd
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
   });
+
+  useEffect(() => {
+    if (backendErrors) {
+      Object.entries(backendErrors).forEach(([field, message]) => {
+        form.setError(field as any, { type: 'server', message });
+      });
+    }
+  }, [backendErrors, form]);
 
   useEffect(() => {
     if (open) {
