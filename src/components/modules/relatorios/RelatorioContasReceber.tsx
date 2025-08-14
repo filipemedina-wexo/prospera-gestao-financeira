@@ -2,7 +2,7 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Users, AlertCircle, TrendingUp, CheckCircle, Clock } from "lucide-react";
+import { DollarSign, Users, AlertCircle, TrendingUp, CheckCircle, Clock, XCircle } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -91,7 +91,7 @@ export function RelatorioContasReceber({ contas = [] }: RelatorioContasReceberPr
     pendente: { variant: "secondary", label: "Pendente", icon: Clock },
     recebido: { variant: "default", label: "Recebido", icon: CheckCircle, className: "bg-green-100 text-green-800 border border-green-200" },
     atrasado: { variant: "destructive", label: "Atrasado", icon: AlertCircle },
-    parcial: { variant: "outline", label: "Parcial", icon: DollarSign },
+    cancelado: { variant: "outline", label: "Cancelado", icon: XCircle },
   };
 
   const getStatusBadge = (status?: ContaReceber['status']) => {

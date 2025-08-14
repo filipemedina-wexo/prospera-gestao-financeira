@@ -74,14 +74,13 @@ Este documento resume as correções implementadas para resolver os problemas id
 - `pending` → Frontend: 'pendente'
 - `paid` → Frontend: 'pago'
 - `overdue` → Frontend: 'atrasado'
-- `partial` → Frontend: 'parcial'
+- `canceled` → Frontend: 'cancelado'
 
 **accounts_receivable (Contas a Receber):**
 - `pending` → Frontend: 'pendente'
 - `received` → Frontend: 'recebido'
 - `overdue` → Frontend: 'atrasado'
-- `partial` → Frontend: 'parcial'
-- `paid` → Frontend: 'recebido' (compatibilidade)
+- `canceled` → Frontend: 'cancelado'
 
 ### 🛠️ Ferramentas de Debug
 

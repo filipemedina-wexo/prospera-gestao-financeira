@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, AlertCircle, CheckCircle, CreditCard, TrendingUp, Clock } from "lucide-react";
+import { AlertCircle, CheckCircle, CreditCard, Clock, XCircle } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -100,13 +100,14 @@ export function RelatorioContasPagar({ contas }: RelatorioContasPagarProps) {
     'Despesas Administrativas': "bg-gray-100 text-gray-800 border-gray-200",
   };
 
-  const statusConfig: { [key: string]: { variant: "default" | "destructive" | "secondary", label: string, icon: React.ElementType, className?: string } } = {
+  const statusConfig: { [key: string]: { variant: "default" | "destructive" | "secondary" | "outline", label: string, icon: React.ElementType, className?: string } } = {
     pendente: { variant: "secondary", label: "Pendente", icon: Clock },
     pago: { variant: "default", label: "Pago", icon: CheckCircle, className: "bg-green-100 text-green-800 border border-green-200" },
     atrasado: { variant: "destructive", label: "Atrasado", icon: AlertCircle },
+    cancelado: { variant: "outline", label: "Cancelado", icon: XCircle },
   };
 
-  const getStatusBadge = (status: 'pendente' | 'pago' | 'atrasado') => {
+  const getStatusBadge = (status: 'pendente' | 'pago' | 'atrasado' | 'cancelado') => {
     const config = statusConfig[status];
     if (!config) return null;
     const Icon = config.icon;

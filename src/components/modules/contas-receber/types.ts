@@ -3,7 +3,7 @@ export interface ContaReceber {
   descricao: string;
   valor: number;
   dataVencimento: Date;
-  status: 'pendente' | 'recebido' | 'atrasado' | 'parcial';
+  status: 'pendente' | 'recebido' | 'atrasado' | 'cancelado';
   cliente: string;
   clienteId?: string;
   categoria: string;
@@ -19,8 +19,7 @@ export const ACCOUNTS_RECEIVABLE_STATUS = {
   PENDING: 'pending',
   RECEIVED: 'received',
   OVERDUE: 'overdue',
-  PARTIAL: 'partial',
-  PAID: 'paid'
+  CANCELED: 'canceled'
 } as const;
 
 export type AccountReceivableStatus = typeof ACCOUNTS_RECEIVABLE_STATUS[keyof typeof ACCOUNTS_RECEIVABLE_STATUS];
