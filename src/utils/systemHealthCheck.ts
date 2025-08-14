@@ -84,46 +84,47 @@ export const checkDatabaseFunctions = async (): Promise<HealthCheckResult[]> => 
   const results: HealthCheckResult[] = [];
   
   try {
-    // Check if registrar_recebimento function exists
+    // Check if receive_receivable function exists
     const { data: receivableFunc, error: receivableError } = await supabase
-      .rpc('registrar_recebimento', {
+      .rpc('receive_receivable', {
         p_receivable_id: '00000000-0000-0000-0000-000000000000',
-        p_received_date: '2024-01-01',
-        p_bank_account_id: '00000000-0000-0000-0000-000000000000'
+        p_account_id: '00000000-0000-0000-0000-000000000000',
+        p_received_at: '2024-01-01'
       });
-    
-    if (receivableError && receivableError.message.includes('function registrar_recebimento')) {
+
+    if (receivableError && receivableError.message.includes('function receive_receivable')) {
       results.push({
-        check: 'Database Function: registrar_recebimento',
+        check: 'Database Function: receive_receivable',
         status: 'error',
         message: 'Function does not exist in database',
         details: receivableError
       });
     } else {
       results.push({
-        check: 'Database Function: registrar_recebimento',
+        check: 'Database Function: receive_receivable',
         status: 'success',
         message: 'Function exists and is callable',
       });
     }
-    
-    // Check if registrar_pagamento function exists
+
+    // Check if pay_payable function exists
     const { data: payableFunc, error: payableError } = await supabase
-      .rpc('registrar_pagamento', {
+      .rpc('pay_payable', {
         p_payable_id: '00000000-0000-0000-0000-000000000000',
-        p_paid_date: '2024-01-01'
+        p_account_id: '00000000-0000-0000-0000-000000000000',
+        p_paid_at: '2024-01-01'
       });
-    
-    if (payableError && payableError.message.includes('function registrar_pagamento')) {
+
+    if (payableError && payableError.message.includes('function pay_payable')) {
       results.push({
-        check: 'Database Function: registrar_pagamento',
+        check: 'Database Function: pay_payable',
         status: 'error',
         message: 'Function does not exist in database',
         details: payableError
       });
     } else {
       results.push({
-        check: 'Database Function: registrar_pagamento',
+        check: 'Database Function: pay_payable',
         status: 'success',
         message: 'Function exists and is callable',
       });

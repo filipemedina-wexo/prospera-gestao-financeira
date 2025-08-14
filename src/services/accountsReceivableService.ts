@@ -67,10 +67,10 @@ export const accountsReceivableService = {
       throw new Error('Dados inválidos para registro de recebimento');
     }
     
-    const { error } = await supabase.rpc('registrar_recebimento', {
+    const { error } = await supabase.rpc('receive_receivable', {
       p_receivable_id: id,
-      p_received_date: receivedDate,
-      p_bank_account_id: bankAccountId
+      p_account_id: bankAccountId,
+      p_received_at: receivedDate
     });
     
     if (error) {
