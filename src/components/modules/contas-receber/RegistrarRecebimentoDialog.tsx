@@ -4,6 +4,7 @@ import {
   import { Button } from "@/components/ui/button";
   import { Calendar } from "@/components/ui/calendar";
   import { Label } from "@/components/ui/label";
+  import { Input } from "@/components/ui/input";
   import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
   import { cn } from "@/lib/utils";
@@ -19,9 +20,10 @@ import {
     onConfirm: (data: { receivedDate: Date; bankAccountId: string }) => void;
     conta: ContaReceber | null;
     bankAccounts: BankAccount[];
+    isLoading?: boolean;
   }
-  
-  export function RegistrarRecebimentoDialog({ open, onOpenChange, onConfirm, conta, bankAccounts }: RegistrarRecebimentoDialogProps) {
+
+  export function RegistrarRecebimentoDialog({ open, onOpenChange, onConfirm, conta, bankAccounts, isLoading }: RegistrarRecebimentoDialogProps) {
     const [receivedDate, setReceivedDate] = useState<Date | undefined>(new Date());
     const [bankAccountId, setBankAccountId] = useState<string>("");
   
@@ -61,6 +63,15 @@ import {
               </Popover>
             </div>
             <div>
+              <Label htmlFor="valor">Valor</Label>
+              <Input
+                id="valor"
+                className="w-full mt-2"
+                value={conta?.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? ''}
+                readOnly
+              />
+            </div>
+            <div>
               <Label htmlFor="conta">Conta Creditada *</Label>
               <Select value={bankAccountId} onValueChange={setBankAccountId}>
                   <SelectTrigger><SelectValue placeholder="Selecione a conta..." /></SelectTrigger>
@@ -74,7 +85,7 @@ import {
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm} disabled={!receivedDate || !bankAccountId}>Confirmar Recebimento</AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirm} disabled={!receivedDate || !bankAccountId || isLoading}>Confirmar Recebimento</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

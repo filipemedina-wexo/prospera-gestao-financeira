@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
@@ -26,9 +27,11 @@ interface RegistrarPagamentoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (data: { dataPagamento: Date; bankAccountId: string }) => void;
+  conta: { valor: number } | null;
+  isLoading?: boolean;
 }
 
-export function RegistrarPagamentoDialog({ open, onOpenChange, onConfirm }: RegistrarPagamentoDialogProps) {
+export function RegistrarPagamentoDialog({ open, onOpenChange, onConfirm, conta, isLoading }: RegistrarPagamentoDialogProps) {
   const [dataPagamento, setDataPagamento] = useState<Date | undefined>(new Date());
   const [bankAccountId, setBankAccountId] = useState<string | undefined>();
   const { currentClientId } = useMultiTenant();
@@ -52,7 +55,7 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, onConfirm }: Regi
     }
   };
 
-  const isConfirmDisabled = !dataPagamento || !bankAccountId || isLoadingBankAccounts;
+  const isConfirmDisabled = !dataPagamento || !bankAccountId || isLoadingBankAccounts || isLoading;
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -92,6 +95,15 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, onConfirm }: Regi
                 />
               </PopoverContent>
             </Popover>
+          </div>
+          <div>
+            <Label htmlFor="valor">Valor</Label>
+            <Input
+              id="valor"
+              className="w-full mt-2"
+              value={conta?.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? ''}
+              readOnly
+            />
           </div>
           <div>
             <Label htmlFor="bankAccount">Conta de Pagamento *</Label>
