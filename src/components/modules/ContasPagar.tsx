@@ -92,12 +92,14 @@ export function ContasPagar() {
     }
   });
 
-  const { mutate: markAsPaidMutation } = useMutation({
+  const markAsPaidMutation = useMutation({
     mutationFn: (data: { contaId: string; paidDate: string; bankAccountId: string }) =>
       accountsPayableService.markAsPaid(data.contaId, data.paidDate, data.bankAccountId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts-payable', currentClientId] });
       queryClient.invalidateQueries({ queryKey: ['bank-accounts', currentClientId] });
+      queryClient.invalidateQueries({ queryKey: ['financial-transactions', currentClientId] });
+      queryClient.invalidateQueries({ queryKey: ['alerts', currentClientId] });
       setShowPagamentoDialog(false);
       setContaParaPagar(null);
       toast({ title: 'Pagamento registrado com sucesso!' });
@@ -165,7 +167,7 @@ export function ContasPagar() {
 
   const handleConfirmarPagamento = (data: { dataPagamento: Date; bankAccountId: string }) => {
     if (!contaParaPagar) return;
-    markAsPaidMutation({
+    markAsPaidMutation.mutate({
       contaId: contaParaPagar.id,
       paidDate: format(data.dataPagamento, 'yyyy-MM-dd'),
       bankAccountId: data.bankAccountId,
@@ -191,6 +193,8 @@ export function ContasPagar() {
         open={showPagamentoDialog}
         onOpenChange={setShowPagamentoDialog}
         onConfirm={handleConfirmarPagamento}
+        conta={contaParaPagar}
+        isLoading={markAsPaidMutation.isPending}
       />
 
       {isLoading ? <Skeleton className="h-24 w-full" /> : <ContasPagarSummary {...dadosProcessados.summary} />}

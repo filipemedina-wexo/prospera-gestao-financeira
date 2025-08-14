@@ -14,11 +14,11 @@ import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { useMultiTenant } from "@/contexts/MultiTenantContext";
 import { bankAccountsService } from "@/services/bankAccountsService";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -26,9 +26,11 @@ interface RegistrarPagamentoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (data: { dataPagamento: Date; bankAccountId: string }) => void;
+  conta: { valor: number } | null;
+  isLoading?: boolean;
 }
 
-export function RegistrarPagamentoDialog({ open, onOpenChange, onConfirm }: RegistrarPagamentoDialogProps) {
+export function RegistrarPagamentoDialog({ open, onOpenChange, onConfirm, conta, isLoading }: RegistrarPagamentoDialogProps) {
   const [dataPagamento, setDataPagamento] = useState<Date | undefined>(new Date());
   const [bankAccountId, setBankAccountId] = useState<string | undefined>();
   const { currentClientId } = useMultiTenant();
@@ -76,11 +78,9 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, onConfirm }: Regi
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataPagamento ? (
-                    format(dataPagamento, "dd/MM/yyyy")
-                  ) : (
-                    "Selecione a data"
-                  )}
+                  {dataPagamento
+                    ? dataPagamento.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+                    : "Selecione a data"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
@@ -92,6 +92,15 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, onConfirm }: Regi
                 />
               </PopoverContent>
             </Popover>
+          </div>
+          <div>
+            <Label htmlFor="valor">Valor</Label>
+            <Input
+              id="valor"
+              className="w-full mt-2"
+              readOnly
+              value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(conta?.valor || 0)}
+            />
           </div>
           <div>
             <Label htmlFor="bankAccount">Conta de Pagamento *</Label>
@@ -115,7 +124,7 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, onConfirm }: Regi
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} disabled={isConfirmDisabled}>
+          <AlertDialogAction onClick={handleConfirm} disabled={isConfirmDisabled || isLoading}>
             Confirmar Pagamento
           </AlertDialogAction>
         </AlertDialogFooter>

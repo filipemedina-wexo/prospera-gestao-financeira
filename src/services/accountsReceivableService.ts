@@ -67,17 +67,20 @@ export const accountsReceivableService = {
       throw new Error('Dados inválidos para registro de recebimento');
     }
     
-    const { error } = await supabase.rpc('registrar_recebimento', {
-      p_receivable_id: id,
-      p_received_date: receivedDate,
-      p_bank_account_id: bankAccountId
+    const response = await fetch(`/receivables/${id}/receive`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ receivedDate, bankAccountId }),
     });
-    
-    if (error) {
-      console.error("Erro ao registrar recebimento via RPC:", error);
-      throw new Error(`Erro ao registrar recebimento: ${error.message}`);
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      console.error('Erro ao registrar recebimento:', data);
+      throw new Error(data.message || 'Erro ao registrar recebimento');
     }
-    
+
     console.log('Successfully marked receivable as received');
   },
 };

@@ -59,16 +59,22 @@ export const accountsPayableService = {
       throw new Error('Dados inválidos para registro de pagamento');
     }
     
-    logStatusOperation('accounts_payable', 'markAsPaid', id, 'paid', { paidDate, bankAccountId });
-    
-    const { error } = await supabase.rpc('registrar_pagamento', {
-      p_payable_id: id,
-      p_paid_date: paidDate
+    logStatusOperation('accounts_payable', 'markAsPaid', id, 'paid', {
+      paidDate,
+      bankAccountId,
     });
-    
-    if (error) {
-      console.error("Erro ao registrar pagamento via RPC:", error);
-      throw new Error(`Erro ao registrar pagamento: ${error.message}`);
+
+    const response = await fetch(`/payables/${id}/pay`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ paidDate, bankAccountId }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao registrar pagamento');
     }
   },
 };
