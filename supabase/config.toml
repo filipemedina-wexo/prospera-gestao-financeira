@@ -40,3 +40,8 @@ verify_jwt = false
 
 [analytics]
 port = 54328
+[functions.payables]
+verify_jwt = true
+
+[functions.receivables]
+verify_jwt = true
