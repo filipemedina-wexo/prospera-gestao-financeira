@@ -98,7 +98,7 @@ export function ContasReceber() {
     onError: (error: any) => toast({ title: 'Erro ao remover', description: error.message, variant: 'destructive' }),
   });
   
-  const { mutate: markAsReceivedMutation } = useMutation({
+  const { mutate: markAsReceivedMutation, isPending: isReceiving } = useMutation({
     mutationFn: (data: { contaId: string; receivedDate: string; bankAccountId: string }) =>
       accountsReceivableService.markAsReceived(data.contaId, data.receivedDate, data.bankAccountId),
     onSuccess: () => {
@@ -106,6 +106,7 @@ export function ContasReceber() {
       queryClient.invalidateQueries({ queryKey: ['bank-accounts', currentClientId] });
       queryClient.invalidateQueries({ queryKey: ['financial-transactions', currentClientId] });
       setShowReceberDialog(false);
+      setContaParaReceber(null);
       toast({ title: 'Conta marcada como recebida!' });
     },
     onError: (error: any) =>
@@ -221,10 +222,14 @@ export function ContasReceber() {
       
       <RegistrarRecebimentoDialog
         open={showReceberDialog}
-        onOpenChange={setShowReceberDialog}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setContaParaReceber(null);
+          setShowReceberDialog(isOpen);
+        }}
         onConfirm={handleConfirmarRecebimento}
         conta={contaParaReceber}
         bankAccounts={bankAccounts || []}
+        isLoading={isReceiving}
       />
 
       {isLoading ? <Skeleton className="h-24 w-full" /> : (
