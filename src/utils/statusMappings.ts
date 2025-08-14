@@ -8,8 +8,8 @@ import { ACCOUNTS_RECEIVABLE_STATUS } from '@/components/modules/contas-receber/
  */
 
 // Frontend status types
-export type FrontendPayableStatus = 'pendente' | 'pago' | 'atrasado' | 'parcial';
-export type FrontendReceivableStatus = 'pendente' | 'recebido' | 'atrasado' | 'parcial';
+export type FrontendPayableStatus = 'pendente' | 'pago' | 'atrasado' | 'parcial' | 'cancelado';
+export type FrontendReceivableStatus = 'pendente' | 'recebido' | 'atrasado' | 'parcial' | 'cancelado';
 
 // Database status types
 export type DatabasePayableStatus = Database['public']['Enums']['account_payable_status'];
@@ -23,7 +23,8 @@ export const mapFrontendPayableToDatabase = (status: FrontendPayableStatus): Dat
     pendente: ACCOUNTS_PAYABLE_STATUS.PENDING,
     pago: ACCOUNTS_PAYABLE_STATUS.PAID,
     atrasado: ACCOUNTS_PAYABLE_STATUS.OVERDUE,
-    parcial: ACCOUNTS_PAYABLE_STATUS.PARTIAL
+    parcial: ACCOUNTS_PAYABLE_STATUS.PARTIAL,
+    cancelado: ACCOUNTS_PAYABLE_STATUS.CANCELED
   };
   return mapping[status];
 };
@@ -36,7 +37,8 @@ export const mapDatabasePayableToFrontend = (status: DatabasePayableStatus): Fro
     [ACCOUNTS_PAYABLE_STATUS.PENDING]: 'pendente',
     [ACCOUNTS_PAYABLE_STATUS.PAID]: 'pago',
     [ACCOUNTS_PAYABLE_STATUS.OVERDUE]: 'atrasado',
-    [ACCOUNTS_PAYABLE_STATUS.PARTIAL]: 'parcial'
+    [ACCOUNTS_PAYABLE_STATUS.PARTIAL]: 'parcial',
+    [ACCOUNTS_PAYABLE_STATUS.CANCELED]: 'cancelado'
   };
   return mapping[status];
 };
@@ -49,7 +51,8 @@ export const mapFrontendReceivableToDatabase = (status: FrontendReceivableStatus
     pendente: ACCOUNTS_RECEIVABLE_STATUS.PENDING,
     recebido: ACCOUNTS_RECEIVABLE_STATUS.RECEIVED,
     atrasado: ACCOUNTS_RECEIVABLE_STATUS.OVERDUE,
-    parcial: ACCOUNTS_RECEIVABLE_STATUS.PARTIAL
+    parcial: ACCOUNTS_RECEIVABLE_STATUS.PARTIAL,
+    cancelado: ACCOUNTS_RECEIVABLE_STATUS.CANCELED
   };
   return mapping[status];
 };
@@ -63,7 +66,8 @@ export const mapDatabaseReceivableToFrontend = (status: DatabaseReceivableStatus
     [ACCOUNTS_RECEIVABLE_STATUS.RECEIVED]: 'recebido',
     [ACCOUNTS_RECEIVABLE_STATUS.OVERDUE]: 'atrasado',
     [ACCOUNTS_RECEIVABLE_STATUS.PARTIAL]: 'parcial',
-    [ACCOUNTS_RECEIVABLE_STATUS.PAID]: 'recebido' // Map paid to recebido for compatibility
+    [ACCOUNTS_RECEIVABLE_STATUS.PAID]: 'recebido', // Map paid to recebido for compatibility
+    [ACCOUNTS_RECEIVABLE_STATUS.CANCELED]: 'cancelado'
   };
   return mapping[status];
 };

@@ -3,7 +3,7 @@ export interface ContaPagar {
   descricao: string;
   valor: number;
   dataVencimento: Date;
-  status: 'pendente' | 'pago' | 'atrasado' | 'parcial';
+  status: 'pendente' | 'pago' | 'atrasado' | 'parcial' | 'cancelado';
   fornecedor: string;
   fornecedorId?: string; // ID do financial_client
   categoria: string;
@@ -23,7 +23,8 @@ export const ACCOUNTS_PAYABLE_STATUS = {
   PENDING: 'pending',
   PAID: 'paid',
   OVERDUE: 'overdue',
-  PARTIAL: 'partial'
+  PARTIAL: 'partial',
+  CANCELED: 'canceled'
 } as const;
 
 export type AccountPayableStatus = typeof ACCOUNTS_PAYABLE_STATUS[keyof typeof ACCOUNTS_PAYABLE_STATUS];

@@ -1774,13 +1774,14 @@ export type Database = {
       }
     }
     Enums: {
-      account_payable_status: "pending" | "paid" | "overdue" | "partial"
+      account_payable_status: "pending" | "paid" | "overdue" | "partial" | "canceled"
       account_receivable_status:
         | "pending"
         | "received"
         | "overdue"
         | "partial"
         | "paid"
+        | "canceled"
       app_role:
         | "admin"
         | "financeiro"
@@ -1922,13 +1923,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      account_payable_status: ["pending", "paid", "overdue", "partial"],
+      account_payable_status: ["pending", "paid", "overdue", "partial", "canceled"],
       account_receivable_status: [
         "pending",
         "received",
         "overdue",
         "partial",
         "paid",
+        "canceled",
       ],
       app_role: ["admin", "financeiro", "comercial", "contador", "super_admin"],
       saas_client_status: ["active", "blocked", "trial", "suspended"],
