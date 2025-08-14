@@ -36,6 +36,7 @@ export function ContasReceberFilters({
                 <SelectItem value="pendente">Pendente</SelectItem>
                 <SelectItem value="recebido">Recebido</SelectItem>
                 <SelectItem value="atrasado">Atrasado</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
             </SelectContent>
         </Select>
         <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>

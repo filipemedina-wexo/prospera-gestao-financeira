@@ -1,9 +1,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { Edit, Trash2, CheckCircle } from "lucide-react";
 import { ContaPagar } from "./types";
 import { ActionsDropdown, ActionItem } from "@/components/ui/actions-dropdown";
 
@@ -20,14 +18,14 @@ export function ContasPagarTable({ contas, onAbrirDialogPagamento, onEdit, onDel
       pendente: 'secondary',
       pago: 'default',
       atrasado: 'destructive',
-      parcial: 'outline',
+      cancelado: 'outline',
     } as const;
 
     const labels = {
       pendente: 'Pendente',
       pago: 'Pago',
       atrasado: 'Atrasado',
-      parcial: 'Parcial',
+      cancelado: 'Cancelado',
     };
 
     return (
@@ -48,7 +46,7 @@ export function ContasPagarTable({ contas, onAbrirDialogPagamento, onEdit, onDel
         type: 'register',
         label: 'Registrar Pagamento',
         onClick: () => onAbrirDialogPagamento(conta),
-        disabled: conta.status === 'pago',
+        disabled: conta.status === 'pago' || conta.status === 'cancelado',
         variant: 'success'
       },
       {

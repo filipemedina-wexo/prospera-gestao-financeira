@@ -36,7 +36,7 @@ export type Database = {
           recurrence_frequency: string | null
           recurrence_group_id: string | null
           saas_client_id: string
-          status: Database["public"]["Enums"]["account_payable_status"]
+          status: 'pending' | 'overdue' | 'paid' | 'canceled'
           updated_at: string
         }
         Insert: {
@@ -60,7 +60,7 @@ export type Database = {
           recurrence_frequency?: string | null
           recurrence_group_id?: string | null
           saas_client_id: string
-          status?: Database["public"]["Enums"]["account_payable_status"]
+          status?: 'pending' | 'overdue' | 'paid' | 'canceled'
           updated_at?: string
         }
         Update: {
@@ -84,7 +84,7 @@ export type Database = {
           recurrence_frequency?: string | null
           recurrence_group_id?: string | null
           saas_client_id?: string
-          status?: Database["public"]["Enums"]["account_payable_status"]
+          status?: 'pending' | 'overdue' | 'paid' | 'canceled'
           updated_at?: string
         }
         Relationships: [
@@ -141,7 +141,7 @@ export type Database = {
           recurrence_frequency: string | null
           recurrence_group_id: string | null
           saas_client_id: string
-          status: Database["public"]["Enums"]["account_receivable_status"]
+          status: 'pending' | 'overdue' | 'received' | 'canceled'
           updated_at: string
         }
         Insert: {
@@ -166,7 +166,7 @@ export type Database = {
           recurrence_frequency?: string | null
           recurrence_group_id?: string | null
           saas_client_id: string
-          status?: Database["public"]["Enums"]["account_receivable_status"]
+          status?: 'pending' | 'overdue' | 'received' | 'canceled'
           updated_at?: string
         }
         Update: {
@@ -191,7 +191,7 @@ export type Database = {
           recurrence_frequency?: string | null
           recurrence_group_id?: string | null
           saas_client_id?: string
-          status?: Database["public"]["Enums"]["account_receivable_status"]
+          status?: 'pending' | 'overdue' | 'received' | 'canceled'
           updated_at?: string
         }
         Relationships: [
@@ -1774,13 +1774,12 @@ export type Database = {
       }
     }
     Enums: {
-      account_payable_status: "pending" | "paid" | "overdue" | "partial"
+      account_payable_status: "pending" | "overdue" | "paid" | "canceled"
       account_receivable_status:
         | "pending"
-        | "received"
         | "overdue"
-        | "partial"
-        | "paid"
+        | "received"
+        | "canceled"
       app_role:
         | "admin"
         | "financeiro"
@@ -1922,13 +1921,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      account_payable_status: ["pending", "paid", "overdue", "partial"],
+      account_payable_status: ["pending", "overdue", "paid", "canceled"],
       account_receivable_status: [
         "pending",
-        "received",
         "overdue",
-        "partial",
-        "paid",
+        "received",
+        "canceled",
       ],
       app_role: ["admin", "financeiro", "comercial", "contador", "super_admin"],
       saas_client_status: ["active", "blocked", "trial", "suspended"],

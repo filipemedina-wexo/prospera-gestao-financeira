@@ -26,7 +26,7 @@ export const checkStatusMappings = (): HealthCheckResult[] => {
   
   try {
     // Test payable status mappings
-    const payableStatuses = ['pendente', 'pago', 'atrasado', 'parcial'] as const;
+    const payableStatuses = ['pendente', 'pago', 'atrasado', 'cancelado'] as const;
     for (const status of payableStatuses) {
       const dbStatus = mapFrontendPayableToDatabase(status);
       const backToFrontend = mapDatabasePayableToFrontend(dbStatus);
@@ -47,7 +47,7 @@ export const checkStatusMappings = (): HealthCheckResult[] => {
     }
     
     // Test receivable status mappings
-    const receivableStatuses = ['pendente', 'recebido', 'atrasado', 'parcial'] as const;
+    const receivableStatuses = ['pendente', 'recebido', 'atrasado', 'cancelado'] as const;
     for (const status of receivableStatuses) {
       const dbStatus = mapFrontendReceivableToDatabase(status);
       const backToFrontend = mapDatabaseReceivableToFrontend(dbStatus);

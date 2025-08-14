@@ -98,8 +98,8 @@ class StatusLogger {
 
   // Helper to validate status for debugging
   validateStatus(table: 'accounts_payable' | 'accounts_receivable', status: string): boolean {
-    const validPayableStatuses = ['pending', 'paid', 'overdue', 'partial'];
-    const validReceivableStatuses = ['pending', 'received', 'overdue', 'partial', 'paid'];
+    const validPayableStatuses = ['pending', 'paid', 'overdue', 'canceled'];
+    const validReceivableStatuses = ['pending', 'received', 'overdue', 'canceled'];
 
     const isValid = table === 'accounts_payable' 
       ? validPayableStatuses.includes(status)

@@ -1,8 +1,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle, Clock, DollarSign, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ContaReceber } from "./types";
 import { cn } from "@/lib/utils";
@@ -19,7 +18,7 @@ const getStatusBadge = (status?: ContaReceber['status']) => {
       pendente: { variant: "secondary" as const, label: "Pendente", icon: Clock },
       recebido: { variant: "default" as const, label: "Recebido", icon: CheckCircle, className: 'bg-green-100 text-green-800' },
       atrasado: { variant: "destructive" as const, label: "Atrasado", icon: AlertCircle },
-      parcial: { variant: "outline" as const, label: "Parcial", icon: DollarSign }
+      cancelado: { variant: "outline" as const, label: "Cancelado", icon: XCircle }
     };
     if (!status || !statusConfig[status]) {
         return <Badge variant="outline">N/A</Badge>;
@@ -46,7 +45,7 @@ export function ContasReceberTable({ contas, onEdit, onDelete, onReceber }: Cont
         type: 'register',
         label: 'Registrar Recebimento',
         onClick: () => onReceber(conta),
-        disabled: conta.status === 'recebido',
+        disabled: conta.status === 'recebido' || conta.status === 'cancelado',
         variant: 'success'
       },
       {

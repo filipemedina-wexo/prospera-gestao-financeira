@@ -63,7 +63,7 @@ export function ContasPagarFilters({
               <SelectItem value="pendente">Pendente</SelectItem>
               <SelectItem value="pago">Pago</SelectItem>
               <SelectItem value="atrasado">Atrasado</SelectItem>
-              <SelectItem value="parcial">Parcial</SelectItem>
+              <SelectItem value="cancelado">Cancelado</SelectItem>
             </SelectContent>
           </Select>
           <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>

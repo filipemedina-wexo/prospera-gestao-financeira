@@ -50,9 +50,9 @@ export function Relatorios() {
   const contasAPagar: ContaPagar[] = useMemo(() => (contasPagarData || []).map(c => {
     const statusMapping = {
       'pending': 'pendente',
-      'paid': 'pago', 
+      'paid': 'pago',
       'overdue': 'atrasado',
-      'partial': 'parcial'
+      'canceled': 'cancelado'
     } as const;
 
     return {
@@ -71,8 +71,8 @@ export function Relatorios() {
     const statusMapping = {
       'pending': 'pendente',
       'received': 'recebido',
-      'overdue': 'atrasado', 
-      'partial': 'parcial'
+      'overdue': 'atrasado',
+      'canceled': 'cancelado'
     } as const;
 
     return {
